@@ -93,3 +93,4 @@ $ . venv/bin/activate
 ```
 
 * Then create a requirements file and manually add anything you install with `pip` to that file. I also included `pip>=23.0.1` as I kept getting a note that I had an earlier version.
+* [Git keeps asking me for my ssh key passphrase](https://stackoverflow.com/questions/10032461/git-keeps-asking-me-for-my-ssh-key-passphrase) - helpful tip.
