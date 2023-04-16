@@ -10,21 +10,34 @@ I used chatGPT to help me write some of them.
 
 *Listed in order of creation.*
 
-1. `random_sentence.py` - In the spirit of the library of babel, I wanted to create a program that would string together random words to create sentences. 
+1. `random_sentence.py` - creates random "words" and sentences.
+    - In the spirit of the library of babel, I wanted to create a program that would string together random words to create sentences. 
     - Ideally I wanted to recreate the library of babel site so that I could create books and eventually find one that made sense. 
     - But with infinity, there's infinite nothingness and chaos as well as everything that's ever existed and ever will be, so I abandoned this. 
     - I also thought about adding a dictionary so that only words that made sense would be output, but abandoned that too.
-2. `random_sentence_save.py` - this is the same as the first one, except it saves the randomness to a file instead of outputting it in the console.
-3. `dice_roles.py` - Inspired by randomness and craps, I asked chatGPT to "write a python program that simulates the role of two six-sided dice and generates a histogram of results." 
+2. `random_sentence_save.py` - same, except saves to file.
+    - this is the same as the first one, except it saves the randomness to a file instead of outputting it in the console.
+3. `dice_roles.py` - rolls 2 6-sided dice.
+    - Inspired by randomness and craps, I asked chatGPT to "write a python program that simulates the role of two six-sided dice and generates a histogram of results." 
     - I probably could have written it myself, but it was easier to ask chatGPT to do it, and it worked!
-4. `wiki_articles.py` - I asked chatGPT if wikipedia had an API, then to write a program that would display the 10 most recently updated articles.
+4. `wiki_articles.py` - displays the 10 most recently-updated articles.
+    - I asked chatGPT if wikipedia had an API, then to write a program that would display the 10 most recently-updated articles.
     - "Create a python program that appends the titles of the most recently edited Wikipedia articles to a text file."
     - I thought I wasn't getting any responses, but it was because I had the output file open in VSCode, and it doesn't update text files in real time, I have to close & open the file again to see changes.
-5. `your_youtube.py` - I decided to switch to the YouTube API, which necessitated signing up with the Google develper program to get an API key. I didn't really try this sample until after I got the search location working.
-6. `youtube_search_loc.py` - I skipped to this as I wanted to see the 10 most recent YouTube videos in a particular location. I had some trouble getting this running. See the section below for details.
-7. `lat_long.py` - I needed the latitude and longitude for the YouTube search location so I asked chatGPT to help me with the maps API.
+5. `your_youtube.py` - displays the 10 most recently-added YouTube videos.
+    - I decided to switch to the YouTube API, which necessitated signing up with the Google develper program to get an API key. I didn't really try this sample until after I got the search location working.
+6. `youtube_search_loc.py` - displays the 10 most recently-added YouTube videos in a specific location.
+    - I skipped to this as I wanted to see the 10 most recent YouTube videos in a particular location. I had some trouble getting this running. See the section below for details.
+7. `lat_long.py` - Displays the latitude and longitude for an address. Uses the Google Maps API.
+    - I needed the latitude and longitude for the YouTube search location so I asked chatGPT to help me with the maps API.
     - This API required a separate API Key so I got that and ran it successfully.
-8. `yt_loc2.py` - This integrates the YouTube search app with the latitude and longitude app and adds input questions in the console for an easier experience.
+8. `yt_loc2.py` - User-friendly YouTube search by location.
+    - This integrates the YouTube search app with the latitude and longitude app and adds input questions in the console for an easier experience.
+
+## Requirements
+
+* Sign up to develop with the [Google Cloud Platform](https://console.cloud.google.com/), create a project, and activate the YouTube Data API v3 and the Geocoding API.
+* Create an `.env` file with `YOUTUBE_API_KEY=yourapikey` and `MAPS_API_KEY=yourmapsapikey`.
 
 ## YouTube search
 
