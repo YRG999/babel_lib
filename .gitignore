@@ -1,0 +1,4 @@
+_notes/
+output/
+venv/
+.env
