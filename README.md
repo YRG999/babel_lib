@@ -33,8 +33,12 @@ I used chatGPT to help me write some of them.
     - This API required a separate API Key so I got that and ran it successfully.
 8. `yt_loc2.py` - User-friendly YouTube search by location.
     - This integrates the YouTube search app with the latitude and longitude app and adds input questions in the console for an easier experience.
+9. `gnews_scraper.py` - Scrape Google News headlines.
+    - Just grabs the top stories. Can't figure out how to get all the stories on the page yet.
 
-## Requirements
+## YouTube and Geolocation Requirements
+
+*Required for apps 5-8*
 
 * Sign up to develop with the [Google Cloud Platform](https://console.cloud.google.com/), create a project, and activate the YouTube Data API v3 and the Geocoding API.
 * Create an `.env` file with `YOUTUBE_API_KEY=yourapikey` and `MAPS_API_KEY=yourmapsapikey`.
