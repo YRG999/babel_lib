@@ -2,3 +2,4 @@ _notes/
 output/
 venv/
 .env
+.DS_Store
