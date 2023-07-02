@@ -8,13 +8,12 @@ I used chatGPT to help me write some of them.
 
 ## Experiments
 
-*Listed in order of creation.*
-
 1. `random_sentence.py` - creates random "words" and sentences.
     - In the spirit of the library of babel, I wanted to create a program that would string together random words to create sentences. 
     - Ideally I wanted to recreate the library of babel site so that I could create books and eventually find one that made sense. 
     - But with infinity, there's infinite nothingness and chaos as well as everything that's ever existed and ever will be, so I abandoned this. 
     - I also thought about adding a dictionary so that only words that made sense would be output, but abandoned that too.
+    - **Update:** see `gensen_worddict.py` for further explorations
 2. `random_sentence_save.py` - same, except saves to file.
     - this is the same as the first one, except it saves the randomness to a file instead of outputting it in the console.
 3. `dice_roles.py` - rolls 2 6-sided dice.
@@ -35,6 +34,31 @@ I used chatGPT to help me write some of them.
     - This integrates the YouTube search app with the latitude and longitude app and adds input questions in the console for an easier experience.
 9. `gnews_scraper.py` - Scrape Google News headlines.
     - Just grabs the top stories. Can't figure out how to get all the stories on the page yet.
+    - **Updated to pull latest 5 headlines based on `h4` top stories.**
+10. `gensen_worddict.py` - Expanded `random_sentence.py`.
+    - Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
+    - **TODO:** Needs articles added to create a valid sentence.
+11. `gen_pass.py` - Generate passphrase.
+    - Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
+    - As it is, this creates very complex passphrases that may be easier to remember than random character strings, but they're very long and complex.
+    - **TODO:** Needs to use simpler words that can be easily remembered, less capitalization (however this may make them less secure).
+
+## Setup
+
+For initial setup, create a virtual environment & run it:
+
+```bash
+$ python -m venv venv
+$ . venv/bin/activate
+```
+
+Then install requirements:
+
+```shell
+pip install -r requirements.txt
+```
+
+In subsequent setups, just run the second venv line to activate the virtual environment.
 
 ## YouTube and Geolocation Requirements
 
@@ -89,12 +113,27 @@ I used chatGPT to help me write some of them.
 * [Let users watch, find, and manage YouTube content (main API page)](https://developers.google.com/youtube) - I kept getting this page, which is not useful as I can't get anywhere from here.
 * [Request contains an invalid argument Location paramter \[sic\] Youtube API ](https://stackoverflow.com/questions/72883738/request-contains-an-invalid-argument-location-paramter-youtube-api) - This helped me troubleshoot errors I was having with sending an invalid location parameter. Prior to this, I didn't know how to specify the latitude and longitude. I had been sending it as `(lat,long)` with the parentheses, but this answer showed that I should not use that.
 * [Jump Start Solution: Log analysis pipeline](https://cloud.google.com/architecture/monitoring/log-analysis-pipeline) - this is totally off track and had nothing to do with anything. I just wanted to see what a jump start solution looked like, but I couldn't make sense of this (just a way to log and analyse data). Something for another day.
-* Oh, I used a virtual environment and I keep forgetting how to set it up, so briefly, here's how:
-
-```bash
-$ python -m venv venv
-$ . venv/bin/activate
-```
-
-* Then create a requirements file and manually add anything you install with `pip` to that file. I also included `pip>=23.0.1` as I kept getting a note that I had an earlier version.
+* I included `pip>=23.0.1` in my requirements.txt file as I kept getting a note that I had an earlier version.
+  * Run `pip list` to list installed packages.
 * [Git keeps asking me for my ssh key passphrase](https://stackoverflow.com/questions/10032461/git-keeps-asking-me-for-my-ssh-key-passphrase) - helpful tip.
+
+### Jul 2 notes
+* *Sun, Jul 2, 2023*
+* Random word & dictionary APIs
+  * https://developer.wordnik.com/docs#!/words/getRandomWord
+  * https://random-word-api.herokuapp.com/home
+  * https://pipedream.com/apps/dictionary-api
+    * https://dictionaryapi.dev/
+    * https://pipedream.com/apps/dictionary-api/integrations/google
+  * https://rapidapi.com/blog/dictionary-apis/
+  * https://www.wordsapi.com/
+    * https://www.wordsapi.com/docs/#random-words
+  * https://www.reddit.com/r/learnprogramming/comments/uslfi2/looking_for_a_random_word_api_where_i_can_specify/
+    * https://github.com/nltk/nltk
+    * https://www.datamuse.com/api/
+* https://pypi.org/project/language-tool-python/
+  * https://languagetool.org/
+* https://docs.python.org/3/library/unittest.html
+* https://stackabuse.com/guide-to-parsing-html-with-beautifulsoup-in-python/
+* https://www.geeksforgeeks.org/beautifulsoup-scraping-paragraphs-from-html/
+* https://towardsdatascience.com/web-scraping-basics-82f8b5acd45c

@@ -1,5 +1,8 @@
+# gnews_scraper3b.py
+
 import requests
 from bs4 import BeautifulSoup
+import datetime
 
 # Send a request to the webpage
 url = 'https://news.google.com/'
@@ -9,20 +12,22 @@ response = requests.get(url)
 soup = BeautifulSoup(response.content, 'html.parser')
 
 # Find the data you want to extract
-title = soup.title.text
-headlines = set()
+title = soup.article.div.h4
+headlines = []
 
 # Loop over each article and extract its headline
+counter = 0  # Counter for limiting the number of headlines
 for article in soup.find_all('article'):
-    headline = article.find('a', {'aria-label': True})
+    headline = article.find('h4')
     if headline:
-        headline_text = headline['aria-label']
+        headline_text = headline.text  # Get the text content of the h4 element
         if headline_text not in headlines:
-            headlines.add(headline_text)
-            print(headline_text)
+            headlines.append(headline_text)
+            counter += 1
+            print(f"{counter}. {headline_text}")
+            if counter >= 5:  # Limit the number of headlines to display (e.g., top 5)
+                break
 
-# Write the extracted data to a file
-with open('output/website_text.txt', 'a') as file:
-    file.write('Title: {}\n'.format(title))
-    file.write('Headlines:\n{}\n'.format('\n'.join(headlines)))
-    file.write('\n')
+# Print the current date and time
+current_datetime = datetime.datetime.now()
+print("\nDate and Time:", current_datetime)
