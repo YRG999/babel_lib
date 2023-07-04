@@ -42,6 +42,9 @@ I used chatGPT to help me write some of them.
     - Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
     - As it is, this creates very complex passphrases that may be easier to remember than random character strings, but they're very long and complex.
     - **TODO:** Needs to use simpler words that can be easily remembered, less capitalization (however this may make them less secure).
+12. `news_scraper` - BBC and NY Times headline scraper.
+    - Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
+    - Removed keyword highlighter.
 
 ## Setup
 
