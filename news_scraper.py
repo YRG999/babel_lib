@@ -5,6 +5,7 @@
 
 from bs4 import BeautifulSoup
 import requests
+import datetime
 
 # Creates a header
 headers = {'User-agent': 'Mozilla/5.0'}
@@ -55,3 +56,7 @@ def nyt_news_scraper():
         print('NYT', i + 1, ':', title, text)
 
 nyt_news_scraper()
+
+# Print the current date and time
+current_datetime = datetime.datetime.now()
+print("\nDate and Time:", current_datetime)
