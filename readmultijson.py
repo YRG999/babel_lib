@@ -18,7 +18,6 @@ def extract_message_and_author(data):
 # Load each JSON object separately
 data_list = []
 with open(filename, 'r') as json_file:
-# with open('MORNING BEEZE [CdDjBVqaEPs].live_chat.json', 'r') as json_file:
     for line in json_file:
         data_list.append(json.loads(line))
 
