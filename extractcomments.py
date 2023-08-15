@@ -34,7 +34,7 @@ for comment in comments:
     extracted_data.append([comment_id, text, author, timestamp, eastern_time.strftime('%Y-%m-%d %H:%M:%S')])
 
 # 3. Write the extracted data to a CSV file
-with open('output.csv', 'w', newline='') as file:
+with open(json_file+'-output.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(["ID", "Text", "Author", "Timestamp", "Eastern Time"])  # Writing the headers
     writer.writerows(extracted_data)
