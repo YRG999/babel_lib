@@ -19,11 +19,12 @@ This is called BABEL_LIB after the [Library of Babel](https://libraryofbabel.inf
 13. `dlvideo.py` - Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
 14. `ytdlchatvidthreads.py` - Download YouTube Live video and chat.
 15. ~~`readmultijson.py` - Extract message and username from YouTube Live chat JSON file.~~
-16. `commentdl.py` - Download comments from YouTube video and automatically runs `extractcomments.py`.
-17. `extractcomments.py` - Extract comments from JSON file into CSV.
+16. `commentdl.py` - Download comments from YouTube video ~~and automatically runs `extractcomments.py`~~. Saves output as a JSON and CSV file. Depends on `youtube_functions.py`
+17. ~~`extractcomments.py` - Extract comments from JSON file into CSV.~~ No longer relevant.
 18. `entername.py` - Enter your name and get greeted with the current time.
 19. `givename.py` - Runs `entername.py` and passes in a hardcoded name.
 20. Replaced `readmultijson.py` with `main_extraction.py` and `extract_functions.py` to separate functions and add emoji and timestamps.
+21. `youtube_functions.py` - functions used in `commentdl.py`.
 
 ## Setup
 
