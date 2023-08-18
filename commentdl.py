@@ -1,4 +1,5 @@
 # commentdl_updated_v2
+# downloads comments from a youtube video and saves as JSON and CSV
 # depends on youtube_functions.py
 
 import csv

@@ -1,0 +1,60 @@
+# youtube live video, chat, and comments download
+# consolidates ytdlchatvidthreads, main_extraction and commentdl
+# and uses extract_functions and youtube_functions
+
+import csv
+import sys
+import threading
+from youtube_functions import download_comments, get_video_url, extract_comments_from_json
+from youtube_functions2 import extract_data_from_json, write_to_csv, download_chat, download_video
+
+if __name__ == "__main__":
+    video_url = get_video_url()
+    if not video_url:
+        print("No video URL provided.")
+        sys.exit(1)
+
+    comments_file = download_comments(video_url)
+    if comments_file:
+        print(f"Comments saved to: {comments_file}")
+        extracted_data = extract_comments_from_json(comments_file)
+        csv_filename = comments_file.replace(".json", ".csv")
+        with open(csv_filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['Comment ID', 'Text', 'Author', 'Timestamp', 'Eastern Time'])
+            writer.writerows(extracted_data)
+        print(f"Comments extracted to: {csv_filename}")
+    else:
+        print("Failed to download comments.")
+
+# Download YouTube Live in two threads: chat & video.
+vidurl = video_url
+URLS = [vidurl]
+
+# Create threads
+video_thread = threading.Thread(target=download_video(URLS))
+chat_thread = threading.Thread(target=download_chat(URLS))
+
+# Start threads
+video_thread.start()
+chat_thread.start()
+
+# Wait for threads to complete
+video_thread.join()
+chat_thread.join()
+
+# Convert chat JSON to CSV
+
+## first rename comments file (it uses the name to figure out the live chat file name)
+# TODO: figure out how to directly capture the livechat filename (this seems more complex, so used this shortcut instead)
+
+old_name = comments_file
+new_name = old_name.replace(".info.json", ".live_chat.json")
+
+## then convert JSON live chat to CSV
+
+json_path = new_name  # Path to your JSON file
+csv_path = json_path+".csv"  # Desired path for the CSV file
+data = extract_data_from_json(json_path)
+write_to_csv(data, csv_path)
+print(f"Data written to '{csv_path}'")

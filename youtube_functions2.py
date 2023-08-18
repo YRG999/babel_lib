@@ -1,16 +1,9 @@
-# Extract live comments from JSON & save to CSV
+# youtube_functions2.py
 
-# First use ytdlchatvidthreads.py to download Youtube chat
-# then use this to convert chat JSON to CSV
-
-import json
 import csv
+import json
+from yt_dlp import YoutubeDL
 from extract_functions import extract_message, extract_emoji, extract_authorname, extract_timestamp, convert_to_eastern
-
-def ask_filename():
-    print("Name or path of file to extract")
-    filename = input()
-    return filename
 
 def extract_data_from_json(json_path):
     data_list = []
@@ -48,12 +41,25 @@ def write_to_csv(data, csv_path):
         writer.writerow(["Message", "Emoji", "AuthorName", "Eastern Time"])
         writer.writerows(data)
 
-if __name__ == "__main__":
-    # json_path = "test.json"  # Path to your JSON file
-    # csv_path = "output.csv"  # Desired path for the CSV file
-    json_path = ask_filename()  # Path to your JSON file
-    csv_path = json_path+".csv"  # Desired path for the CSV file
+def download_chat(URLS):
+    ydl_opts_chat = {
+        'skip_download': True,          # Don't download the video, just subtitles (live chat replay)
+        'allsubs': True,                # Try to download all available subtitles (includes live chat replay)
+        'writesubtitles': True,         # Write subtitle files
+        'postprocessors': [{
+            'key': 'FFmpegSubtitlesConvertor',
+            'format': 'srt',
+        }],
+    }
+    
+    with YoutubeDL(ydl_opts_chat) as ydl:
+        ydl.download(URLS)
 
-    data = extract_data_from_json(json_path)
-    write_to_csv(data, csv_path)
-    print(f"Data written to '{csv_path}'")
+def download_video(URLS):
+    ydl_opts_video = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+        'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
+    }
+    
+    with YoutubeDL(ydl_opts_video) as ydl:
+        ydl.download(URLS)
