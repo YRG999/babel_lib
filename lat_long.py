@@ -6,7 +6,9 @@ load_dotenv()
 API_KEY = os.getenv("MAPS_API_KEY")
 
 # Define the location you want to search for
-address = '1600 Amphitheatre Parkway, Mountain View, CA'
+# address = '1600 Amphitheatre Parkway, Mountain View, CA'
+print("Enter address (street, city, state):")
+address = input()
 
 # Build the API request URL
 url = f'https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={API_KEY}'
