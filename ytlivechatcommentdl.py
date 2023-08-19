@@ -2,6 +2,7 @@
 # consolidates ytdlchatvidthreads, main_extraction and commentdl
 # and uses extract_functions and youtube_functions
 
+import os
 import csv
 import sys
 import threading
@@ -44,17 +45,19 @@ video_thread.join()
 chat_thread.join()
 
 # Convert chat JSON to CSV
+## This code uses the name of the comments json file to figure out the name of the live chat file
+## TODO: figure out how to directly capture the livechat filename (this seems more complex, so used this shortcut instead)
 
-## first rename comments file (it uses the name to figure out the live chat file name)
-# TODO: figure out how to directly capture the livechat filename (this seems more complex, so used this shortcut instead)
-
+## Rename comments JSON file to live_chat JSON file
 old_name = comments_file
 new_name = old_name.replace(".info.json", ".live_chat.json")
-
-## then convert JSON live chat to CSV
-
 json_path = new_name  # Path to your JSON file
-csv_path = json_path+".csv"  # Desired path for the CSV file
-data = extract_data_from_json(json_path)
-write_to_csv(data, csv_path)
-print(f"Data written to '{csv_path}'")
+
+### check to see if there is a downloaded livechat JSON file
+if os.path.exists(json_path):
+    csv_path = json_path+".csv"  # Name CSV file by added extension to JSON file
+    data = extract_data_from_json(json_path) # Extract data from live_chat.json
+    write_to_csv(data, csv_path) # Write to live_chat.json.csv
+    print(f"Data written to '{csv_path}'") # Print the name of the CSV file to the console
+else:
+    print(f"'{json_path}' does not exist.")
