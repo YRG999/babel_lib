@@ -2,6 +2,16 @@
 
 This is called BABEL_LIB after the [Library of Babel](https://libraryofbabel.info/) website. It started as an experiment in randomness but now hosts a bunch of experimental programs. I used chatGPT to help me write some of them.
 
+- [Experiments](#experiments)
+  - [Random](#random)
+  - [Wikipedia \& news](#wikipedia--news)
+  - [Google \& Youtube APIs](#google--youtube-apis)
+  - [Youtube downloaders](#youtube-downloaders)
+- [Setup](#setup)
+- [YouTube and Geolocation Requirements](#youtube-and-geolocation-requirements)
+- [`dlvideo.py` options](#dlvideopy-options)
+- [More](#more)
+
 ## Experiments
 
 List of maintained apps.
@@ -95,3 +105,7 @@ ydl_opts = {
   'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
 }
 ```
+
+## More
+
+See [Programming notes](more/Programming_notes).
