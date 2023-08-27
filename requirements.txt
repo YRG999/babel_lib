@@ -6,3 +6,4 @@ requests
 language_tool_python
 yt-dlp
 pytz
+emoji

@@ -3,7 +3,7 @@
 import csv
 import json
 from yt_dlp import YoutubeDL
-from extract_functions import extract_message, extract_emoji, extract_authorname, extract_timestamp, convert_to_eastern
+from extract_functions import extract_authorname, extract_timestamp, convert_to_eastern, extract_text_and_emoji
 
 def extract_data_from_json(json_path):
     data_list = []
@@ -26,19 +26,18 @@ def extract_data_from_json(json_path):
         actions = data.get('replayChatItemAction', {}).get('actions', [])
         for action in actions:
             item = action.get('addChatItemAction', {}).get('item', {}).get('liveChatTextMessageRenderer', {})
-            message = extract_message(item)
-            emoji = extract_emoji(item)
+            message = extract_text_and_emoji(item)
             authorname = extract_authorname(item)
             timestamp = extract_timestamp(item)
             eastern_time = convert_to_eastern(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-            extracted_data.append([message, emoji, authorname, eastern_time])
+            extracted_data.append([message, authorname, eastern_time])
     
     return extracted_data
 
 def write_to_csv(data, csv_path):
     with open(csv_path, 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Message", "Emoji", "AuthorName", "Eastern Time"])
+        writer.writerow(["Message", "AuthorName", "Eastern Time"])
         writer.writerows(data)
 
 def download_chat(URLS):

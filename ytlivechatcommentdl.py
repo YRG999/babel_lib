@@ -29,6 +29,7 @@ if __name__ == "__main__":
         print("Failed to download comments.")
 
 # Download YouTube Live in two threads: chat & video.
+## TODO: Debug. This doesn't seem to work as when I disable the `video_thread`, it still downloads the video.
 vidurl = video_url
 URLS = [vidurl]
 
@@ -53,7 +54,7 @@ old_name = comments_file
 new_name = old_name.replace(".info.json", ".live_chat.json")
 json_path = new_name  # Path to your JSON file
 
-### check to see if there is a downloaded livechat JSON file
+## check to see if there is a downloaded livechat JSON file
 if os.path.exists(json_path):
     csv_path = json_path+".csv"  # Name CSV file by added extension to JSON file
     data = extract_data_from_json(json_path) # Extract data from live_chat.json
