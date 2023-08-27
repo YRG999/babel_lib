@@ -25,8 +25,9 @@ This is called BABEL_LIB after the [Library of Babel](https://libraryofbabel.inf
 19. `givename.py` - Runs `entername.py` and passes in a hardcoded name.
 20. `main_extraction.py` and `extract_functions.py` to separate functions and add emoji and timestamps. *Replaces `readmultijson.py`.*
 21. `youtube_functions.py` - functions used in `commentdl.py`.
-22. `ytlivechatcommentdl.py` - All-in-one YouTube live video, chat, and comments downloader. Consolidates `ytdlchatvidthreads.py`, `main_extraction.py` and `commentdl.py` and uses `extract_functions.py`, `youtube_functions.py`, and new `youtube_functions2.py` files.
+22. `ytlivechatcommentdl.py` - All-in-one YouTube live video, chat, and comments downloader. Consolidates `ytdlchatvidthreads.py`, `main_extraction.py` and `commentdl.py` and uses `extract_functions.py`, `youtube_functions.py`, and new `youtube_functions2.py` files. *Fixed live chat download so that emojis are integrated into the message text, message shows multiple emojis, and if emoji is a custom YouTube emoji, shows the first shortcut.*
 23. `dice_roll_anysided` - roll a die with the number of sides specified by the user.
+24. `ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
 
 ## Setup
 
