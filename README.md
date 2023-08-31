@@ -46,17 +46,18 @@ List of maintained apps.
 
 [*requirements*](#dlvideopy-options)
 
-* `dlvideo.py` - Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
+* `dlvideo.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
 * `ytdlchatvidthreads.py` - Download YouTube Live video and chat.
 * `commentdl.py` - Download comments from YouTube video. Saves output as a JSON and CSV file. Depends on `youtube_functions.py`.
 * `ytlivechatcommentdl.py` - Download YouTube live stream video, live chat, and comments. Extracts comments and live chat to CSV.
   * Consolidates `ytdlchatvidthreads.py`, `main_extraction.py` and `commentdl.py`.
   * Uses `youtube_functions.py` and `youtube_functions2.py`.
 * `ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
+* `ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtube_functions.py`
 
 #### Youtube downloader functions
-* `youtube_functions.py` - Functions used in `commentdl.py`.
-* `youtube_functions2.py` - Used in `ytlivechatcommentdt.py` and `ytlive-chatextract.py`
+* `youtube_functions.py` - Functions used in `ytlivechatcommentdt.py`, `commentdl.py`, and `ytdltranscript.py`.
+* `youtube_functions2.py` - Used in `ytlivechatcommentdt.py` and `ytlive-chatextract.py`.
   * Uses `extract_functions.py`.
 
 ## Setup

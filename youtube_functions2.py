@@ -5,6 +5,8 @@ import json
 from yt_dlp import YoutubeDL
 from extract_functions import extract_authorname, extract_timestamp, convert_to_eastern, extract_text_and_emoji
 
+# Extract live chat & write to CSV
+
 def extract_data_from_json(json_path):
     data_list = []
     
@@ -40,7 +42,19 @@ def write_to_csv(data, csv_path):
         writer.writerow(["Message", "AuthorName", "Eastern Time"])
         writer.writerows(data)
 
+# Download video & chat
+
+def download_video(URLS):
+    ydl_opts_video = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+        'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
+    }
+    
+    with YoutubeDL(ydl_opts_video) as ydl:
+        ydl.download(URLS)
+
 def download_chat(URLS):
+    # TODO Verify these options -- skip_download doesn't seem to be correct.
     ydl_opts_chat = {
         'skip_download': True,          # Don't download the video, just subtitles (live chat replay)
         'allsubs': True,                # Try to download all available subtitles (includes live chat replay)
@@ -52,13 +66,4 @@ def download_chat(URLS):
     }
     
     with YoutubeDL(ydl_opts_chat) as ydl:
-        ydl.download(URLS)
-
-def download_video(URLS):
-    ydl_opts_video = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-        'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
-    }
-    
-    with YoutubeDL(ydl_opts_video) as ydl:
         ydl.download(URLS)

@@ -19,6 +19,9 @@ if __name__ == "__main__":
     if comments_file:
         print(f"Comments saved to: {comments_file}")
         extracted_data = extract_comments_from_json(comments_file)
+
+        # Convert comments to CSV
+        
         csv_filename = comments_file.replace(".json", ".csv")
         with open(csv_filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
