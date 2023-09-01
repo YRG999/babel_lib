@@ -1,6 +1,8 @@
 # extracts text and emoji from youtube live chat
 
-from youtube_functions2 import extract_data_from_json, write_to_csv
+from youtube_functions import (
+    extract_data_from_json, 
+    write_to_csv)
 
 print("Enter JSON file to extract live chat comments from: ")
 json_file = input()

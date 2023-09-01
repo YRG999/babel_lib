@@ -1,4 +1,6 @@
-from youtube_functions import download_transcript, clean_transcript
+from youtube_functions import (
+    download_transcript, 
+    clean_transcript)
 
 # Download transcript
 print("Enter video ID: ")

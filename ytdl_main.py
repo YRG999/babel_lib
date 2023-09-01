@@ -1,6 +1,6 @@
 import sys
 import threading
-from youtube_functions_debugged_2 import (
+from youtube_functions import (
     get_video_url,
     download_video,
     download_chat,
