@@ -91,13 +91,15 @@ def download_transcript(video_url):
             transcript_file = line.split(':')[-1].strip()
             return transcript_file
 
-def clean_transcript(vtt_content):
-    with open(vtt_content, 'r') as transcript_file:
-        file_content = transcript_file.read()
+def clean_transcript(vtt_filepath):
+    # Read the VTT content from the file
+    with open(vtt_filepath, "r", encoding="utf-8") as file:
+        vtt_content = file.read()
 
-    # Remove lines that look like timecodes
-    cleaned_lines = [line for line in file_content.splitlines() 
-                     if not re.match(r'\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}', line)]
+    # Remove lines that look like timecodes and their associated metadata
+    cleaned_lines = [line for line in vtt_content.splitlines()
+                     if not re.match(r'\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}', line)
+                     and not re.match(r'align:start position:.*%', line)]
     
     # Remove VTT-specific tags
     cleaned_transcript = "\n".join(cleaned_lines)
@@ -105,20 +107,22 @@ def clean_transcript(vtt_content):
     cleaned_transcript = re.sub(r'<c>', '', cleaned_transcript)
     cleaned_transcript = re.sub(r'</c>', '', cleaned_transcript)
     cleaned_transcript = re.sub(r'&nbsp;', '', cleaned_transcript)
-    
-    # Remove empty lines and repeated lines
+
+    # Remove duplicate lines
+    # Edge case: could delete intentional duplicate lines
     lines_seen = set()
     unique_lines = []
     for line in cleaned_transcript.splitlines():
         if line.strip() and line not in lines_seen:
             lines_seen.add(line)
             unique_lines.append(line)
-    
+
     cleaned_transcript = "\n".join(unique_lines)
-    
+
     # Save to a new file
-    output_filename = vtt_content+"cleanedtranscript.txt"
+    output_filename = vtt_filepath+"cleanedtranscript.txt"
+    # output_filename = "/mnt/data/cleaned_transcript_final.txt"
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(cleaned_transcript)
-    
+
     return output_filename
