@@ -7,47 +7,143 @@ import pytz
 import re
 import csv
 import os
+import time
 from yt_dlp import YoutubeDL
-from extract_functions import (
-    extract_authorname, 
-    extract_timestamp, 
-    convert_to_eastern, 
-    extract_text_and_emoji)
+from extract_functions import *
 
 # Get video
 
 def get_video_url():
     return input("Please enter the full YouTube URL: ")
 
-# Download video & chat
+# Get filename
+
+def get_recently_downloaded_filename(extension, current_time):
+    '''
+    Scan the directory for the most recently downloaded file with the specified extension.
+    
+    Parameters:
+    - extension: The file extension to search for (e.g., 'live_chat.json').
+    - current_time: The time marking the start of the download operation.
+    
+    Returns:
+    - The filename of the most recently downloaded file with the specified extension.
+    - None if no such file is found.
+    '''
+    for filename in os.listdir('.'):
+        if filename.endswith(extension) and os.path.getctime(filename) > current_time:
+            return filename
+    return None
+
+# Download video
 
 def download_video(URLS):
+    '''
+    Download video and return filename.
+    '''
+
     ydl_opts_video = {
         'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-        'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
+        'merge_output_format': 'mp4',
+        'postprocessors': [{
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': 'mp4'
+        }],
     }
     
     with YoutubeDL(ydl_opts_video) as ydl:
         ydl.download(URLS)
 
+    # Retrieve the filename of the recently downloaded video
+    video_filename = get_recently_downloaded_filename('.mp4', current_time)
+    if video_filename:
+        return f"Chat downloaded as: {video_filename}"
+    else:
+        return "Failed to download chat or extract filename."
+
+# Download chat
+
 def download_chat(URLS):
-    # TODO Verify these options -- skip_download doesn't seem to be correct.
+    '''
+    Download chat (as subtitles) and return filename.
+    '''
+    # Mark the current time. We'll use this to identify newly created files later.
+    current_time = time.time()
+
     ydl_opts_chat = {
         'skip_download': True,          # Don't download the video, just subtitles (live chat replay)
-        'allsubs': True,                # Try to download all available subtitles (includes live chat replay)
-        'writesubtitles': True,         # Write subtitle files
-        'postprocessors': [{
-            'key': 'FFmpegSubtitlesConvertor',
-            'format': 'srt',
-        }],
+        'writesubtitles': True,         # Write subtitle (live chat) file
     }
     
     with YoutubeDL(ydl_opts_chat) as ydl:
+        ydl.download([URLS])
+
+    # Retrieve the filename of the recently downloaded live chat
+    chat_filename = get_recently_downloaded_filename('live_chat.json', current_time)
+    if chat_filename:
+        return f"Chat downloaded as: {chat_filename}"
+    else:
+        return "Failed to download chat or extract filename."
+
+# Download comments
+
+def download_comments(URLS):
+    '''
+    Download comments and return filename.
+    '''
+
+    ydl_opts_comments = {
+        'skip_download': True,          # Don't download the video, just subtitles (live chat replay)
+        'getcomments': True,            # Extract video comments; requires writeinfojson to write to disk
+        'writeinfojson': True,          # Write the video description to a .info.json file
+    }
+    
+    with YoutubeDL(ydl_opts_comments) as ydl:
         ydl.download(URLS)
+
+    # Retrieve the filename of the recently downloaded comments
+    comments_filename = get_recently_downloaded_filename('.en.vtt', current_time)
+    if comments_filename:
+        return f"Chat downloaded as: {comments_filename}"
+    else:
+        return "Failed to download chat or extract filename."
+
+# TODO Download metadata
+
+def download_video_info_comments(URLS):
+    '''
+    Download comments, metadata, and video.
+    TODO: Return filenames
+    '''
+    # ydl_opts = {
+    #     'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+    #     'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
+    #     'getcomments': True,            # Extract video comments; requires writeinfojson to write to disk
+    #     'writeinfojson': True,          # Write the video description to a .info.json file
+    #     'writesubtitles': True,         # Write subtitle files
+    #     'postprocessors': [{
+    #         'key': 'FFmpegSubtitlesConvertor',
+    #         'format': 'srt',
+    #     }],
+    # }
+    ydl_opts = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+        'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
+        'getcomments': True,            # Extract video comments; requires writeinfojson to write to disk
+        'writesubtitles': True,
+        'writeautomaticsub': True,  # Attempt to write automatic subtitles
+        'subtitleslangs': ['en'],   # Assuming English. Adjust as needed.
+        'writeinfojson': True,      # Write video metadata to a .json file
+    }
+
+    with YoutubeDL(ydl_opts) as ydl:
+        ydl.download(URLS)
+
+    return "Everything downloaded"
 
 # Download & convert comments
 
-def download_comments(video_url):
+def download_comments2(video_url):
     '''
     Download comments and save to JSON
     '''

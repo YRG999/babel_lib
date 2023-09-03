@@ -1,12 +1,6 @@
 import sys
 import threading
-from youtube_functions import (
-    get_video_url,
-    download_video,
-    download_chat,
-    download_comments_and_return_data,
-    process_comments_data
-)
+from youtube_functions import *
 
 def download_youtube_data(video_url=None):
     if not video_url:
