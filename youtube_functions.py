@@ -14,6 +14,7 @@ from extract_functions import *
 # Get video
 
 def get_video_url():
+    # TODO: Update to accept multiple URLs
     return input("Please enter the full YouTube URL: ")
 
 # Get filename
@@ -107,39 +108,6 @@ def download_comments(URLS):
         return f"Chat downloaded as: {comments_filename}"
     else:
         return "Failed to download chat or extract filename."
-
-# TODO Download metadata
-
-def download_video_info_comments(URLS):
-    '''
-    Download comments, metadata, and video.
-    TODO: Return filenames
-    '''
-    # ydl_opts = {
-    #     'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-    #     'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
-    #     'getcomments': True,            # Extract video comments; requires writeinfojson to write to disk
-    #     'writeinfojson': True,          # Write the video description to a .info.json file
-    #     'writesubtitles': True,         # Write subtitle files
-    #     'postprocessors': [{
-    #         'key': 'FFmpegSubtitlesConvertor',
-    #         'format': 'srt',
-    #     }],
-    # }
-    ydl_opts = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-        'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
-        'getcomments': True,            # Extract video comments; requires writeinfojson to write to disk
-        'writesubtitles': True,
-        'writeautomaticsub': True,  # Attempt to write automatic subtitles
-        'subtitleslangs': ['en'],   # Assuming English. Adjust as needed.
-        'writeinfojson': True,      # Write video metadata to a .json file
-    }
-
-    with YoutubeDL(ydl_opts) as ydl:
-        ydl.download(URLS)
-
-    return "Everything downloaded"
 
 # Download & convert comments
 

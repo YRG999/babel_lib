@@ -54,6 +54,7 @@ List of maintained apps.
   * Uses `youtube_functions.py` and `youtube_functions2.py`.
 * `ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
 * `ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtube_functions.py`
+* `ytdl_updated` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.
 
 #### Youtube downloader functions
 * `youtube_functions.py` - Functions used in `ytlivechatcommentdt.py`, `commentdl.py`, and `ytdltranscript.py`.
