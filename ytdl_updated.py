@@ -1,4 +1,5 @@
-# download_cmv
+# Use this file to download YouTube videos
+# (working name download_cmv)
 
 from yt_dlp import YoutubeDL
 from youtube_functions import *
@@ -159,23 +160,24 @@ def comment_to_csv(comment_file):
 
     return comment_csv
 
-# Download URLs: video, description, live_chat, info (comments), transcript (en.vtt)
-# Save transcript to text, live_chat and comments to CSV.
+if __name__ == "__main__":
+    # Download URLs: video, description, live_chat, info (comments), transcript (en.vtt)
+    # Save transcript to text, live_chat and comments to CSV.
 
-urls = get_video_url()
-filenames = download_video_info_comments([urls])
+    urls = get_video_url()
+    filenames = download_video_info_comments([urls])
 
-transcript_files = return_transcript_files(filenames)
-for file in transcript_files:
-    clean_filename = clean_transcript(file)
-    print(f"Transcript saved as: {clean_filename}")
+    transcript_files = return_transcript_files(filenames)
+    for file in transcript_files:
+        clean_filename = clean_transcript(file)
+        print(f"Transcript saved as: {clean_filename}")
 
-livechat_files = return_livechat_files(filenames)
-for file in livechat_files:
-    livechat_csv = livechat_to_csv(file)
-    print(f"Live chat saved as: {livechat_csv}")
+    livechat_files = return_livechat_files(filenames)
+    for file in livechat_files:
+        livechat_csv = livechat_to_csv(file)
+        print(f"Live chat saved as: {livechat_csv}")
 
-comment_files = return_comment_files()
-for file in comment_files:
-    comment_csv = comment_to_csv(file)
-    print(f"Comments saved as: {comment_csv}")
+    comment_files = return_comment_files()
+    for file in comment_files:
+        comment_csv = comment_to_csv(file)
+        print(f"Comments saved as: {comment_csv}")

@@ -1,3 +1,5 @@
+# This was replaced with ytdl_updated.py
+
 # Download YouTube Live in two threads: chat & video.
 
 from yt_dlp import YoutubeDL
