@@ -1,4 +1,4 @@
-# Use this file to download YouTube videos
+# Use this program to download YouTube videos
 # (working name download_cmv)
 
 from yt_dlp import YoutubeDL
