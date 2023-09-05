@@ -11,13 +11,13 @@ import time
 from yt_dlp import YoutubeDL
 from extract_functions import *
 
-# Get video
-
 def get_video_url():
+    '''
+    Get YouTube URL from user input.
+    
+    Returns YouTube URL'''
     # TODO: Update to accept multiple URLs
     return input("Please enter the full YouTube URL: ")
-
-# Get filename
 
 def get_recently_downloaded_filename(extension, current_time):
     '''
@@ -36,9 +36,7 @@ def get_recently_downloaded_filename(extension, current_time):
             return filename
     return None
 
-# Download video
-
-def download_video(URLS):
+def download_video_new(URLS):
     '''
     Download video and return filename.
     '''
@@ -62,9 +60,16 @@ def download_video(URLS):
     else:
         return "Failed to download chat or extract filename."
 
-# Download chat
+def download_video(URLS):
+    ydl_opts_video = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+        'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
+    }
+    
+    with YoutubeDL(ydl_opts_video) as ydl:
+        ydl.download(URLS)
 
-def download_chat(URLS):
+def download_chat_new(URLS):
     '''
     Download chat (as subtitles) and return filename.
     '''
@@ -85,10 +90,23 @@ def download_chat(URLS):
         return f"Chat downloaded as: {chat_filename}"
     else:
         return "Failed to download chat or extract filename."
+    
+def download_chat(URLS):
+    # TODO Verify these options -- skip_download doesn't seem to be correct.
+    ydl_opts_chat = {
+        'skip_download': True,          # Don't download the video, just subtitles (live chat replay)
+        'allsubs': True,                # Try to download all available subtitles (includes live chat replay)
+        'writesubtitles': True,         # Write subtitle files
+        'postprocessors': [{
+            'key': 'FFmpegSubtitlesConvertor',
+            'format': 'srt',
+        }],
+    }
+    
+    with YoutubeDL(ydl_opts_chat) as ydl:
+        ydl.download(URLS)
 
-# Download comments
-
-def download_comments(URLS):
+def download_comments_new(URLS):
     '''
     Download comments and return filename.
     '''
@@ -109,11 +127,11 @@ def download_comments(URLS):
     else:
         return "Failed to download chat or extract filename."
 
-# Download & convert comments
-
-def download_comments2(video_url):
+def download_comments(video_url):
     '''
-    Download comments and save to JSON
+    Old download comments function using subprocess.
+    
+    Returns comments data.
     '''
     # Use yt-dlp to download comments from the given video URL
     result = subprocess.run(
@@ -131,21 +149,19 @@ def download_comments2(video_url):
     )
 
     # Extract the name of the comments file from the output
-    comments_file = ""
     for line in result.stdout.split('\n'):
         if line.strip().startswith('[info] Writing video metadata as JSON to:'):
             comments_file = line.split(':')[-1].strip()
+            return comments_file
 
-    # Read the content of the JSON file and return it
-    with open(comments_file, 'r') as file:
-        comments_data = file.read()
-
-    # Remove the temporary JSON file
-    os.remove(comments_file)
-
-    return comments_data
+    return ""  # Return empty string if no file found
 
 def convert_to_eastern(timestamp):
+    '''
+    Converts UTC time to Eastern time.
+    
+    Returns Eastern time.
+    '''
     # Convert Unix timestamp to naive UTC datetime
     utc_time = datetime.datetime.utcfromtimestamp(timestamp)
     
@@ -158,7 +174,11 @@ def convert_to_eastern(timestamp):
     return eastern_time
 
 def extract_comments_from_json(json_file):
+    '''
+    Extracts comments from JSON.
 
+    Returns extracted data.
+    '''
     # 1. Read the JSON file
     with open(json_file, 'r') as file:
         data = json.load(file)
@@ -177,6 +197,11 @@ def extract_comments_from_json(json_file):
     return extracted_data
 
 def download_comments_and_return_data(video_url):
+    '''
+    Use subprocess and yt-dlp to download comments to JSON file and extracts data.
+
+    Returns extracted data.
+    '''
     # Use yt-dlp to download comments from the given video URL
     result = subprocess.run(
         [
@@ -206,6 +231,11 @@ def download_comments_and_return_data(video_url):
     return comments_data
 
 def process_comments_data(comments_data):
+    '''
+    Process extracted JSON comment data and saves to CSV.
+    
+    Returns CSV file name.
+    '''
     if comments_data:
         extracted_data = extract_comments_from_json(comments_data)
 
@@ -220,9 +250,12 @@ def process_comments_data(comments_data):
     else:
         print("Failed to download comments.")
 
-# Download & clean transcript
-
 def download_transcript(video_url):
+    '''
+    Uses subprocess and yt-dlp to download transcript. Extracts transcript from en.vtt file.
+
+    Returns transcript file.
+    '''
     # Use yt-dlp to download transcript from the given video URL
     result = subprocess.run(
         [
@@ -245,6 +278,11 @@ def download_transcript(video_url):
             return transcript_file
 
 def clean_transcript(vtt_filepath):
+    '''
+    Cleans transcript file and saves to txt.
+
+    Returns txt file name.
+    '''
     # Read the VTT content from the file
     with open(vtt_filepath, "r", encoding="utf-8") as file:
         vtt_content = file.read()
@@ -280,9 +318,12 @@ def clean_transcript(vtt_filepath):
 
     return output_filename
 
-# Extract live chat & write to CSV
-
 def extract_data_from_json(json_path):
+    '''
+    Extracts live chat data from JSON file.
+
+    Returns extracted data.
+    '''
     data_list = []
     
     # Load each JSON object separately, ignoring whitespace between them
@@ -312,12 +353,20 @@ def extract_data_from_json(json_path):
     return extracted_data
 
 def write_to_csv(data, csv_path):
+    '''
+    Writes extracted live chat data to CSV.
+    '''
     with open(csv_path, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Message", "AuthorName", "Eastern Time"])
         writer.writerows(data)
 
 def convert_chat_to_csv(comments_file):
+    '''
+    Uses .info.json file name to create find .live_chat.json file and extracts to CSV.
+
+    Returns CSV file name.
+    '''
     ## Rename comments JSON file to live_chat JSON file
     old_name = comments_file
     new_name = old_name.replace(".info.json", ".live_chat.json")
