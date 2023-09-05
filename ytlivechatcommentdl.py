@@ -1,3 +1,5 @@
+# This was replaced with ytdl_updated.py
+
 # youtube live video, chat, and comments download
 # consolidates ytdlchatvidthreads, main_extraction and commentdl
 # and uses extract_functions and youtube_functions
@@ -6,8 +8,7 @@ import os
 import csv
 import sys
 import threading
-from youtube_functions import download_comments, get_video_url, extract_comments_from_json
-from youtube_functions2 import extract_data_from_json, write_to_csv, download_chat, download_video
+from youtube_functions import *
 
 if __name__ == "__main__":
     video_url = get_video_url()

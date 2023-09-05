@@ -39,5 +39,5 @@ def extract_text_and_emoji(data):
                 # This is just a placeholder in case both are missing
                 output_elements.append("[Unknown]")
     
-    # Joining the extracted elements with spaces
-    return ' '.join(output_elements)
+    # Joining the extracted elements without spaces
+    return ''.join(output_elements)

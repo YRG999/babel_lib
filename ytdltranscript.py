@@ -1,4 +1,8 @@
-from youtube_functions import download_transcript, clean_transcript
+# This was replaced with ytdl_updated.py
+
+from youtube_functions import (
+    download_transcript, 
+    clean_transcript)
 
 # Download transcript
 print("Enter video ID: ")
