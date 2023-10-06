@@ -54,6 +54,7 @@ def download_video_new(URLS):
         ydl.download(URLS)
 
     # Retrieve the filename of the recently downloaded video
+    # Is this used anywhere? If so, TODO: figure out how to make current_time work
     video_filename = get_recently_downloaded_filename('.mp4', current_time)
     if video_filename:
         return f"Chat downloaded as: {video_filename}"

@@ -1,65 +1,18 @@
 # BABEL_LIB
 
-This is called BABEL_LIB after the [Library of Babel](https://libraryofbabel.info/) website. It started as an experiment in randomness but now hosts a bunch of experimental programs. I used chatGPT to help me write some of them.
+Named after the [Library of Babel](https://libraryofbabel.info/) website. It started as an experiment in randomness but now hosts a bunch of experimental programs. I got help from [chatGPT](https://chat.openai.com/), [Claude AI](https://claude.ai/), and [Bard](https://bard.google.com/) to write some of them.
 
-- [Experiments](#experiments)
-  - [Random](#random)
-  - [Wikipedia \& news](#wikipedia--news)
-  - [Google \& Youtube APIs](#google--youtube-apis)
-  - [Youtube downloaders](#youtube-downloaders)
 - [Setup](#setup)
+- [Random experiments](#random-experiments)
+- [Wikipedia \& news](#wikipedia--news)
+- [Google \& Youtube APIs](#google--youtube-apis)
+- [Youtube downloaders](#youtube-downloaders)
+  - [Most up-to-date downloader](#most-up-to-date-downloader)
+  - [Other downloaders](#other-downloaders)
+  - [Youtube downloader functions](#youtube-downloader-functions)
 - [YouTube and Geolocation Requirements](#youtube-and-geolocation-requirements)
 - [`dlvideo.py` options](#dlvideopy-options)
 - [More](#more)
-
-## Experiments
-
-List of maintained apps.
-
-### Random
-
-* `random_sentence.py` - Creates random nonsense words and sentences.
-  * `gensen_worddict.py` - Expanded `random_sentence.py`. Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
-  * `random_sentence_save.py` - Same as `random_sentence.py` except saves to file.
-* `dice_roles.py` - Rolls 2 6-sided dice.
-  * `dice_roll_anysided` - Roll a die with the number of sides specified by the user.
-* `gen_pass.py` - Generate passphrase. Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
-* `entername.py` - Enter your name and get greeted with the current time.
-  * `givename.py` - Runs `entername.py` and passes in a hardcoded name.
-
-### Wikipedia & news
-
-* `wiki_articles.py` - Display the 10 most recently-updated articles.
-* `gnews_scraper.py` - Scrape the latest 5 Google News headlines based on `h4` top stories.
-* `news_scraper` - BBC and NY Times headline scraper. Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
-
-### Google & Youtube APIs
-
-[*requirements*](#youtube-and-geolocation-requirements)
-
-* `your_youtube.py` - Display the 10 most recently-added YouTube videos.
-* `youtube_search_loc.py` - Display the 10 most recently-added YouTube videos in a specific location.
-* `yt_loc2.py` - User-friendly YouTube search by location.
-* `lat_long.py` - Display the latitude and longitude for an address. Uses the Google Maps API.
-
-### Youtube downloaders
-
-[*requirements*](#dlvideopy-options)
-
-* `dlvideo.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
-* `ytdlchatvidthreads.py` - Download YouTube Live video and chat.
-* `commentdl.py` - Download comments from YouTube video. Saves output as a JSON and CSV file. Depends on `youtube_functions.py`.
-* `ytlivechatcommentdl.py` - Download YouTube live stream video, live chat, and comments. Extracts comments and live chat to CSV.
-  * Consolidates `ytdlchatvidthreads.py`, `main_extraction.py` and `commentdl.py`.
-  * Uses `youtube_functions.py` and `youtube_functions2.py`.
-* `ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
-* `ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtube_functions.py`
-* `ytdl_updated` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.
-
-#### Youtube downloader functions
-* `youtube_functions.py` - Functions used in `ytlivechatcommentdt.py`, `commentdl.py`, and `ytdltranscript.py`.
-* `youtube_functions2.py` - Used in `ytlivechatcommentdt.py` and `ytlive-chatextract.py`.
-  * Uses `extract_functions.py`.
 
 ## Setup
 
@@ -77,6 +30,60 @@ pip install -r requirements.txt
 ```
 
 In subsequent setups, just run the second venv line to activate the virtual environment.
+
+## Random experiments
+
+* `random_sentence.py` - Creates random nonsense words and sentences.
+  * `gensen_worddict.py` - Expanded `random_sentence.py`. Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
+  * `random_sentence_save.py` - Same as `random_sentence.py` except saves to file.
+* `dice_roles.py` - Rolls 2 6-sided dice.
+  * `dice_roll_anysided` - Roll a die with the number of sides specified by the user.
+* `gen_pass.py` - Generate passphrase. Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
+* `entername.py` - Enter your name and get greeted with the current time.
+  * `givename.py` - Runs `entername.py` and passes in a hardcoded name.
+
+## Wikipedia & news
+
+* `wiki_articles.py` - Display the 10 most recently-updated articles.
+* `gnews_scraper.py` - Scrape the latest 5 Google News headlines based on `h4` top stories.
+* `news_scraper` - BBC and NY Times headline scraper. Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
+
+## Google & Youtube APIs
+
+[*requirements*](#youtube-and-geolocation-requirements)
+
+* `your_youtube.py` - Display the 10 most recently-added YouTube videos.
+* `youtube_search_loc.py` - Display the 10 most recently-added YouTube videos in a specific location.
+* `yt_loc2.py` - User-friendly YouTube search by location.
+* `lat_long.py` - Display the latitude and longitude for an address. Uses the Google Maps API.
+
+## Youtube downloaders
+
+[*requirements*](#dlvideopy-options)
+
+### Most up-to-date downloader
+
+Run this to get everything.
+
+* **`ytdl_updated` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.**
+
+### Other downloaders
+
+These are older and no longer maintained.
+
+* `dlvideo.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
+* `ytdlchatvidthreads.py` - Download YouTube Live video and chat.
+* `commentdl.py` - Download comments from YouTube video. Saves output as a JSON and CSV file. Depends on `youtube_functions.py`.
+* `ytlivechatcommentdl.py` - Download YouTube live stream video, live chat, and comments. Extracts comments and live chat to CSV.
+  * Consolidates `ytdlchatvidthreads.py`, `main_extraction.py` and `commentdl.py`.
+  * Uses `youtube_functions.py` and `youtube_functions2.py`.
+* `ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
+* `ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtube_functions.py`
+
+### Youtube downloader functions
+* `youtube_functions.py` - Functions used in `ytlivechatcommentdt.py`, `commentdl.py`, and `ytdltranscript.py`.
+* `youtube_functions2.py` - Used in `ytlivechatcommentdt.py` and `ytlive-chatextract.py`.
+  * Uses `extract_functions.py`.
 
 ## YouTube and Geolocation Requirements
 
