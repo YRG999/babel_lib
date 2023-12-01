@@ -3,11 +3,13 @@
 Named after the [Library of Babel](https://libraryofbabel.info/) website. It started as an experiment in randomness but now hosts a bunch of experimental programs. I got help from [chatGPT](https://chat.openai.com/), [Claude AI](https://claude.ai/), and [Bard](https://bard.google.com/) to write some of them.
 
 - [Setup](#setup)
+- [New](#new)
 - [Random experiments](#random-experiments)
 - [Wikipedia \& news](#wikipedia--news)
 - [Google \& Youtube APIs](#google--youtube-apis)
 - [Youtube downloaders](#youtube-downloaders)
   - [Most up-to-date downloader](#most-up-to-date-downloader)
+  - [New focused downloaders](#new-focused-downloaders)
   - [Other downloaders](#other-downloaders)
   - [Youtube downloader functions](#youtube-downloader-functions)
 - [YouTube and Geolocation Requirements](#youtube-and-geolocation-requirements)
@@ -26,10 +28,24 @@ $ . venv/bin/activate
 Then install requirements:
 
 ```shell
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
-In subsequent setups, just run the second venv line to activate the virtual environment.
+*Thereafter, just run the second venv line to activate the virtual environment.*
+
+To run experiments, type `python` and the file name. For example, try this one:
+
+```shell
+$ python ytdl_updated.py
+```
+
+## New
+
+* `business_assumptions.py` - calculate breakeven cost and amount of drivers needed for a hypothetical future business idea.
+* `moviesearch.py` - prints number of movies released in a range of years.
+* Squid game sims - `squid_game.py` & `squid_game01.py` - red light green light sim.
+* `write_key.py` - asks for a key and value and adds it to a dictionary. If the dictionary doesn't exist, creates it.
+* [new YouTube downloaders](#new-focused-downloaders).
 
 ## Random experiments
 
@@ -46,7 +62,7 @@ In subsequent setups, just run the second venv line to activate the virtual envi
 
 * `wiki_articles.py` - Display the 10 most recently-updated articles.
 * `gnews_scraper.py` - Scrape the latest 5 Google News headlines based on `h4` top stories.
-* `news_scraper` - BBC and NY Times headline scraper. Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
+* `news_scraper.py` - BBC and NY Times headline scraper. Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
 
 ## Google & Youtube APIs
 
@@ -65,7 +81,13 @@ In subsequent setups, just run the second venv line to activate the virtual envi
 
 Run this to get everything.
 
-* **`ytdl_updated` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.**
+* **`ytdl_updated.py` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.**
+
+### New focused downloaders
+
+* `ytdl_comments.py` - just downloads comments.
+* `ytlivechatcsv.py` - just downloads live chat.
+* `ytdltranscript.py` - just downloads transcripts.
 
 ### Other downloaders
 

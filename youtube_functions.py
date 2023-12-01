@@ -2,7 +2,9 @@
 
 import subprocess
 import json
-import datetime
+# import datetime -- replaced with below because this displayed error 
+# see https://stackoverflow.com/questions/12906402/type-object-datetime-datetime-has-no-attribute-datetime
+from datetime import datetime
 import pytz
 import re
 import csv
@@ -50,6 +52,9 @@ def download_video_new(URLS):
         }],
     }
     
+    # Mark the current time. We'll use this to identify newly created files later.
+    current_time = time.time()
+
     with YoutubeDL(ydl_opts_video) as ydl:
         ydl.download(URLS)
 
@@ -111,6 +116,8 @@ def download_comments_new(URLS):
     '''
     Download comments and return filename.
     '''
+    # Mark the current time. We'll use this to identify newly created files later.
+    current_time = time.time()
 
     ydl_opts_comments = {
         'skip_download': True,          # Don't download the video, just subtitles (live chat replay)
@@ -164,7 +171,8 @@ def convert_to_eastern(timestamp):
     Returns Eastern time.
     '''
     # Convert Unix timestamp to naive UTC datetime
-    utc_time = datetime.datetime.utcfromtimestamp(timestamp)
+    # utc_time = datetime.datetime.utcfromtimestamp(timestamp)
+    utc_time = datetime.utcfromtimestamp(timestamp)
     
     # Make the UTC datetime timezone-aware
     utc_time = utc_time.replace(tzinfo=pytz.utc)
