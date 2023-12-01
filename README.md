@@ -6,12 +6,12 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. It sta
 - [New](#new)
 - [Random experiments](#random-experiments)
 - [Wikipedia \& news](#wikipedia--news)
-- [Google \& Youtube APIs](#google--youtube-apis)
-- [Youtube downloaders](#youtube-downloaders)
+- [Google \& YouTube APIs](#google--youtube-apis)
+- [YouTube downloaders](#youtube-downloaders)
   - [Most up-to-date downloader](#most-up-to-date-downloader)
   - [New focused downloaders](#new-focused-downloaders)
   - [Other downloaders](#other-downloaders)
-  - [Youtube downloader functions](#youtube-downloader-functions)
+  - [YouTube downloader functions](#youtube-downloader-functions)
 - [YouTube and Geolocation Requirements](#youtube-and-geolocation-requirements)
 - [`dlvideo.py` options](#dlvideopy-options)
 - [More](#more)
@@ -64,7 +64,7 @@ $ python ytdl_updated.py
 * `gnews_scraper.py` - Scrape the latest 5 Google News headlines based on `h4` top stories.
 * `news_scraper.py` - BBC and NY Times headline scraper. Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
 
-## Google & Youtube APIs
+## Google & YouTube APIs
 
 [*requirements*](#youtube-and-geolocation-requirements)
 
@@ -73,9 +73,9 @@ $ python ytdl_updated.py
 * `yt_loc2.py` - User-friendly YouTube search by location.
 * `lat_long.py` - Display the latitude and longitude for an address. Uses the Google Maps API.
 
-## Youtube downloaders
+## YouTube downloaders
 
-[*requirements*](#dlvideopy-options)
+Most of these use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L191) or [embedded CLI](https://github.com/yt-dlp/yt-dlp#embedding-yt-dlp) to download videos.
 
 ### Most up-to-date downloader
 
@@ -102,21 +102,21 @@ These are older and no longer maintained.
 * `ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
 * `ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtube_functions.py`
 
-### Youtube downloader functions
+### YouTube downloader functions
 * `youtube_functions.py` - Functions used in `ytlivechatcommentdt.py`, `commentdl.py`, and `ytdltranscript.py`.
 * `youtube_functions2.py` - Used in `ytlivechatcommentdt.py` and `ytlive-chatextract.py`.
   * Uses `extract_functions.py`.
 
 ## YouTube and Geolocation Requirements
 
-*Required for Google & Youtube API apps*
+*Required for Google & YouTube API apps*
 
 * Sign up to develop with the [Google Cloud Platform](https://console.cloud.google.com/), create a project, and activate the YouTube Data API v3 and the Geocoding API.
 * Create an `.env` file with `YOUTUBE_API_KEY=yourapikey` and `MAPS_API_KEY=yourmapsapikey`.
 
 ## `dlvideo.py` options
 
-*Suggested for Youtube downloaders*
+*Suggested for YouTube downloaders*
 
 * Programs using [`yt_dlp`](https://github.com/yt-dlp/yt-dlp), such as `randtube` & `rectube` - you should install `ffmpeg`. Easiest way on macOS is through homebrew: `brew install ffmpeg` See for more: https://trac.ffmpeg.org/wiki/CompilationGuide/macOS.
 
