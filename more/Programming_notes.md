@@ -81,17 +81,13 @@
   * This ended up not working for the initial error as it wasn't properly formatted, so I had to do it manually, but subsequent JSON was properly formatted and this did help. 
   * Basically, used the Command Palette (⇧⌘P) and chose Format Selection. 
 * [requests](https://pypi.org/project/requests/) - doc for the python HTTP requests library, which makes it easy to send requests in python.
-* [MediaWiki API help](https://en.wikipedia.org/w/api.php) - didn't read it but here it is as a resource.
-* [Jump Start Solution: Log analysis pipeline](https://cloud.google.com/architecture/monitoring/log-analysis-pipeline) - this is totally off track and had nothing to do with anything. I just wanted to see what a jump start solution looked like, but I couldn't make sense of this (just a way to log and analyse data). Something for another day.
-* I included `pip>=23.0.1` in my requirements.txt file as I kept getting a note that I had an earlier version.
-  * Run `pip list` to list installed packages.
-* [Git keeps asking me for my ssh key passphrase](https://stackoverflow.com/questions/10032461/git-keeps-asking-me-for-my-ssh-key-passphrase) - helpful tip.
-* Had some trouble setting the environment variable using the `.env` file. [3](https://stackoverflow.com/questions/40728259/updated-environment-variable-but-os-getenv-keeps-returning-none) [4](https://www.php.net/manual/en/function.getenv.php) [5](https://able.bio/rhett/how-to-set-and-get-environment-variables-in-python--274rgt5) [6](https://stackoverflow.com/questions/19331497/set-environment-variables-from-file-of-key-value-pairs) 
-* [requests](https://pypi.org/project/requests/) - doc for the python HTTP requests library, which makes it easy to send requests in python.
-* [Request contains an invalid argument Location paramter \[sic\] Youtube API ](https://stackoverflow.com/questions/72883738/request-contains-an-invalid-argument-location-paramter-youtube-api) - This helped me troubleshoot errors I was having with sending an invalid location parameter. Prior to this, I didn't know how to specify the latitude and longitude. I had been sending it as `(lat,long)` with the parentheses, but this answer showed that I should not use that.
+* [MediaWiki API help](https://en.wikipedia.org/w/api.php).
+* [Jump Start Solution guides](https://cloud.google.com/architecture/all-jss-guides) - "Cloud Architecture Center - Discover reference architectures, guidance, and best practices for building or migrating your workloads on Google Cloud."
+* I included `pip>=23.0.1` in my requirements.txt file as I kept getting a note that I had an earlier version. But I still get the note, even when I add this.
 * Run `pip list` to [list installed packages](packages.txt).
 * [Is there a command to undo git?](https://stackoverflow.com/questions/3212459/is-there-a-command-to-undo-git-init) <br /> `rm -rf .git`
 * [Adding locally hosted code to github](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github)
+* [Request contains an invalid argument Location paramter \[sic\] Youtube API ](https://stackoverflow.com/questions/72883738/request-contains-an-invalid-argument-location-paramter-youtube-api) - This helped me troubleshoot errors I was having with sending an invalid location parameter. Prior to this, I didn't know how to specify the latitude and longitude. I had been sending it as `(lat,long)` with the parentheses, but this answer showed that I should not use that.
 
 ### Git asks for SSH key & passphrase
 
@@ -135,20 +131,18 @@ To add and save your key permanently on Ubuntu (or equivalent):
 * [Youtube Python API samples](https://github.com/youtube/api-samples/blob/master/python/geolocation_search.py)
 * [YouTube Analytics API](https://console.cloud.google.com/marketplace/product/google/youtubeanalytics.googleapis.com) - **not** the one I needed.
 * [YouTube Data API Overview](https://developers.google.com/youtube/v3/getting-started) - this is the API I used for search; v3.
-* [Google console API dashboard](https://console.cloud.google.com/apis/dashboard)
 * [Obtaining authorization credentials (Youtube API)](https://developers.google.com/youtube/registering_an_application)
-* [Google console credentials page](https://console.cloud.google.com/apis/credentials)
-* [Address Geocoding in the Google Maps APIs](https://cloud.google.com/blog/products/maps-platform/address-geocoding-in-google-maps-apis)
-* [Maps API metrics](https://console.cloud.google.com/google/maps-apis/metrics)
-* [billing change not allowed](https://support.google.com/paymentscenter/answer/9791006) - I had an issue using PayPal. Don't know why.
 * [YouTube Data API v3](https://console.cloud.google.com/apis/api/youtube.googleapis.com)
 * [Youtube search API](https://developers.google.com/youtube/v3/docs/search) - this didn't tell me what I needed to know about the location parameter.
 * [Videos: list](https://developers.google.com/youtube/v3/docs/videos/list) - this didn't help either.
-* [Search:list location](https://developers.google.com/youtube/v3/docs/search/list#location) - this helped. It said I needed to add the `locationRadius` as well.
+* [Search:list location](https://developers.google.com/youtube/v3/docs/search/list#location) - Helped with `yt_loc2.py` error. It said I needed to add the `locationRadius` as well.
 * [Let users watch, find, and manage YouTube content (main API page)](https://developers.google.com/youtube) - I kept getting this page, which is not useful as I can't get anywhere from here.
 * [Request contains an invalid argument Location paramter \[sic\] Youtube API ](https://stackoverflow.com/questions/72883738/request-contains-an-invalid-argument-location-paramter-youtube-api) - This helped me troubleshoot errors I was having with sending an invalid location parameter. Prior to this, I didn't know how to specify the latitude and longitude. I had been sending it as `(lat,long)` with the parentheses, but this answer showed that I should not use that.
-* [YouTube Data API Overview](https://developers.google.com/youtube/v3/getting-started) - **this is the API I used for search; v3.**
-* [Search:list location](https://developers.google.com/youtube/v3/docs/search/list#location) - Helped with `yt_loc2.py` error. It said I needed to add the `locationRadius` as well.
+* [Address Geocoding in the Google Maps APIs](https://cloud.google.com/blog/products/maps-platform/address-geocoding-in-google-maps-apis)
+* [Maps API metrics](https://console.cloud.google.com/google/maps-apis/metrics)
+* [Google console API dashboard](https://console.cloud.google.com/apis/dashboard)
+* [Google console credentials page](https://console.cloud.google.com/apis/credentials)
+* [billing change not allowed](https://support.google.com/paymentscenter/answer/9791006) - I had an issue using PayPal. Don't know why.
 
 ### Links
 * Random word & dictionary APIs
