@@ -87,7 +87,7 @@
 * Run `pip list` to [list installed packages](packages.txt).
 * [Is there a command to undo git?](https://stackoverflow.com/questions/3212459/is-there-a-command-to-undo-git-init) <br /> `rm -rf .git`
 * [Adding locally hosted code to github](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github)
-* [Request contains an invalid argument Location paramter \[sic\] Youtube API ](https://stackoverflow.com/questions/72883738/request-contains-an-invalid-argument-location-paramter-youtube-api) - This helped me troubleshoot errors I was having with sending an invalid location parameter. Prior to this, I didn't know how to specify the latitude and longitude. I had been sending it as `(lat,long)` with the parentheses, but this answer showed that I should not use that.
+* [Is there a better guide to using yt-dlp with Python?](https://www.reddit.com/r/youtubedl/comments/skgjon/is_there_a_better_guide_to_using_ytdlp_with_python/) [comment](https://www.reddit.com/r/youtubedl/comments/skgjon/comment/hvl1xcg/?utm_source=reddit&utm_medium=web2x&context=3) lists locations of [`YoutubeDL` class](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L191) and [YT-DLP CLI](https://github.com/yt-dlp/yt-dlp#embedding-yt-dlp) usage.
 
 ### Git asks for SSH key & passphrase
 
