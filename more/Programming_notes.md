@@ -8,6 +8,7 @@
   - [YouTube \& Google APIs](#youtube--google-apis)
   - [Links](#links)
 - [Additional resources](#additional-resources)
+- [stash](#stash)
 
 ## Experiments - more details
 
@@ -170,3 +171,27 @@ To add and save your key permanently on Ubuntu (or equivalent):
 * [Claude debugging](Claude%20debugging.md)
 * [TODO](TODO.md)
 * [packages](packages.txt)
+
+## stash
+*Google search notes*
+
+```
+On Dec 5, Code Tips will be merged with SGE. Please enable SGE to continue receiving coding responses.
+git stash
+Git stash is a command that saves the current state of your working directory and index in a temporary stash area. This can be useful if you want to save your work in progress and switch to another branch, or if you want to experiment with some changes without affecting your current working directory.
+
+To use git stash, simply run the following command:
+
+git stash
+
+This will save the current state of your working directory and index in a temporary stash area. You can then switch to another branch or experiment with some changes. To restore the changes from the stash, run the following command:
+
+git stash pop
+
+This will restore the changes from the most recent stash. If you want to restore a specific stash, you can use the following command:
+
+git stash apply <stash_id>
+
+where <stash_id> is the ID of the stash you want to apply.
+```
+* [SGE](https://labs.google/sge/)
