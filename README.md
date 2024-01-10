@@ -86,7 +86,7 @@ Run this to get everything.
 ### New focused downloaders
 
 * `ytdl_comments.py` - just downloads comments.
-* `ytlivechatcsv.py` - just downloads live chat.
+* `ytdl_livechat.py` - just downloads live chat.
 * `ytdltranscript.py` - just downloads transcripts.
 
 ### Other downloaders
