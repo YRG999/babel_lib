@@ -6,6 +6,7 @@
 import json
 import csv
 from extract_functions import extract_message, extract_emoji, extract_authorname, extract_timestamp, convert_to_eastern
+# TODO: extract_message & extract_emoji replaced by extract_text_and_emoji.
 
 def ask_filename():
     print("Name or path of file to extract")

@@ -2,10 +2,6 @@
 # ---
 # Run if ytlivechatcommentdl.py fails to convert live chat JSON file to CSV.
 
-import os
-import csv
-import sys
-import threading
 from youtube_functions import *
 
 json_path = "PATH_TO_JSON"  # Replace with path to your live chat JSON file

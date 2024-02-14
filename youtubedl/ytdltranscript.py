@@ -2,8 +2,8 @@
 # Uses code from ytdl_updated.py
 
 from ytdl_updated import * 
-from youtube_functions import *
-from extract_functions import *
+# from youtube_functions import *
+# from youtubedl.extract_functions import *
 
 def download_transcript(URLS):
     '''

@@ -11,7 +11,7 @@ while rolling:
     roll = random.randint(1, sides)
     print("You rolled a", roll)
     
-    repeat = input("Press any key to roll again or n to stop. ")
+    repeat = input("Press ENTER to roll again or n and ENTER to stop. ")
     if repeat.lower() == "n":
         rolling = False
 

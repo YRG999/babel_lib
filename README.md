@@ -5,6 +5,7 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 - [Setup](#setup)
 - [New](#new)
 - [Random experiments](#random-experiments)
+- [Dice games](#dice-games)
 - [Wikipedia \& news](#wikipedia--news)
 - [Google \& YouTube APIs](#google--youtube-apis)
 - [YouTube downloaders](#youtube-downloaders)
@@ -13,7 +14,7 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
   - [Other downloaders](#other-downloaders)
   - [YouTube downloader functions](#youtube-downloader-functions)
 - [YouTube and Geolocation Requirements](#youtube-and-geolocation-requirements)
-- [`dlvideo.py` options](#dlvideopy-options)
+- [`youtubedl/dlvideo.py` options](#youtubedldlvideopy-options)
 - [More](#more)
 
 ## Setup
@@ -52,11 +53,20 @@ $ python ytdl_updated.py
 * `random_sentence.py` - Creates random nonsense words and sentences.
   * `gensen_worddict.py` - Expanded `random_sentence.py`. Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
   * `random_sentence_save.py` - Same as `random_sentence.py` except saves to file.
-* `dice_roles.py` - Rolls 2 6-sided dice.
-  * `dice_roll_anysided` - Roll a die with the number of sides specified by the user.
 * `gen_pass.py` - Generate passphrase. Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
 * `entername.py` - Enter your name and get greeted with the current time.
   * `givename.py` - Runs `entername.py` and passes in a hardcoded name.
+
+## Dice games
+
+* `dice_roles.py` - Rolls 2 6-sided dice.
+  * `dice_roll_anysided` - Roll a die with the number of sides specified by the user.
+* `die_roll_games3.py` - 3 games
+  1. Choose the number of sides for the die and roll it.
+  2. Add to game 1 & see how many rolls it takes to roll the number again.
+  3. Play game 2 a number of times.
+* `die_roll_probability.py` - guess how many rolls it will take for game 2 (work in progress)
+* `die-roll-histogram` - roll a die and generate a histogram of the values.
 
 ## Wikipedia & news
 
@@ -68,9 +78,9 @@ $ python ytdl_updated.py
 
 [*requirements*](#youtube-and-geolocation-requirements)
 
-* `your_youtube.py` - Display the 10 most recently-added YouTube videos.
-* `youtube_search_loc.py` - Display the 10 most recently-added YouTube videos in a specific location.
-* `yt_loc2.py` - User-friendly YouTube search by location.
+* `youtubedl/your_youtube.py` - Display the 10 most recently-added YouTube videos.
+* `youtubedl/youtube_search_loc.py` - Display the 10 most recently-added YouTube videos in a specific location.
+* `youtubedl/yt_loc2.py` - User-friendly YouTube search by location.
 * `lat_long.py` - Display the latitude and longitude for an address. Uses the Google Maps API.
 
 ## YouTube downloaders
@@ -81,31 +91,31 @@ Most of these use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-
 
 Run this to get everything.
 
-* **`ytdl_updated.py` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.**
+* **`youtubedl/ytdl_updated.py` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.**
 
 ### New focused downloaders
 
-* `ytdl_comments.py` - just downloads comments.
-* `ytdl_livechat.py` - just downloads live chat.
-* `ytdltranscript.py` - just downloads transcripts.
+* `youtubedl/ytdl_comments.py` - just downloads comments.
+* `youtubedl/ytdl_livechat.py` - just downloads live chat.
+* `youtubedl/ytdltranscript.py` - just downloads transcripts.
 
 ### Other downloaders
 
 These are older and no longer maintained.
 
-* `dlvideo.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
-* `ytdlchatvidthreads.py` - Download YouTube Live video and chat.
-* `commentdl.py` - Download comments from YouTube video. Saves output as a JSON and CSV file. Depends on `youtube_functions.py`.
-* `ytlivechatcommentdl.py` - Download YouTube live stream video, live chat, and comments. Extracts comments and live chat to CSV.
-  * Consolidates `ytdlchatvidthreads.py`, `main_extraction.py` and `commentdl.py`.
-  * Uses `youtube_functions.py` and `youtube_functions2.py`.
-* `ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
-* `ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtube_functions.py`
+* `youtubedl/.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
+* `youtubedl/ytdlchatvidthreads.py` - Download YouTube Live video and chat.
+* `youtubedl/commentdl.py` - Download comments from YouTube video. Saves output as a JSON and CSV file. Depends on `youtubedl/youtube_functions.py`.
+* `youtubedl/ytlivechatcommentdl.py` - Download YouTube live stream video, live chat, and comments. Extracts comments and live chat to CSV.
+  * Consolidates `youtubedl/ytdlchatvidthreads.py`, `youtubedl/main_extraction.py` and `youtubedl/commentdl.py`.
+  * Uses `youtubedl/youtube_functions.py` and `youtubedl/youtube_functions2.py`.
+* `youtubedl/ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
+* `youtubedl/ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtubedl/youtube_functions.py`
 
 ### YouTube downloader functions
-* `youtube_functions.py` - Functions used in `ytlivechatcommentdt.py`, `commentdl.py`, and `ytdltranscript.py`.
-* `youtube_functions2.py` - Used in `ytlivechatcommentdt.py` and `ytlive-chatextract.py`.
-  * Uses `extract_functions.py`.
+* `youtubedl/youtube_functions.py` - Functions used in `youtubedl/ytlivechatcommentdt.py`, `youtubedl/commentdl.py`, and `youtubedl/ytdltranscript.py`.
+* `youtubedl/youtube_functions2.py` - Used in `youtubedl/ytlivechatcommentdt.py` and `youtubedl/ytlive-chatextract.py`.
+  * Uses `youtubedl/extract_functions.py`.
 
 ## YouTube and Geolocation Requirements
 
@@ -114,7 +124,7 @@ These are older and no longer maintained.
 * Sign up to develop with the [Google Cloud Platform](https://console.cloud.google.com/), create a project, and activate the YouTube Data API v3 and the Geocoding API.
 * Create an `.env` file with `YOUTUBE_API_KEY=yourapikey` and `MAPS_API_KEY=yourmapsapikey`.
 
-## `dlvideo.py` options
+## `youtubedl/dlvideo.py` options
 
 *Suggested for YouTube downloaders*
 

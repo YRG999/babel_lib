@@ -1,9 +1,8 @@
 # ytdl_comments.py
 
-from yt_dlp import YoutubeDL
 from ytdl_updated import *
-from youtube_functions import *
-from extract_functions import *
+# from youtube_functions import *
+# from extract_functions import *
 
 if __name__ == "__main__":
     # Download comments & convert to CSV.

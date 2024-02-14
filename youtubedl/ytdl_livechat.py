@@ -2,8 +2,8 @@
 
 from yt_dlp import YoutubeDL
 from ytdl_updated import *
-from youtube_functions import *
-from extract_functions import *
+# from youtube_functions import *
+# from youtubedl.extract_functions import *
 
 filenames = []
 
