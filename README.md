@@ -103,7 +103,7 @@ Run this to get everything.
 
 These are older and no longer maintained.
 
-* `youtubedl/.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
+* `youtubedl/dlvideo.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
 * `youtubedl/ytdlchatvidthreads.py` - Download YouTube Live video and chat.
 * `youtubedl/commentdl.py` - Download comments from YouTube video. Saves output as a JSON and CSV file. Depends on `youtubedl/youtube_functions.py`.
 * `youtubedl/ytlivechatcommentdl.py` - Download YouTube live stream video, live chat, and comments. Extracts comments and live chat to CSV.
