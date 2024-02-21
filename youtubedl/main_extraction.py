@@ -1,5 +1,4 @@
 # Extract live comments from JSON & save to CSV
-
 # First use ytdlchatvidthreads.py to download Youtube chat
 # then use this to convert chat JSON to CSV
 
@@ -50,8 +49,6 @@ def write_to_csv(data, csv_path):
         writer.writerows(data)
 
 if __name__ == "__main__":
-    # json_path = "test.json"  # Path to your JSON file
-    # csv_path = "output.csv"  # Desired path for the CSV file
     json_path = ask_filename()  # Path to your JSON file
     csv_path = json_path+".csv"  # Desired path for the CSV file
 

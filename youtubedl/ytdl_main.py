@@ -1,4 +1,4 @@
-# This was replaced with ytdl_updated.py
+# **Replaced by ytdl_updated.py**
 
 import sys
 import threading

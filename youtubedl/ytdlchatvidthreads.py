@@ -1,5 +1,4 @@
-# This was replaced with ytdl_updated.py
-
+# **Replaced by ytdl_updated.py**
 # Download YouTube Live in two threads: chat & video.
 
 from yt_dlp import YoutubeDL
@@ -33,14 +32,16 @@ def download_chat():
     with YoutubeDL(ydl_opts_chat) as ydl:
         ydl.download(URLS)
 
-# Create threads
-video_thread = threading.Thread(target=download_video)
-chat_thread = threading.Thread(target=download_chat)
+if __name__ == "__main__":
 
-# Start threads
-video_thread.start()
-chat_thread.start()
+    # Create threads
+    video_thread = threading.Thread(target=download_video)
+    chat_thread = threading.Thread(target=download_chat)
 
-# Wait for both threads to complete
-video_thread.join()
-chat_thread.join()
+    # Start threads
+    video_thread.start()
+    chat_thread.start()
+
+    # Wait for both threads to complete
+    video_thread.join()
+    chat_thread.join()

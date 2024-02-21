@@ -2,8 +2,6 @@
 
 from yt_dlp import YoutubeDL
 from ytdl_updated import *
-# from youtube_functions import *
-# from youtubedl.extract_functions import *
 
 filenames = []
 
@@ -48,6 +46,3 @@ if __name__ == "__main__":
     data = extract_data_from_json(json_path) # Extract data from live_chat.json
     write_to_csv(data, csv_path) # Write to live_chat.json.csv
     print(f"Data written to '{csv_path}'") # Print the name of the CSV file to the console
-
-    # comment_csv = comment_to_csv(comment_file)
-    # print(f"Comments saved as: {comment_csv}")
