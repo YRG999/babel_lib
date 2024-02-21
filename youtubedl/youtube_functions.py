@@ -2,8 +2,6 @@
 
 import subprocess
 import json
-# import datetime -- replaced with below because this displayed error 
-# see https://stackoverflow.com/questions/12906402/type-object-datetime-datetime-has-no-attribute-datetime
 from datetime import datetime
 import pytz
 import re
