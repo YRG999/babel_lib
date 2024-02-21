@@ -35,8 +35,12 @@ def generate_passphrase():
     passphrase = ''.join(words)
     return passphrase
 
-# Generate a passphrase
-passphrase = generate_passphrase()
+def main():
+    # Generate a passphrase
+    passphrase = generate_passphrase()
 
-# Output the passphrase
-print("Passphrase:", passphrase)
+    # Output the passphrase
+    print("Passphrase:", passphrase)
+
+if __name__ == "__main__":
+    main()

@@ -25,7 +25,7 @@ def generate_random_phrase(min_words=3, max_words=5):
     phrase = ' '.join(words)
     return phrase
 
-if __name__ == "__main__":
+def run_random_phrase():
     # # Generate and print a random phrase
     # random_phrase = generate_random_phrase()
     # print(random_phrase)
@@ -34,3 +34,9 @@ if __name__ == "__main__":
     for _ in range(5):
         random_phrase = generate_random_phrase()
         print(random_phrase)
+
+def main():
+    run_random_phrase()
+
+if __name__ == "__main__":
+    main()

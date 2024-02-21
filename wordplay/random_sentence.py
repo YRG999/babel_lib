@@ -12,5 +12,12 @@ def generate_sentence():
     sentence = ' '.join(words) + random.choice(['.', '!', '?'])
     return sentence
 
-for _ in range(10):
-    print(generate_sentence())
+def random_phrase():
+    for _ in range(10):
+        print(generate_sentence())
+
+def main():
+    random_phrase()
+
+if __name__ == "__main__":
+    main()

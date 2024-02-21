@@ -12,10 +12,18 @@ def generate_sentence():
     sentence = ' '.join(words) + random.choice(['.', '!', '?'])
     return sentence
 
-with open('output/generated_sentences.txt', 'a') as file:
-    for _ in range(100):
-        sentence = generate_sentence()
-        file.write(sentence + '\n')
-        print(sentence)
+def random_sentence_save():
 
-print('Sentences saved to generated_sentences.txt.')
+    with open('output/generated_sentences.txt', 'a') as file:
+        for _ in range(100):
+            sentence = generate_sentence()
+            file.write(sentence + '\n')
+            print(sentence)
+
+    print('Sentences saved to generated_sentences.txt.')
+
+def main():
+    random_sentence_save()
+
+if __name__ == "__main__":
+    main()

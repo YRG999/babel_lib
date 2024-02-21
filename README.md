@@ -47,13 +47,14 @@ $ python ytdl_updated.py
 * Squid game sims - `squid_game.py` & `squid_game01.py` - red light green light sim.
 * `write_key.py` - asks for a key and value and adds it to a dictionary. If the dictionary doesn't exist, creates it.
 * [new YouTube downloaders](#new-focused-downloaders).
+* `wordplay/word_or_phrase.py` - Asks if you want to generate a random phrase or define a word.
 
 ## Random experiments
 
-* `random_sentence.py` - Creates random nonsense words and sentences.
-  * `gensen_worddict.py` - Expanded `random_sentence.py`. Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
-  * `random_sentence_save.py` - Same as `random_sentence.py` except saves to file.
-* `gen_pass.py` - Generate passphrase. Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
+* `wordplay/random_sentence.py` - Creates random nonsense words and sentences.
+  * `wordplay/gensen_worddict.py` - Expanded `wordplay/random_sentence.py`. Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
+  * `wordplay/random_sentence_save.py` - Same as `wordplay/random_sentence.py` except saves to file.
+* `wordplay/gen_pass.py` - Generate passphrase. Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
 * `entername.py` - Enter your name and get greeted with the current time.
   * `givename.py` - Runs `entername.py` and passes in a hardcoded name.
 

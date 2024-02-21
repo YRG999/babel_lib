@@ -37,8 +37,12 @@ def generate_and_validate_sentence():
             invalid_counter += 1
             print("Invalid Sentence:", sentence, "Count:", invalid_counter)
 
-# Generate and validate a sentence
-valid_sentence = generate_and_validate_sentence()
+def main():
+    # Generate and validate a sentence
+    valid_sentence = generate_and_validate_sentence()
 
-# Output the valid sentence
-print("Valid Sentence:", valid_sentence)
+    # Output the valid sentence
+    print("Valid Sentence:", valid_sentence)
+
+if __name__ == "__main__":
+    main()
