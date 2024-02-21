@@ -32,5 +32,8 @@ def download_youtube_data(video_url=None):
     video_thread.join()
     chat_thread.join()
 
-if __name__ == "__main__":
+def main():
     download_youtube_data()
+
+if __name__ == "__main__":
+    main()

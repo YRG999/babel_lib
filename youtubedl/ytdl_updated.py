@@ -160,7 +160,7 @@ def comment_to_csv(comment_file):
 
     return comment_csv
 
-if __name__ == "__main__":
+def download_all():
     # Download URLs: video, description, live_chat, info (comments), transcript (en.vtt)
     # Save transcript to text, live_chat and comments to CSV.
 
@@ -181,3 +181,9 @@ if __name__ == "__main__":
     for file in comment_files:
         comment_csv = comment_to_csv(file)
         print(f"Comments saved as: {comment_csv}")
+
+def main():
+    download_all()
+
+if __name__ == "__main__":
+    main()

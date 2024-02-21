@@ -33,12 +33,10 @@ def download_livechat(URLS):
 
     return filenames
 
-if __name__ == "__main__":
+def download_livechat_to_csv():
     # Download livechat & convert to CSV.
-
     urls = get_video_url()
     livechat = download_livechat([urls])
-
     json_path = next((file for file in livechat if file.endswith('.json')), None)
 
     ## check to see if there is a downloaded livechat JSON file
@@ -46,3 +44,9 @@ if __name__ == "__main__":
     data = extract_data_from_json(json_path) # Extract data from live_chat.json
     write_to_csv(data, csv_path) # Write to live_chat.json.csv
     print(f"Data written to '{csv_path}'") # Print the name of the CSV file to the console
+
+def main():
+   download_livechat_to_csv()
+
+if __name__ == "__main__":
+   main()

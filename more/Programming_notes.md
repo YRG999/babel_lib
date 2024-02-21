@@ -9,6 +9,7 @@
   - [Links](#links)
 - [Additional resources](#additional-resources)
 - [stash](#stash)
+- [Testing APIs](#testing-apis)
 
 ## Experiments - more details
 
@@ -173,6 +174,7 @@ To add and save your key permanently on Ubuntu (or equivalent):
 * [packages](packages.txt)
 
 ## stash
+
 *Google search notes*
 
 ```
@@ -195,3 +197,8 @@ git stash apply <stash_id>
 where <stash_id> is the ID of the stash you want to apply.
 ```
 * [SGE](https://labs.google/sge/)
+
+## Testing APIs
+
+* [rapidapi.com](https://rapidapi.com/hub)
+* [api-ninjas.com](https://api-ninjas.com/)

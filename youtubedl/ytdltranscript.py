@@ -1,9 +1,7 @@
-# Use this program to download YouTube videos
+# Download YouTube video transcripts
 # Uses code from ytdl_updated.py
 
 from ytdl_updated import * 
-# from youtube_functions import *
-# from youtubedl.extract_functions import *
 
 def download_transcript(URLS):
     '''
@@ -28,8 +26,7 @@ def download_transcript(URLS):
 
     return filenames
 
-if __name__ == "__main__":
-
+def download_and_clean_transcript():
     urls = get_video_url()
     filenames = download_transcript([urls])
 
@@ -37,3 +34,9 @@ if __name__ == "__main__":
     for file in transcript_files:
         clean_filename = clean_transcript(file)
         print(f"Transcript saved as: {clean_filename}")
+
+def main():
+    download_and_clean_transcript()
+
+if __name__ == "__main__":
+    main()

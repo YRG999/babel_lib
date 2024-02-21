@@ -32,8 +32,7 @@ def download_chat():
     with YoutubeDL(ydl_opts_chat) as ydl:
         ydl.download(URLS)
 
-if __name__ == "__main__":
-
+def download_threads():
     # Create threads
     video_thread = threading.Thread(target=download_video)
     chat_thread = threading.Thread(target=download_chat)
@@ -45,3 +44,9 @@ if __name__ == "__main__":
     # Wait for both threads to complete
     video_thread.join()
     chat_thread.join()
+
+def main():
+    download_threads()
+
+if __name__ == "__main__":
+    main()
