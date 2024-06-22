@@ -15,7 +15,8 @@ def get_video_url():
     '''
     Get YouTube URL from user input.
     
-    Returns YouTube URL'''
+    Return YouTube URL
+    '''
     # TODO: Update to accept multiple URLs
     return input("Please enter the full YouTube URL: ")
 
@@ -129,9 +130,9 @@ def download_comments_new(URLS):
     # Retrieve the filename of the recently downloaded comments
     comments_filename = get_recently_downloaded_filename('.en.vtt', current_time)
     if comments_filename:
-        return f"Chat downloaded as: {comments_filename}"
+        return f"Comments downloaded as: {comments_filename}"
     else:
-        return "Failed to download chat or extract filename."
+        return "Failed to download comments or extract filename."
 
 def download_comments(video_url):
     '''

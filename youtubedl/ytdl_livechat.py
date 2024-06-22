@@ -34,6 +34,12 @@ def download_livechat(URLS):
     return filenames
 
 def download_livechat_to_csv():
+    '''
+    Run download_livechat function and convert live_chat file to csv.
+    
+    Return live_chat file and live_chat.json.csv file.
+    '''
+
     # Download livechat & convert to CSV.
     urls = get_video_url()
     livechat = download_livechat([urls])

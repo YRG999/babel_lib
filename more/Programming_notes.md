@@ -2,14 +2,12 @@
 
 - [Experiments - more details](#experiments---more-details)
 - [YouTube search](#youtube-search)
-  - [Latitude and longitude](#latitude-and-longitude)
 - [Programming notes \& links](#programming-notes--links)
-  - [Git asks for SSH key \& passphrase](#git-asks-for-ssh-key--passphrase)
-  - [YouTube \& Google APIs](#youtube--google-apis)
-  - [Links](#links)
 - [Additional resources](#additional-resources)
 - [stash](#stash)
 - [Testing APIs](#testing-apis)
+- [pip upgrading packages](#pip-upgrading-packages)
+- [Download live videos command](#download-live-videos-command)
 
 ## Experiments - more details
 
@@ -202,3 +200,17 @@ where <stash_id> is the ID of the stash you want to apply.
 
 * [rapidapi.com](https://rapidapi.com/hub)
 * [api-ninjas.com](https://api-ninjas.com/)
+
+## pip upgrading packages
+
+* Instructions from: https://www.activestate.com/resources/quick-reads/how-to-update-all-python-packages/
+* In a requirements file, "unpinned packages are typically denoted by >=, which indicates that the package can be replaced by a later version."
+* get list of outdated packages: `pip list --outdated`
+* output packages `pip freeze > requirements.txt`
+* Edit requirements.txt, and replace all ‘==’ with ‘>=’.
+* Upgrade outdated packages: `pip install -r requirements.txt --upgrade`
+
+## Download live videos command
+
+* https://superuser.com/questions/649635/zsh-says-no-matches-found-when-trying-to-download-video-with-youtube-dl
+* `yt-dlp 'https://www.youtube.com/watch?v=####'`

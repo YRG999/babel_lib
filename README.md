@@ -9,10 +9,6 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 - [Wikipedia \& news](#wikipedia--news)
 - [Google \& YouTube APIs](#google--youtube-apis)
 - [YouTube downloaders](#youtube-downloaders)
-  - [Most up-to-date downloader](#most-up-to-date-downloader)
-  - [New focused downloaders](#new-focused-downloaders)
-  - [Other downloaders](#other-downloaders)
-  - [YouTube downloader functions](#youtube-downloader-functions)
 - [YouTube and Geolocation Requirements](#youtube-and-geolocation-requirements)
 - [`youtubedl/dlvideo.py` options](#youtubedldlvideopy-options)
 - [More](#more)
@@ -87,6 +83,11 @@ $ python ytdl_updated.py
 ## YouTube downloaders
 
 Most of these use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L191) or [embedded CLI](https://github.com/yt-dlp/yt-dlp#embedding-yt-dlp) to download videos.
+
+***How to download a video from X/Twitter using the `yt-dlp` CLI***
+* open in Firefox, log in, pass the following:
+* `yt-dlp replaceWithURL --cookies-from-browser firefox::none`
+* Reference: https://www.reddit.com/r/youtubedl/comments/15wn3mb/ytdlp_cant_download_from_twitter/
 
 ### Most up-to-date downloader
 
