@@ -1,9 +1,9 @@
 # Use this program to download YouTube videos
-# (working name download_cmv)
+# This is the most up-to-date program.
 
 from yt_dlp import YoutubeDL
 from youtube_functions import *
-# from youtubedl.extract_functions import *
+from extract_chatsuperemoji import *
 
 filenames = []
 
@@ -172,10 +172,22 @@ def download_all():
         clean_filename = clean_transcript(file)
         print(f"Transcript saved as: {clean_filename}")
 
+    # old code - no superchat
+    # livechat_files = return_livechat_files(filenames)
+    # for file in livechat_files:
+    #     livechat_csv = livechat_to_csv(file)
+    #     print(f"Live chat saved as: {livechat_csv}")
+
     livechat_files = return_livechat_files(filenames)
     for file in livechat_files:
-        livechat_csv = livechat_to_csv(file)
-        print(f"Live chat saved as: {livechat_csv}")
+        # print("file = "+file)
+        json_data, filename = get_json_data_auto(file)
+        result = extract_data_from_json(json_data, filename)
+        
+        # Generate output filename based on input filename
+        output_filename = os.path.splitext(filename)[0] + "_extracted.csv"
+        
+        save_to_csv(result, output_filename)
 
     comment_files = return_comment_files()
     for file in comment_files:

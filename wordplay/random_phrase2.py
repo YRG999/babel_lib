@@ -1,3 +1,6 @@
+# random_phrase2.py
+# NEED TO DEBUG - NOT WORKING ANYMORE
+
 import requests
 import random
 import os
@@ -14,8 +17,12 @@ from dotenv import load_dotenv
 
 def get_random_word(api_key):
     """Get a random word using the Random Word API by API Ninjas."""
+    load_dotenv()
+    API_NINJAS = os.getenv("API_NINJAS")
+
     api_url = "https://api.api-ninjas.com/v1/randomword"
-    headers = {'X-Api-Key': api_key}
+    # headers = {'X-Api-Key': api_key}
+    headers = {'X-Api-Key': API_NINJAS}  # Replace 'YOUR_API_KEY' with your actual API key from API Ninjas
     try:
         response = requests.get(api_url, headers=headers)
         response.raise_for_status()  # Raises an HTTPError if the response was an error
