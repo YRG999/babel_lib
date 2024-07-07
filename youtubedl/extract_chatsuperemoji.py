@@ -6,6 +6,8 @@ import csv
 import json
 import os
 import emoji
+import json
+import logging
 
 def is_emoji(text):
     return emoji.is_emoji(text)
@@ -28,30 +30,24 @@ def extract_text_and_emoji(data):
     
     return ''.join(output_elements)
 
-def get_json_data():
-    filename = input("Enter the name of the JSON file: ")
-    data_list = []
-    with open(filename, "r") as f:
-        for line in f:
-            try:
-                data = json.loads(line.strip())
-                data_list.append(data)
-            except json.JSONDecodeError as e:
-                print(f"Error decoding JSON on line: {line}")
-                print(f"Error details: {e}")
+def get_json_data(filename=None):
+    if filename is None:
+        filename = input("Enter the name of the JSON file: ")
+    
+    try:
+        with open(filename, "r") as f:
+            data_list = [
+                json.loads(line.strip())
+                for line in f
+            ]
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON in file {filename}: {e}")
+        return [], filename
+    except FileNotFoundError:
+        logging.error(f"File not found: {filename}")
+        return [], filename
+    
     return data_list, filename
-
-def get_json_data_auto(input_filename):
-    data_list = []
-    with open(input_filename, "r") as f:
-        for line in f:
-            try:
-                data = json.loads(line.strip())
-                data_list.append(data)
-            except json.JSONDecodeError as e:
-                print(f"Error decoding JSON on line: {line}")
-                print(f"Error details: {e}")
-    return data_list, input_filename
 
 def extract_data_from_json(json_data, json_path=None):
     '''

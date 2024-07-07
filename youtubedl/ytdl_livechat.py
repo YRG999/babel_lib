@@ -1,8 +1,4 @@
 # ytdl_livechat.py
-# THIS DOES NOT DOWNLOAD SUPERCHAT
-# Use extract_chatsuperemoji.py to do this
-# or use ytdl_updated.py
-# See ytdl_livechat2.py for notes
 
 from yt_dlp import YoutubeDL
 from ytdl_updated import *
@@ -44,16 +40,18 @@ def download_livechat_to_csv():
     Return live_chat file and live_chat.json.csv file.
     '''
 
-    # Download livechat & convert to CSV.
     urls = get_video_url()
-    livechat = download_livechat([urls])
-    json_path = next((file for file in livechat if file.endswith('.json')), None)
+    filenames = download_livechat([urls])
 
-    ## check to see if there is a downloaded livechat JSON file
-    csv_path = json_path+".csv"  # Name CSV file by added extension to JSON file
-    data = extract_data_from_json(json_path) # Extract data from live_chat.json
-    write_to_csv(data, csv_path) # Write to live_chat.json.csv
-    print(f"Data written to '{csv_path}'") # Print the name of the CSV file to the console
+    livechat_files = return_livechat_files(filenames)
+    for file in livechat_files:
+        json_data, filename = get_json_data(file)
+        result = extract_data_from_json(json_data, filename)
+        
+        # Generate output filename based on input filename
+        output_filename = os.path.splitext(filename)[0] + "_extracted.csv"
+        
+        save_to_csv(result, output_filename)
 
 def main():
    download_livechat_to_csv()

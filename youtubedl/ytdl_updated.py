@@ -180,8 +180,7 @@ def download_all():
 
     livechat_files = return_livechat_files(filenames)
     for file in livechat_files:
-        # print("file = "+file)
-        json_data, filename = get_json_data_auto(file)
+        json_data, filename = get_json_data(file)
         result = extract_data_from_json(json_data, filename)
         
         # Generate output filename based on input filename
