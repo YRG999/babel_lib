@@ -1,12 +1,18 @@
 import requests
 import json
 import time
+from datetime import datetime
+
+def get_time():
+    now = datetime.now() # https://www.w3resource.com/python-exercises/python-basic-exercise-3.php
+    date_time = now.strftime("%Y%m%d %H_%M_%S")
+    return date_time
 
 def get_recently_edited_titles():
     url = 'https://en.wikipedia.org/w/api.php'
     params = {
         'action': 'query',
-        'list': 'recentchanges',
+        'list': 'recentchanges', # https://en.wikipedia.org/w/api.php?action=help&modules=query%2Brecentchanges
         'rcprop': 'title',
         'format': 'json',
         'rclimit': '10'
@@ -19,6 +25,8 @@ def get_recently_edited_titles():
 filename = 'output/recently_edited_titles.txt'
 with open(filename, 'a') as f:
     while True:
+        current_date_time = get_time()
+        f.write('\n' + current_date_time + '\n\n')
         titles = get_recently_edited_titles()
         for title in titles:
             f.write(title + '\n')

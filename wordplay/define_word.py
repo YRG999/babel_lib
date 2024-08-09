@@ -1,38 +1,59 @@
-from random_phrase2 import *
+# define_word2.py
 
-def get_word_definition(word, api_key):
-    """Fetch the definition of a word using the API."""
+from random_phrase2 import *
+import csv
+
+def fetch_word_data(word, api_key):
+    """Fetch word data from the API and cache the response."""
     api_url = f'https://api.api-ninjas.com/v1/dictionary?word={word}'
     try:
         response = requests.get(api_url, headers={'X-Api-Key': api_key})
-        response.raise_for_status()  # Raises an HTTPError if the response was an error
+        response.raise_for_status()
         data = response.json()
-        # Check if the word is valid and has a definition
-        if data.get('valid', False):
-            return data['definition'] if data['definition'] else "No definition found."
-        else:
-            return f"The word '{word}' is not valid or not found."
+        return data
     except requests.RequestException as e:
-        return f"Request failed: {e}"
+        print(f"API request failed: {e}")
+        return None
 
-def ask_for_definition(api_key):
-    """Ask the user if they want the definition of a word, then fetch and print it."""
-    while True:
-        want_definition = input("Do you want the definition of a word? (yes/no): ").lower()
-        if want_definition == 'yes':
-            word = input("Enter the word: ")
-            definition = get_word_definition(word, api_key)
-            print(f"Definition of {word}: {definition}")
-        elif want_definition == 'no':
-            break
-        else:
-            print("Please answer with 'yes' or 'no'.")
+def is_word_valid(cached_response):
+    """Determine if the word is valid using the cached API response."""
+    if cached_response is not None:
+        return cached_response.get('valid', False)
+    return False
 
-def main():
+def get_definition_from_cached_response(cached_response):
+    """Get the word's definition from the cached API response, if valid."""
+    if cached_response and cached_response.get('valid', False):
+        return cached_response.get('definition', "No definition found.")
+    return "No definition found because the word is not valid or the data is unavailable."
+
+def save_word_to_csv(word, definition, filename='output/word_definitions.csv'):
+    """Save the word and its definition to a CSV file."""
+    with open(filename, 'a', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow([word, definition])
+
+def define_word():
     load_dotenv()
     api_key = os.getenv("API_NINJAS")
+    word = input("Enter a word to get its definition: ")
+    # Initialize definition variable to ensure it's always defined
+    definition = "Definition not found or word is invalid."
+
+    # Fetch and cache the API response
+    cached_response = fetch_word_data(word, api_key)
     
-    ask_for_definition(api_key)
+    # Check if the word is valid using the cached response
+    if is_word_valid(cached_response):
+        definition = get_definition_from_cached_response(cached_response)
+        print(f"Definition of {word}: {definition}")
+    else:
+        print(f"The word '{word}' is not valid or no data is available.")
+
+    save_word_to_csv(word, definition)
+
+def main():
+    define_word()
 
 if __name__ == "__main__":
     main()
