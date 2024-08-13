@@ -7,10 +7,7 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 - [Other programs](#other-programs)
 - [Wordplay](#wordplay)
 - [Games](#games)
-- [Google \& YouTube APIs](#google--youtube-apis)
 - [YouTube downloaders](#youtube-downloaders)
-- [YouTube and Geolocation Requirements](#youtube-and-geolocation-requirements)
-- [`youtubedl/dlvideo.py` options](#youtubedldlvideopy-options)
 - [More](#more)
 
 ## Setup
@@ -36,7 +33,8 @@ After the initial setup & requirements, you only have to run the second venv lin
 To run experiments, type `python` and the file name. For example, try this one:
 
 ```shell
-$ python ytdl_updated.py
+$ cd ytdownload
+$ python youtube_downloader.py
 ```
 
 ## Other programs
@@ -76,60 +74,17 @@ $ python ytdl_updated.py
 * `die-roll-histogram` - roll a die and generate a histogram of the values.
 * `squid_game.py` - red light green light sim.
 
-## Google & YouTube APIs
-
-[*requirements*](#youtube-and-geolocation-requirements)
-
-* `youtubedl/your_youtube.py` - Display the 10 most recently-added YouTube videos.
-* `youtubedl/youtube_search_loc.py` - Display the 10 most recently-added YouTube videos in a specific location.
-* `youtubedl/yt_loc2.py` - User-friendly YouTube search by location.
-* `lat_long.py` - Display the latitude and longitude for an address. Uses the Google Maps API.
-
 ## YouTube downloaders
 
-Most of these use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L191) or [embedded CLI](https://github.com/yt-dlp/yt-dlp#embedding-yt-dlp) to download videos.
+- `ytdownload/analyze_chat.py` - Analyze a youtube live chat CSV output by `youtube_downloader.py`.
+- `ytdownload/extract_functions.py` - Extract functions used by `youtube_downloader.py`.
+- `ytdownload/youtube_downloader.py` - Updated downloader using classes to download video, description, transcript, comments, and live chat and convert comments & live chat to CSV.
+
+These use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L191) or [embedded CLI](https://github.com/yt-dlp/yt-dlp#embedding-yt-dlp) to download videos. You may want to install [`ffmpeg`](https://trac.ffmpeg.org/wiki/CompilationGuide/macOS) to handle some video conversion. Easiest way on macOS is through homebrew: `brew install ffmpeg`.
 
 ***See [Using yt-dlp cookies](more/Using_yt-dlp_cookies.md) for how to download a video from X/Twitter***
 
-Run this to get everything.
-
-* **`youtubedl/ytdl_updated.py` - Updated downloader to download video and description, and download and convert transcript, comments, and live chat.**
-
-New focused downloaders
-
-* `youtubedl/ytdl_comments.py` - just downloads comments.
-* `youtubedl/ytdl_livechat.py` - just downloads live chat.
-* `youtubedl/ytdltranscript.py` - just downloads transcripts.
-
-These are older and no longer maintained.
-
-* `youtubedl/dlvideo.py` - ***(not just YouTube)*** Download YouTube, TikTok, and other videos from URL using `yt_dlp`.
-* `youtubedl/ytdlchatvidthreads.py` - Download YouTube Live video and chat.
-* `youtubedl/commentdl.py` - Download comments from YouTube video. Saves output as a JSON and CSV file. Depends on `youtubedl/youtube_functions.py`.
-* `youtubedl/ytlivechatcommentdl.py` - Download YouTube live stream video, live chat, and comments. Extracts comments and live chat to CSV.
-  * Consolidates `youtubedl/ytdlchatvidthreads.py`, `youtubedl/main_extraction.py` and `youtubedl/commentdl.py`.
-  * Uses `youtubedl/youtube_functions.py` and `youtubedl/youtube_functions2.py`.
-* `youtubedl/ytlive-chatextract.py` - Extract YouTube live chat from JSON to CSV.
-* `youtubedl/ytdltranscript.py` - Download YouTube transcript and save cleaned version without timecodes to text file. Uses `youtubedl/youtube_functions.py`
-
-YouTube downloader functions.
-
-* `youtubedl/youtube_functions.py` - Functions used in `youtubedl/ytlivechatcommentdt.py`, `youtubedl/commentdl.py`, and `youtubedl/ytdltranscript.py`.
-* `youtubedl/youtube_functions2.py` - Used in `youtubedl/ytlivechatcommentdt.py` and `youtubedl/ytlive-chatextract.py`.
-  * Uses `youtubedl/extract_functions.py`.
-
-## YouTube and Geolocation Requirements
-
-*Required for Google & YouTube API apps*
-
-* Sign up to develop with the [Google Cloud Platform](https://console.cloud.google.com/), create a project, and activate the YouTube Data API v3 and the Geocoding API.
-* Create an `.env` file with `YOUTUBE_API_KEY=yourapikey` and `MAPS_API_KEY=yourmapsapikey`.
-
-## `youtubedl/dlvideo.py` options
-
-*Suggested for YouTube downloaders*
-
-* Programs using [`yt_dlp`](https://github.com/yt-dlp/yt-dlp), such as `randtube` & `rectube` - you should install `ffmpeg`. Easiest way on macOS is through homebrew: `brew install ffmpeg` See for more: https://trac.ffmpeg.org/wiki/CompilationGuide/macOS.
+### Other download options
 
 ```python
 # other options
@@ -147,6 +102,12 @@ ydl_opts = {
   'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
 }
 ```
+
+### Youtube live chat fetcher
+
+- `ytdownload/youtube-live-chat-fetcher.py` - Fetch live chat during a live stream. Requires API key.
+- Sign up to develop with the [Google Cloud Platform](https://console.cloud.google.com/), create a project, and activate the YouTube Data API v3.
+- Create an `.env` file with `YOUTUBE_API_KEY=yourapikey` and `MAPS_API_KEY=yourmapsapikey`.
 
 ## More
 
