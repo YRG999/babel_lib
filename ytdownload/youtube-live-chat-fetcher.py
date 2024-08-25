@@ -32,7 +32,11 @@ def save_chat_to_file(chat_messages, video_id):
 def main():
     youtube = build('youtube', 'v3', developerKey=api_key)
 
-    video_id = "ENTER_YOUR_VIDEO_ID_HERE"
+    # To save live video
+    # In one window, run: yt-dlp --live-from-start VIDEO_ID
+    # In another window, run: python youtube-live-chat-fetcher.py
+
+    video_id = input("Enter video ID: ")
     save_interval = 300  # Save every 5 minutes (300 seconds)
     last_save_time = time.time()
     chat_messages = []
