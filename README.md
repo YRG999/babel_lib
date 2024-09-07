@@ -84,6 +84,26 @@ These use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-dlp/yt-d
 
 ***See [Using yt-dlp cookies](more/Using_yt-dlp_cookies.md) for how to download a video from X/Twitter***
 
+### YouTube Live fetcher
+
+To save live video and chat:
+
+1. Copy the VIDEO_ID, which is the final segment in a YouTube URL, for example, `ABC123` in `https://www.youtube.com/watch?v=ABC123`
+
+2. In one window, run the following to download the live video from the start:
+
+```sh
+yt-dlp --live-from-start VIDEO_ID
+```
+
+3. In another window, run the following to download the live chat:
+
+```sh
+python youtube-live-chat-fetcher.py
+```
+
+4. Enter the VIDEO_ID in the input field.
+
 ### Other download options
 
 ```python

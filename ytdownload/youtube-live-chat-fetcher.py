@@ -1,7 +1,10 @@
-# youtube-live-chat-fetcher4.py
+# youtube-live-chat-fetcher6.py
 # run pip install google-api-python-client
 # handle rate limiting
 # save to csv
+# Add types of chat events: super chats, member join notifactions, andother special events
+# convert time to EST
+# Display superchat message & amount
 
 import os
 import time
@@ -10,6 +13,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import pytz
+from dateutil import parser
 
 # Load environment variables from .env file
 load_dotenv()
@@ -17,24 +22,69 @@ load_dotenv()
 # Get API key from environment variable
 api_key = os.getenv('YOUTUBE_API_KEY')
 
+# Set up time zones
+utc = pytz.UTC
+eastern = pytz.timezone('US/Eastern')
+
+def convert_to_eastern(timestamp):
+    dt = parser.parse(timestamp)
+    dt = dt.replace(tzinfo=utc)
+    eastern_time = dt.astimezone(eastern)
+    return eastern_time.strftime('%Y-%m-%d %H:%M:%S %Z')
+
 def save_chat_to_file(chat_messages, video_id):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(eastern).strftime("%Y%m%d_%H%M%S")
     filename = f"chat_log_{video_id}_{timestamp}.csv"
     
     with open(filename, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['Timestamp', 'Author', 'Message'])  # Write header
+        writer.writerow(['Timestamp (ET)', 'Author', 'Message', 'Message Type', 'SuperChat Amount'])  # Updated header
         for message in chat_messages:
-            writer.writerow([message['timestamp'], message['author'], message['message']])
+            writer.writerow([
+                message['timestamp'],
+                message['author'],
+                message['message'],
+                message['type'],
+                message.get('superchat_amount', '')  # Add SuperChat amount
+            ])
     
     print(f"Chat log saved to {filename}")
 
+def get_chat_message(item):
+    message_type = item['snippet']['type']
+    author = item['authorDetails']['displayName']
+    timestamp = convert_to_eastern(item['snippet']['publishedAt'])
+    
+    if message_type == 'textMessageEvent':
+        message = item['snippet'].get('displayMessage', '')
+        superchat_amount = ''
+    elif message_type == 'superChatEvent':
+        superchat_details = item['snippet'].get('superChatDetails', {})
+        amount = superchat_details.get('amountDisplayString', '')
+        message = superchat_details.get('userComment', '')
+        superchat_amount = amount
+    elif message_type == 'superStickerEvent':
+        superchat_details = item['snippet'].get('superStickerDetails', {})
+        amount = superchat_details.get('amountDisplayString', '')
+        message = f"Super Sticker: {superchat_details.get('superStickerMetadata', {}).get('altText', '')}"
+        superchat_amount = amount
+    elif message_type == 'newSponsorEvent':
+        message = "New Sponsor!"
+        superchat_amount = ''
+    else:
+        message = f"Other event type: {message_type}"
+        superchat_amount = ''
+    
+    return {
+        'timestamp': timestamp,
+        'author': author,
+        'message': message,
+        'type': message_type,
+        'superchat_amount': superchat_amount
+    }
+
 def main():
     youtube = build('youtube', 'v3', developerKey=api_key)
-
-    # To save live video
-    # In one window, run: yt-dlp --live-from-start VIDEO_ID
-    # In another window, run: python youtube-live-chat-fetcher.py
 
     video_id = input("Enter video ID: ")
     save_interval = 300  # Save every 5 minutes (300 seconds)
@@ -62,18 +112,16 @@ def main():
 
         while chat_response:
             for item in chat_response['items']:
-                message = item['snippet']['displayMessage']
-                author = item['authorDetails']['displayName']
-                timestamp = item['snippet']['publishedAt']
-                
-                chat_message = {
-                    'timestamp': timestamp,
-                    'author': author,
-                    'message': message
-                }
-                chat_messages.append(chat_message)
-                
-                print(f"{timestamp} - {author}: {message}")
+                try:
+                    chat_message = get_chat_message(item)
+                    chat_messages.append(chat_message)
+                    if chat_message['type'] == 'superChatEvent':
+                        print(f"{chat_message['timestamp']} - {chat_message['author']} ({chat_message['type']}): {chat_message['superchat_amount']} - {chat_message['message']}")
+                    else:
+                        print(f"{chat_message['timestamp']} - {chat_message['author']} ({chat_message['type']}): {chat_message['message']}")
+                except KeyError as e:
+                    print(f"Error processing message: {e}")
+                    continue
 
             # Check if it's time to save the chat log
             current_time = time.time()

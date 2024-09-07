@@ -1,5 +1,5 @@
-from random_phrase2 import *
-from define_word2 import *
+from random_phrase import *
+from define_word import *
 
 def user_choice():
     choice = input("Do you want to (1) generate a random phrase or (2) define a word? Enter 1 or 2: ")

@@ -1,6 +1,6 @@
 # define_word2.py
 
-from random_phrase2 import *
+from random_phrase import *
 import csv
 
 def fetch_word_data(word, api_key):
