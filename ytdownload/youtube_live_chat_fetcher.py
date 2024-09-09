@@ -1,4 +1,4 @@
-# youtube-live-chat-fetcher7.py
+# youtube_live_chat_fetcher7.py
 # run pip install google-api-python-client
 # handle rate limiting
 # save to csv
