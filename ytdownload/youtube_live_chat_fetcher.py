@@ -184,6 +184,9 @@ class YouTubeLiveChatFetcher:
 def main():
     fetcher = YouTubeLiveChatFetcher()
     video_id = input("Enter video ID: ")
+    yt_dlp_command = f"yt-dlp --live-from-start -- {video_id}"
+    print (f"Run in new terminal to capture live:\n\n\n{yt_dlp_command}\n\n\n")
+    enter = input("Press Enter to start capturing live chat...")
     fetcher.fetch_live_chat(video_id)
 
 if __name__ == "__main__":
