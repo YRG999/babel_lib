@@ -88,21 +88,21 @@ These use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-dlp/yt-d
 
 To save live video and chat:
 
-1. Copy the VIDEO_ID, which is the final segment in a YouTube URL, for example, `ABC123` in `https://www.youtube.com/watch?v=ABC123`
+1. Copy the VIDEO_ID, which is the final segment in a YouTube URL, for example, `ABC123` in `https://www.youtube.com/watch?v=ABC123`.
 
-2. In one window, run the following to download the live video from the start:
+2. Run the following to download the live chat:
 
-```sh
-yt-dlp --live-from-start VIDEO_ID
-```
+    ```sh
+    python youtube-live-chat-fetcher.py
+    ```
 
-3. In another window, run the following to download the live chat:
+3. Enter the VIDEO_ID in the input field.
 
-```sh
-python youtube-live-chat-fetcher.py
-```
+4. Copy the code to download the live video from the start and run it in a new terminal:
 
-4. Enter the VIDEO_ID in the input field.
+    ```sh
+    yt-dlp --live-from-start -- VIDEO_ID
+    ```
 
 ### Other download options
 
