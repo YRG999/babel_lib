@@ -1,5 +1,4 @@
 # youtube_live_chat_fetcher7.py
-# run pip install google-api-python-client
 # handle rate limiting
 # save to csv
 # Add types of chat events: super chats, member join notifactions, andother special events

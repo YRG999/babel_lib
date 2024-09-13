@@ -28,3 +28,4 @@ urllib3>=2.2.1
 websockets>=12.0
 yt-dlp>=2024.5.7
 pygame>=2.6.0
+google-api-python-client

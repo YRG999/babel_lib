@@ -1,4 +1,8 @@
-# Using yt-dlp cookies
+# Using yt-dlp - tips
+
+Tips on how to use yt-dlp and other tools.
+
+## Using yt-dlp cookies
 
 *From Claude 3.5 Sonnet.*
 
@@ -64,3 +68,21 @@ yt-dlp VIDEOSEGMENT --live-from-start --sub-langs live_chat
 ## Embedding yt-dlp
 
 - See <https://github.com/yt-dlp/yt-dlp/blob/master/README.md#embedding-yt-dlp>
+
+## yt-dlp: No matches found
+
+<https://superuser.com/questions/649635/zsh-says-no-matches-found-when-trying-to-download-video-with-youtube-dl>
+
+If you get:
+
+```zsh
+zsh: no matches found: VIDEO_URL
+```
+
+Try:
+
+```zsh
+youtube-dl 'VIDEO_URL'
+```
+
+And use embed video link.
