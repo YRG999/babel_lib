@@ -1,10 +1,25 @@
+.DS_Store
+.env
+__pycache__/
 _notes/
+audio/
+browser_history/
 output/
 venv/
-.env
-.DS_Store
-__pycache__/
 videos/
-audio/
-chatoutput/
-browser_history/
+kickcomcookies.txt
+radius/map_with_radius.html
+ytdownload/from
+
+# .DS_Store                       # macOS system files
+# .env                            # Environment variables
+# __pycache__/                    # Python-specific directory containing cached bytecode files generated when modules imported.
+# _notes/                         # Miscellaneous notes & docs
+# audio/                          # Audio file output
+# browser_history/                # Browser history files
+# output/                         # General output dir for various build processes or program results.
+# venv/                           # Python virtual environment directories, where dependencies are installed locally.
+# videos/                         # Video file output
+# kickcomcookies.txt              # Cookies file for Kick.com.
+# radius/map_with_radius.html     # HTML map with radius data
+# ytdownload/from                 # Downloaded video content from YouTube. 

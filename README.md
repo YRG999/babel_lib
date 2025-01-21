@@ -1,6 +1,6 @@
 # BABEL_LIB
 
-Named after the [Library of Babel](https://libraryofbabel.info/) website. This started as an experiment in randomness but now hosts a bunch of experimental programs. I got help from [chatGPT](https://chat.openai.com/), [Claude AI](https://claude.ai/), and [Bard](https://bard.google.com/) to write some of them.
+Named after the [Library of Babel](https://libraryofbabel.info/) website. This started as an experiment in randomness but now hosts a bunch of experimental programs. I got help from [chatGPT](https://chat.openai.com/), [Claude AI](https://claude.ai/), and [whatever Google calls its AI these days](https://bard.google.com/) to write some of them.
 
 - [Setup](#setup)
 - [Run](#run)
@@ -8,6 +8,9 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 - [Wordplay](#wordplay)
 - [Games](#games)
 - [YouTube downloaders](#youtube-downloaders)
+- [Twitter/x.com videos](#twitterxcom-videos)
+- [Instagram stories](#instagram-stories)
+- [Upgrade yt-dlp](#upgrade-yt-dlp)
 - [More](#more)
 
 ## Setup
@@ -15,15 +18,14 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 For initial setup, create a virtual environment & run it:
 
 ```bash
-$ python -m venv venv
-$ . venv/bin/activate
+python -m venv venv
+. venv/bin/activate
 ```
 
 Then install requirements:
 
-
 ```shell
-$ pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 After the initial setup & requirements, you only have to run the second venv line to activate the virtual environment when running in the future.
@@ -32,47 +34,47 @@ After the initial setup & requirements, you only have to run the second venv lin
 
 To run experiments, type `python` and the file name. For example, try this one:
 
-```shell
-$ cd ytdownload
-$ python youtube_downloader.py
+```zsh
+cd ytdownload
+python youtube_downloader.py
 ```
 
 ## Other programs
 
-* `business_assumptions.py` - calculate breakeven cost and amount of drivers needed for a hypothetical future business idea.
-* `gnews_scraper.py` - Scrape the latest 5 Google News headlines based on `h4` top stories.
-* `lat_long.py` - find latitude & longitude.
-* `moviesearch.py` - prints number of movies released in a range of years.
-* `news_scraper.py` - BBC and NY Times headline scraper. Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
-* `repeated_multiplication.py` - repeatedly multiply numbers.
-* `retirement_calc.py` - calculate retirement.
-* `wiki_articles.py` - Display the 10 most recently-updated articles.
-* `write_key.py` - asks for a key and value and adds it to a dictionary. If the dictionary doesn't exist, creates it.
+- `business_assumptions.py` - calculate breakeven cost and amount of drivers needed for a hypothetical future business idea.
+- `gnews_scraper.py` - Scrape the latest 5 Google News headlines based on `h4` top stories.
+- `lat_long.py` - find latitude & longitude.
+- `moviesearch.py` - prints number of movies released in a range of years.
+- `news_scraper.py` - BBC and NY Times headline scraper. Adapted [Indently's BBC News Headline scraper](https://www.youtube.com/watch?v=zo7yzIVpIJo) to scrape BBC news and New York Times headlines.
+- `repeated_multiplication.py` - repeatedly multiply numbers.
+- `retirement_calc.py` - calculate retirement.
+- `wiki_articles.py` - Display the 10 most recently-updated articles.
+- `write_key.py` - asks for a key and value and adds it to a dictionary. If the dictionary doesn't exist, creates it.
 
 ## Wordplay
 
-* `count_letters.py` - Count letters in a word.
-* `define_word.py` - Define a word.
-* `entername.py` - Enter your name and get greeted with the current time.
-* `gen_pass.py` - Generate passphrase. Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
-* `gensen_worddict.py` - Expanded `random_sentence.py`. Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
-* `givename.py` - Runs `entername.py` and passes in a hardcoded name.
-* `random_phrase.py` - (Buggy) Generate random phrase.
-* `random_sentence_save.py` - Same as `random_sentence.py` except saves to file.
-* `word_or_phrase.py` - Asks if you want to generate a random phrase or define a word.
+- `count_letters.py` - Count letters in a word.
+- `define_word.py` - Define a word.
+- `entername.py` - Enter your name and get greeted with the current time.
+- `gen_pass.py` - Generate passphrase. Uses the `https://random-word-api.herokuapp.com/word` API endpoint to generate a passphrase.
+- `gensen_worddict.py` - Expanded `random_sentence.py`. Pulls random words from the `https://random-word-api.herokuapp.com/word` API endpoint and strings them together to create a sentence, then verifies the sentence against the `language_tool_python` API.
+- `givename.py` - Runs `entername.py` and passes in a hardcoded name.
+- `random_phrase.py` - (Buggy) Generate random phrase.
+- `random_sentence_save.py` - Same as `random_sentence.py` except saves to file.
+- `word_or_phrase.py` - Asks if you want to generate a random phrase or define a word.
 
 ## Games
 
-* `dice_game.py` - experimental treasure hunt game.
-* `dice_roll_anysided` - Roll a die with the number of sides specified by the user.
-* `dice_rolls.py` - Rolls 2 6-sided dice.
-* `die_roll_games.py` - 3 games
+- `dice_game.py` - experimental treasure hunt game.
+- `dice_roll_anysided` - Roll a die with the number of sides specified by the user.
+- `dice_rolls.py` - Rolls 2 6-sided dice.
+- `die_roll_games.py` - 3 games
   1. Choose the number of sides for the die and roll it.
   2. Add to game 1 & see how many rolls it takes to roll the number again.
   3. Play game 2 a number of times.
-* `die_roll_probability.py` - guess how many rolls it will take for game 2 (work in progress)
-* `die-roll-histogram` - roll a die and generate a histogram of the values.
-* `squid_game.py` - red light green light sim.
+- `die_roll_probability.py` - guess how many rolls it will take for game 2 (work in progress)
+- `die-roll-histogram` - roll a die and generate a histogram of the values.
+- `squid_game.py` - red light green light sim.
 
 ## YouTube downloaders
 
@@ -82,7 +84,13 @@ $ python youtube_downloader.py
 
 These use the `yt_dlp` [`YoutubeDL` Python class](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L191) or [embedded CLI](https://github.com/yt-dlp/yt-dlp#embedding-yt-dlp) to download videos. You may want to install [`ffmpeg`](https://trac.ffmpeg.org/wiki/CompilationGuide/macOS) to handle some video conversion. Easiest way on macOS is through homebrew: `brew install ffmpeg`.
 
-***See [Using yt-dlp cookies](more/Using_yt-dlp_cookies.md) for how to download a video from X/Twitter***
+### Pass input from terminal
+
+<https://superuser.com/questions/1409426/how-to-pass-input-to-a-script-from-terminal>
+
+The following will start the program and begin downloading the `VIDEO_ID` provided in the link.
+
+`printf '%s\n' "https://www.youtube.com/watch?v=VIDEO_ID" | python youtube_downloader.py`
 
 ### YouTube Live fetcher
 
@@ -103,6 +111,40 @@ To save live video and chat:
     ```sh
     yt-dlp --live-from-start -- VIDEO_ID
     ```
+
+## Twitter/x.com videos
+
+To download using a guest token, use `yt-dlp X_URL`.
+
+If you get the error "file name too long", use the following:
+
+```zsh
+yt-dlp -o "%(id)s.%(ext)s" X_URL
+```
+
+See more [here](https://forum.porteus.org/viewtopic.php?t=10408), [here](https://github.com/yt-dlp/yt-dlp/issues/5060), and [here](https://github.com/yt-dlp/yt-dlp/issues/1136).
+
+***See [Using yt-dlp cookies](more/Using_yt-dlp_cookies.md) if you need to log in to download***
+
+## Instagram stories
+
+Use `yt-dlp --cookies-from-browser firefox URL`.
+
+See <https://github.com/yt-dlp/yt-dlp/issues/8290#issuecomment-1753826148>.
+
+## Upgrade yt-dlp
+
+Check version.
+
+```zsh
+yt-dlp --version
+```
+
+Install upgrade.
+
+```zsh
+pip install yt-dlp --upgrade
+```
 
 ### Other download options
 

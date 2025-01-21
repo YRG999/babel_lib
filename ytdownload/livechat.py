@@ -1,5 +1,6 @@
 # youtube_live_chat_fetcher14.py
-# updates to handle API usage quota: https://stackoverflow.com/questions/67232262/how-much-quota-cost-does-the-livechatmessages-list-method-incur
+# updates to handle API usage quota: 
+# https://stackoverflow.com/questions/67232262/how-much-quota-cost-does-the-livechatmessages-list-method-incur
 
 import os
 import time

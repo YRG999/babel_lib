@@ -1,4 +1,7 @@
-# youtube_downloader4.py
+# youtube_downloader6.py
+# handle errors; use browser-cookie3 & firefox for login info
+# The 403 Forbidden error typically occurs with YouTube downloads for a few reasons: 
+# IP rate limiting, Missing or outdated cookies, Outdated yt-dlp version
 
 import json
 import csv
@@ -10,11 +13,62 @@ import logging
 from yt_dlp import YoutubeDL
 from extract_functions import extract_text_and_emoji, extract_timestamp
 
+logging.basicConfig(level=logging.INFO)
+
+class YouTubeDownloader:
+    def __init__(self):
+        self.filenames = []
+
+    def _progress_hook(self, d):
+        """
+        This method:
+        1. Tracks the download progress
+        2. Stores the filenames of completed downloads
+        3. Logs when downloads are finished
+        """
+        if d['status'] == 'finished':
+            filename = d.get('filename')
+            if filename:
+                self.filenames.append(filename)
+                logging.info(f"Finished downloading: {filename}")
+
+    def download_video_info_comments(self, urls: List[str]) -> List[str]:
+        ydl_opts = {
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+            'writesubtitles': True,
+            'writeautomaticsub': True,
+            'subtitleslangs': ['en','live_chat'],
+            'writedescription': True,
+            'writeinfojson': True,
+            'progress_hooks': [self._progress_hook],
+            'cookiesfrombrowser': ('firefox',),  # Use cookies from Firefox
+            'nocheckcertificate': True,
+            'ignoreerrors': True,
+            'no_warnings': True,
+            'extract_flat': True,
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        }
+
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                for url in urls:
+                    try:
+                        ydl.download([url])
+                    except Exception as e:
+                        logging.error(f"Error downloading {url}: {str(e)}")
+                        continue
+
+        except Exception as e:
+            logging.error(f"Fatal error in downloader: {str(e)}")
+        
+        return self.filenames
+
 class YouTubeProcessor:
     def __init__(self):
         self.downloader = YouTubeDownloader()
         self.chat_processor = ChatProcessor()
-        self.comment_processor = CommentProcessor()
         self.transcript_processor = TranscriptProcessor()
 
     def process_video(self, url: str):
@@ -27,35 +81,6 @@ class YouTubeProcessor:
             elif file.endswith(".live_chat.json"):
                 output_filename = self.chat_processor.process_chat(file)
                 print(f"Live chat saved as: {output_filename}")
-            elif file.endswith('.info.json'):
-                comment_csv = self.comment_processor.process_comments(file)
-                print(f"Comments saved as: {comment_csv}")
-
-class YouTubeDownloader:
-    def __init__(self):
-        self.filenames = []
-
-    def download_video_info_comments(self, urls: List[str]) -> List[str]:
-        ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-            'getcomments': True,
-            'writesubtitles': True,
-            'writeautomaticsub': True,
-            'subtitleslangs': ['en','live_chat'],
-            'writedescription': True,
-            'writeinfojson': True,
-            'progress_hooks': [self._progress_hook]
-        }
-
-        with YoutubeDL(ydl_opts) as ydl:
-            for url in urls:
-                ydl.download(url)
-
-        return self.filenames
-
-    def _progress_hook(self, d):
-        if d['status'] == 'finished':
-            self.filenames.append(d['filename'])
 
 class ChatProcessor:
     def process_chat(self, filename: str) -> str:
@@ -100,31 +125,6 @@ class ChatProcessor:
             csv_writer = csv.writer(csvfile)
             csv_writer.writerow(['Message', 'Author', 'Timestamp'])
             csv_writer.writerows(data)
-
-class CommentProcessor:
-    def process_comments(self, comment_file: str) -> str:
-        with open(comment_file, 'r') as file:
-            data = json.load(file)
-
-        extracted_data = [self._extract_comment_info(comment) for comment in data['comments']]
-
-        comment_csv = comment_file + ".csv"
-        with open(comment_csv, 'w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerow(['Comment ID', 'Text', 'Author', 'Timestamp', 'Eastern Time'])
-            writer.writerows(extracted_data)
-
-        return comment_csv
-
-    def _extract_comment_info(self, comment: Dict[str, Any]) -> List[str]:
-        eastern_time = convert_to_eastern(comment['timestamp'])
-        return [
-            comment['id'],
-            comment['text'],
-            comment['author'],
-            comment['timestamp'],
-            eastern_time.strftime('%Y-%m-%d %H:%M:%S')
-        ]
 
 class TranscriptProcessor:
     def clean_transcript(self, vtt_filepath: str) -> str:
