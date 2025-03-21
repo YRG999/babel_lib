@@ -10,7 +10,8 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 - [YouTube downloaders](#youtube-downloaders)
 - [Twitter/x.com videos](#twitterxcom-videos)
 - [Instagram stories](#instagram-stories)
-- [Upgrade yt-dlp](#upgrade-yt-dlp)
+- [Kick](#kick)
+- [Upgrade yt-dlp (part 2)](#upgrade-yt-dlp-part-2)
 - [More](#more)
 
 ## Setup
@@ -29,6 +30,14 @@ pip install -r requirements.txt
 ```
 
 After the initial setup & requirements, you only have to run the second venv line to activate the virtual environment when running in the future.
+
+### Upgrade yt-dlp
+
+If necessary you may need to upgrade `yt-dlp`:
+
+```shell
+pip install -U yt-dlp
+```
 
 ## Run
 
@@ -132,7 +141,20 @@ Use `yt-dlp --cookies-from-browser firefox URL`.
 
 See <https://github.com/yt-dlp/yt-dlp/issues/8290#issuecomment-1753826148>.
 
-## Upgrade yt-dlp
+## Kick
+
+[how-to-download-your-kick-replays](https://help.kick.com/en/articles/7832538-how-to-download-your-kick-replays)
+
+1. Open your browser and press F12
+2. Click the "Network" tab
+3. Load the replay in your browser
+4. In the network tab, search for m3u8
+5. Right Click the file master.m3u8 and select Copy URL
+6. Open your command line / terminal
+7. If on Windows, go to the directory where the yt-dlp file has been installed
+8. Run the following Command: ​`​yt-dlp <kick_replay_url>`
+
+## Upgrade yt-dlp (part 2)
 
 Check version.
 

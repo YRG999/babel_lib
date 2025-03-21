@@ -27,7 +27,8 @@ class YouTubeDownloader:
             'subtitleslangs': ['en','live_chat'],
             'writedescription': True,
             'writeinfojson': True,
-            'progress_hooks': [self._progress_hook]
+            'progress_hooks': [self._progress_hook],
+            'cookiesfrombrowser': ('firefox',)  # Use Firefox cookies
         }
 
         with YoutubeDL(ydl_opts) as ydl:
@@ -41,7 +42,7 @@ class YouTubeDownloader:
             self.filenames.append(d['filename'])
 
 class YouTubeProcessor:
-    def __init__(self):
+    def __init__(self, cookies_file: str = None):
         self.downloader = YouTubeDownloader()
         self.chat_processor = ChatProcessor()
         self.transcript_processor = TranscriptProcessor()

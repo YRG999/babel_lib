@@ -2,6 +2,7 @@
 # handle errors; use browser-cookie3 & firefox for login info
 # The 403 Forbidden error typically occurs with YouTube downloads for a few reasons: 
 # IP rate limiting, Missing or outdated cookies, Outdated yt-dlp version
+# TODO: fix error: ERROR: unable to download video data: HTTP Error 403: Forbidden
 
 import json
 import csv
