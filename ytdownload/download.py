@@ -21,7 +21,8 @@ class YouTubeDownloader:
 
     def download_video_info_comments(self, urls: List[str]) -> List[str]:
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+            # 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+            'format': 'best',
             'writesubtitles': True,
             'writeautomaticsub': True,
             'subtitleslangs': ['en','live_chat'],

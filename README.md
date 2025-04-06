@@ -11,7 +11,6 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 - [Twitter/x.com videos](#twitterxcom-videos)
 - [Instagram stories](#instagram-stories)
 - [Kick](#kick)
-- [Upgrade yt-dlp (part 2)](#upgrade-yt-dlp-part-2)
 - [More](#more)
 
 ## Setup
@@ -33,7 +32,21 @@ After the initial setup & requirements, you only have to run the second venv lin
 
 ### Upgrade yt-dlp
 
-If necessary you may need to upgrade `yt-dlp`:
+If necessary you may need to upgrade `yt-dlp`.
+
+Check version.
+
+```zsh
+yt-dlp --version
+```
+
+Install upgrade.
+
+```zsh
+pip install yt-dlp --upgrade
+```
+
+Or
 
 ```shell
 pip install -U yt-dlp
@@ -154,19 +167,25 @@ See <https://github.com/yt-dlp/yt-dlp/issues/8290#issuecomment-1753826148>.
 7. If on Windows, go to the directory where the yt-dlp file has been installed
 8. Run the following Command: ​`​yt-dlp <kick_replay_url>`
 
-## Upgrade yt-dlp (part 2)
+### merge files
 
-Check version.
 
-```zsh
-yt-dlp --version
+Merge downloaded fragments with ffmpeg’s concat demuxer.
+
+1. Create a file named filelist.txt with the files listed in order.
+
+```txt
+file 'filename.f137.mp4.part'
+file 'filename.f140.mp4.part'
 ```
 
-Install upgrade.
+2. Run the ffmpeg command to merge them:
 
 ```zsh
-pip install yt-dlp --upgrade
+ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
 ```
+
+This will merge the fragments into output.mp4.
 
 ### Other download options
 
