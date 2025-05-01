@@ -3,7 +3,7 @@
 # no comments
 # to download comments, run 
 # `python comments.py "https://www.youtube.com/watch?v=VIDEO_ID"`
-# see updated version: youtube_downloader6.py
+# Alt version: youtube_downloader6.py
 
 import json
 import csv
@@ -21,15 +21,15 @@ class YouTubeDownloader:
 
     def download_video_info_comments(self, urls: List[str]) -> List[str]:
         ydl_opts = {
-            # 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-            'format': 'best',
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+            # 'format': 'best',
             'writesubtitles': True,
             'writeautomaticsub': True,
             'subtitleslangs': ['en','live_chat'],
             'writedescription': True,
             'writeinfojson': True,
             'progress_hooks': [self._progress_hook],
-            'cookiesfrombrowser': ('firefox',)  # Use Firefox cookies
+            # 'cookiesfrombrowser': ('firefox',)  # Use Firefox cookies
         }
 
         with YoutubeDL(ydl_opts) as ydl:
