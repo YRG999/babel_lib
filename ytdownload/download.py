@@ -19,18 +19,21 @@ class YouTubeDownloader:
     def __init__(self):
         self.filenames = []
 
-    def download_video_info_comments(self, urls: List[str]) -> List[str]:
+    def download_video_info_comments(self, urls: List[str], livechat_only: bool = False) -> List[str]:
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-            # 'format': 'best',
             'writesubtitles': True,
             'writeautomaticsub': True,
-            'subtitleslangs': ['en','live_chat'],
-            'writedescription': True,
-            'writeinfojson': True,
+            'subtitleslangs': ['live_chat'] if livechat_only else ['en', 'live_chat'],
+            'writedescription': not livechat_only,
+            'writeinfojson': not livechat_only,
+            'skip_download': livechat_only,  # Skip video/audio download if livechat_only is True
             'progress_hooks': [self._progress_hook],
             # 'cookiesfrombrowser': ('firefox',)  # Use Firefox cookies
         }
+
+        # Add the 'format' option only if livechat_only is False
+        if not livechat_only:
+            ydl_opts['format'] = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]'
 
         with YoutubeDL(ydl_opts) as ydl:
             for url in urls:
@@ -139,8 +142,20 @@ def convert_to_eastern(timestamp: float) -> datetime:
 
 def main():
     processor = YouTubeProcessor()
-    url = input("Please enter the full YouTube URL: ")
-    processor.process_video(url)
+    url = input("Enter the full YouTube URL: ")
+    download_livechat_only = input("Do you want to download live chat only? (y/n): ").strip().lower()
+
+    if download_livechat_only == 'y':
+        downloader = YouTubeDownloader()
+        filenames = downloader.download_video_info_comments([url], livechat_only=True)
+
+        for file in filenames:
+            if file.endswith(".live_chat.json"):
+                chat_processor = ChatProcessor()
+                output_filename = chat_processor.process_chat(file)
+                print(f"Live chat saved as: {output_filename}")
+    else:
+        processor.process_video(url)
 
 if __name__ == "__main__":
     main()

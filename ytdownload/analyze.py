@@ -1,11 +1,23 @@
-# analyze_chat7.py
-# optimize code
+# analyze_chat8.py
+# This script analyzes a CSV file containing live chat data from YouTube.
+# It counts the number of superchats, calculates their total value,
+# and counts the number of messages sent by each author.
+# It generates a markdown table with the results.
+# added logging functionality to track errors and warnings
 
 import csv
 from datetime import datetime, timedelta
 from collections import defaultdict
 import re
 from typing import Dict, Any, Tuple, Optional
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename='analyze.log',  # Log file name
+    level=logging.DEBUG,     # Log all levels (DEBUG, INFO, WARNING, ERROR)
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 def parse_superchat_value(message):
     match = re.search(r'([\$€£¥])(\d+(?:\.\d{2})?)', message)
@@ -18,7 +30,7 @@ def parse_superchat_value(message):
 def seconds_to_hms(seconds):
     return str(timedelta(seconds=int(seconds)))
 
-# Refactored with generater expression and helper function
+# Refactored with generator expression and helper function
 def analyze_csv(filename: str) -> Tuple[int, Dict[str, float], Dict[str, int], float]:
     superchats = 0
     superchat_values = defaultdict(float)
@@ -47,7 +59,7 @@ def analyze_csv(filename: str) -> Tuple[int, Dict[str, float], Dict[str, int], f
             
             # Validate required fields
             if not all([message, author, timestamp_str]):
-                print(f"Warning: Incomplete data in row {row_num}: {row}")
+                logging.warning(f"Incomplete data in row {row_num}: {row}")
                 return None
 
             # Parse timestamp
@@ -62,51 +74,56 @@ def analyze_csv(filename: str) -> Tuple[int, Dict[str, float], Dict[str, int], f
                 if currency and value:
                     superchat_info = (currency, value)
                 else:
-                    print(f"Warning: Unable to parse Superchat value in row {row_num}: {message}")
+                    logging.warning(f"Unable to parse Superchat value in row {row_num}: {message}")
             
             return (message, author, timestamp, superchat_info)
         
         except Exception as e:
-            print(f"Error processing row {row_num}: {row}. Error: {e}")
+            logging.error(f"Error processing row {row_num}: {row}. Error: {e}")
             return None
 
     # Open and read the CSV file
-    with open(filename, 'r', newline='', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        
-        # Create a generator expression to process each row
-        processed_rows = (
-            process_row(row, row_num)
-            for row_num, row in enumerate(reader, start=1)
-        )
-
-        # Iterate over the generator to update counts and lists
-        for processed in processed_rows:
-            if processed is None:
-                continue  # Skip rows with incomplete data or processing errors
+    try:
+        with open(filename, 'r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
             
-            message, author, timestamp, superchat_info = processed
+            # Create a generator expression to process each row
+            processed_rows = (
+                process_row(row, row_num)
+                for row_num, row in enumerate(reader, start=1)
+            )
 
-            # Update author message count
-            author_counts[author] += 1
+            # Iterate over the generator to update counts and lists
+            for processed in processed_rows:
+                if processed is None:
+                    continue  # Skip rows with incomplete data or processing errors
+                
+                message, author, timestamp, superchat_info = processed
 
-            # Append message and timestamp
-            messages.append((message, timestamp))
+                # Update author message count
+                author_counts[author] += 1
 
-            # If it's a Superchat, update Superchat counts and values
-            if superchat_info:
-                superchats += 1
-                currency, value = superchat_info
-                superchat_values[currency] += value
+                # Append message and timestamp
+                messages.append((message, timestamp))
 
-    # Calculate total time in seconds between first and last message
-    if messages:
-        sorted_messages = sorted(messages, key=lambda x: x[1])
-        total_time = (sorted_messages[-1][1] - sorted_messages[0][1]).total_seconds()
-    else:
-        total_time = 0.0
+                # If it's a Superchat, update Superchat counts and values
+                if superchat_info:
+                    superchats += 1
+                    currency, value = superchat_info
+                    superchat_values[currency] += value
 
-    return superchats, superchat_values, author_counts, total_time
+        # Calculate total time in seconds between first and last message
+        if messages:
+            sorted_messages = sorted(messages, key=lambda x: x[1])
+            total_time = (sorted_messages[-1][1] - sorted_messages[0][1]).total_seconds()
+        else:
+            total_time = 0.0
+
+        return superchats, superchat_values, author_counts, total_time
+
+    except Exception as e:
+        logging.error(f"Error reading file {filename}: {e}")
+        raise
 
 def generate_markdown_table(data):
     superchats, superchat_values, author_counts, total_time = data
@@ -141,13 +158,9 @@ def main():
 
         print(f"Analysis complete. Results saved to {output_file}")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"An error occurred during analysis: {e}")
         import traceback
         traceback.print_exc()
 
 if __name__ == "__main__":
     main()
-
-
-
-
