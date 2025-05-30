@@ -169,7 +169,6 @@ See <https://github.com/yt-dlp/yt-dlp/issues/8290#issuecomment-1753826148>.
 
 ### merge files
 
-
 Merge downloaded fragments with ffmpeg’s concat demuxer.
 
 1. Create a file named filelist.txt with the files listed in order.

@@ -114,7 +114,7 @@ def download_comments(url: str) -> str:
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python download_comments.py <youtube_url>")
+        print("Usage: python comments.py \"<youtube_url>\"")
         sys.exit(1)
     
     url = sys.argv[1]

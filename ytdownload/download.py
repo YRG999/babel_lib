@@ -143,7 +143,7 @@ def convert_to_eastern(timestamp: float) -> datetime:
 def main():
     processor = YouTubeProcessor()
     url = input("Enter the full YouTube URL: ")
-    download_livechat_only = input("Do you want to download live chat only? (y/n): ").strip().lower()
+    download_livechat_only = input("Do you want to download live chat only? (y = yes): ").strip().lower()
 
     if download_livechat_only == 'y':
         downloader = YouTubeDownloader()
