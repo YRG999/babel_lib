@@ -134,6 +134,20 @@ To save live video and chat:
     yt-dlp --live-from-start -- VIDEO_ID
     ```
 
+#### cookies
+
+If you get the error:
+
+```sh
+ERROR: [youtube] URL: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+```
+
+Sign in with firefox then try:
+
+```sh
+yt-dlp --cookies-from-browser firefox --live-from-start -- URL
+```
+
 ## Twitter/x.com videos
 
 To download using a guest token, use `yt-dlp X_URL`.
@@ -203,6 +217,14 @@ ydl_opts = {
   'format': 'bestvideo[height<=720]+bestaudio/best[height<=720]', # download up to 720p video
   'merge_output_format': 'mp4',  # Ensure the final output is in mp4 format
 }
+```
+
+### Terminal commands
+
+List formats
+
+```sh
+yt-dlp -F "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 ### Youtube live chat fetcher

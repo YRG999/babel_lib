@@ -1,0 +1,5 @@
+yt-dlp
+pytz
+requests
+browser-cookie3
+logging

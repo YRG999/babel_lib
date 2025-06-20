@@ -1,26 +1,10 @@
-# download_comments2.py
-# claude.ai
-# download youtube comments only
-# with progress logger that shows:
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Starting comment download for: https://www.youtube.com/watch?v=...
-# Downloaded 70/699 comments (10%)
-# Downloaded 140/699 comments (20%)
-# Downloaded 210/699 comments (30%)
-# ...
-# Processing 699 comments...
-# Writing to CSV: 10%
-# Writing to CSV: 20%
-# Writing to CSV: 30%
-# ...
-# Comments successfully saved to VIDEO_ID_comments.csv
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# filepath: /youtube-downloader-app/youtube-downloader-app/src/comments.py
 
-import sys
-from yt_dlp import YoutubeDL
 import csv
 from datetime import datetime
 import pytz
+from yt_dlp import YoutubeDL
+from extract_comments import convert_to_eastern
 
 class ProgressLogger:
     def __init__(self):
@@ -33,39 +17,30 @@ class ProgressLogger:
             self.current = d.get('n_entries', 0)
             self.total = d.get('total_entries') or self.current
             
-            # Calculate percentage
             percentage = int((self.current / max(self.total, 1)) * 100)
             
-            # Only print when percentage changes by at least 10%
             if percentage >= self.last_percentage + 10 or percentage == 100:
                 print(f"Downloaded {self.current}/{self.total} comments ({percentage}%)")
                 self.last_percentage = (percentage // 10) * 10
 
-def convert_to_eastern(timestamp):
-    """Convert UTC timestamp to Eastern Time"""
-    utc_time = datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
-    return utc_time.astimezone(pytz.timezone('US/Eastern'))
+# def convert_to_eastern(timestamp):
+#     utc_time = datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
+#     return utc_time.astimezone(pytz.timezone('US/Eastern'))
 
-def download_comments(url: str) -> str:
-    """Download comments from a YouTube video and save them to a CSV file"""
-    
-    # Create progress logger
+def download_comments(url: str, use_cookies: bool) -> str:
     progress = ProgressLogger()
     
-    # Configure yt-dlp options
     ydl_opts = {
-        'extract_flat': True,  # Do not download video
+        'extract_flat': True,
         'quiet': True,
         'no_warnings': True,
-        'getcomments': True,   # Enable comment downloading
-        # 'cookiesfrombrowser': ('firefox',),  # Use cookies from Firefox
-        'progress_hooks': [progress.progress_hook]
+        'getcomments': True,
+        'progress_hooks': [progress.progress_hook],
+        'cookiesfrombrowser': ('firefox',) if use_cookies else None
     }
 
     try:
-        # Create YoutubeDL object
         with YoutubeDL(ydl_opts) as ydl:
-            # Extract video information and comments
             print(f"Starting comment download for: {url}")
             info = ydl.extract_info(url, download=False)
             
@@ -73,12 +48,10 @@ def download_comments(url: str) -> str:
                 print("No comments found or comments are disabled for this video.")
                 return
             
-            # Create CSV filename from video ID
             csv_filename = f"{info['id']}_comments.csv"
             total_comments = len(info['comments'])
             print(f"\nProcessing {total_comments} comments...")
             
-            # Write comments to CSV
             with open(csv_filename, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow(['Comment ID', 'Author', 'Text', 'Timestamp', 'Eastern Time', 'Likes'])
@@ -97,7 +70,6 @@ def download_comments(url: str) -> str:
                             comment.get('like_count', 0)
                         ])
                         
-                        # Show CSV writing progress every 10%
                         percentage = (i / total_comments) * 100
                         if percentage % 10 == 0:
                             print(f"Writing to CSV: {int(percentage)}%")
@@ -112,11 +84,3 @@ def download_comments(url: str) -> str:
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python comments.py \"<youtube_url>\"")
-        sys.exit(1)
-    
-    url = sys.argv[1]
-    download_comments(url)
