@@ -10,6 +10,7 @@ videos/
 kickcomcookies.txt
 radius/map_with_radius.html
 ytdownload/from
+youtube-downloader-app/src/output*/
 
 # .DS_Store                       # macOS system files
 # .env                            # Environment variables

@@ -29,6 +29,9 @@ def extract_comments_to_csv(json_path, csv_path):
             row = {col: comment.get(col, '') for col in columns}
             ts = comment.get('timestamp')
             row['eastern_time'] = convert_to_eastern(ts) if ts else ''
+            # Construct author_url if missing
+            if not row['author_url'] and row['author_id']:
+                row['author_url'] = f"https://www.youtube.com/channel/{row['author_id']}"
             writer.writerow(row)
     print(f"CSV file '{csv_path}' created with {len(comments)} comments.")
 

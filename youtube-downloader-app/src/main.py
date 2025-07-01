@@ -1,6 +1,9 @@
+# This script downloads YouTube video information, comments, and live chat, and processes them into
+# CSV and text formats. It handles cookies, allows for comments-only downloads, and organizes output
+# into a new folder each time it runs.
+
 import glob
 import os
-import re
 import shutil
 from downloader import YouTubeDownloader
 from extract_comments import extract_comments_to_csv
@@ -20,6 +23,15 @@ def get_new_output_folder(base_name="output"):
 def move_file_to_folder(filepath, folder):
     if os.path.exists(filepath):
         shutil.move(filepath, os.path.join(folder, os.path.basename(filepath)))
+
+def remove_all_duplicates(input_path, output_path):
+    seen = set()
+    with open(input_path, 'r', encoding='utf-8') as infile, \
+         open(output_path, 'w', encoding='utf-8') as outfile:
+        for line in infile:
+            if line not in seen:
+                outfile.write(line)
+                seen.add(line)
 
 def main():
     url = input("Please enter the full YouTube URL: ")
@@ -55,7 +67,12 @@ def main():
         # VTT to text
         vtt_files = glob.glob("*.vtt")
         for vtt_file in vtt_files:
-            vtt_to_text(vtt_file)
+            txt_file = vtt_to_text(vtt_file)
+            # If vtt_to_text returns the txt filename, use it; otherwise, construct it:
+            if not txt_file:
+                txt_file = os.path.splitext(vtt_file)[0] + ".txt"
+            deduped_file = os.path.splitext(txt_file)[0] + "_deduped.txt"
+            remove_all_duplicates(txt_file, deduped_file)
 
         # Live chat NDJSON to CSV
         livechat_json_files = glob.glob("*.live_chat.json")

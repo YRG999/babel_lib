@@ -227,6 +227,12 @@ List formats
 yt-dlp -F "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
+Download best video and audio at the highest resolution
+
+```sh
+yt-dlp -f "bestvideo+bestaudio/best" "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
 ### Youtube live chat fetcher
 
 - `ytdownload/youtube-live-chat-fetcher.py` - Fetch live chat during a live stream. Requires API key.
