@@ -9,6 +9,7 @@ from downloader import YouTubeDownloader
 from extract_comments import extract_comments_to_csv
 from vtt_to_text import vtt_to_text
 from livechat_to_csv import livechat_json_to_csv
+from remove_dupe_lines import remove_duplicate_lines
 
 def get_new_output_folder(base_name="output"):
     """Find a new output folder name like output1, output2, ..."""
@@ -72,7 +73,7 @@ def main():
             if not txt_file:
                 txt_file = os.path.splitext(vtt_file)[0] + ".txt"
             deduped_file = os.path.splitext(txt_file)[0] + "_deduped.txt"
-            remove_all_duplicates(txt_file, deduped_file)
+            remove_duplicate_lines(txt_file, deduped_file)
 
         # Live chat NDJSON to CSV
         livechat_json_files = glob.glob("*.live_chat.json")
