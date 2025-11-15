@@ -176,6 +176,7 @@ class YouTubeLiveChatFetcher:
                 part="liveStreamingDetails",
                 id=video_id
             ).execute()
+            # print("API response:", video_response)  # <-- Add this line for debugging
 
             if 'items' not in video_response or not video_response['items']:
                 logging.error(f"Video with id {video_id} not found or not a live stream.")

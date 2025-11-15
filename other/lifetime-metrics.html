@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Lifetime Metrics Calculator</title>
+  <style>
+    :root{ --bg:#0b1020; --panel:#121a33; --muted:#8aa0c7; --text:#e8eeff; --accent:#7aa2ff; --accent2:#a57bff; --ok:#2bd37f; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text)}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+    header h1{font-size:clamp(22px,3vw,36px);margin:0 0 6px}
+    header p{margin:0;color:var(--muted)}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:16px; box-shadow:0 6px 24px rgba(0,0,0,0.25)}
+    .section-title{font-weight:700;margin:0 0 8px}
+    .muted{color:var(--muted)}
+    .row{display:grid;grid-template-columns:1fr 260px;gap:8px;align-items:center;margin:8px 0}
+    .control{display:grid;grid-template-columns:1fr 88px;gap:8px;align-items:center}
+    input[type="number"].num{width:100%;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:#0f1731;color:var(--text)}
+    input[type="range"]{-webkit-appearance:none;height:6px;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));outline:none}
+    input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--text);border:2px solid var(--panel)}
+    .two-col{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    @media (max-width: 900px){.two-col{grid-template-columns:1fr}}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+    .kpi{background:linear-gradient(180deg, rgba(122,162,255,0.12), rgba(165,123,255,0.08));border:1px solid rgba(122,162,255,0.25);border-radius:16px;padding:14px}
+    .kpi .label{font-size:12px;color:var(--muted)}
+    .kpi .value{font-size:22px;font-weight:700;margin-top:4px}
+    .bar{height:10px;border-radius:999px;background:rgba(255,255,255,0.08);overflow:hidden}
+    .bar > span{display:block;height:100%;background:linear-gradient(90deg, var(--accent), var(--ok));width:0%}
+    .btn{appearance:none;border:0;background:linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.08));border:1px solid rgba(255,255,255,0.18);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .stack{display:flex;gap:8px;flex-wrap:wrap}
+    .mini{font-size:12px}
+    .hr{height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);margin:10px 0}
+    noscript{display:block;background:#4c1d95;color:#fff;padding:10px;border-radius:12px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="card">
+      <h1>Lifetime Metrics Calculator</h1>
+      <p class="muted">Type values directly or use sliders. Everything updates instantly.</p>
+    </header>
+
+    <div class="two-col" style="margin-top:12px">
+      <!-- Controls -->
+      <section class="card">
+        <h2 class="section-title">Inputs</h2>
+        <div class="row">
+          <label for="age">Age (years)</label>
+          <div class="control"><div></div><input id="age" class="num" type="number" min="0" max="120" step="0.1" value="40"/></div>
+        </div>
+        <div class="row">
+          <span>Days per year</span>
+          <div class="control">
+            <input id="daysPerYear" type="range" min="360" max="366" step="0.01" value="365.25"/>
+            <input id="daysPerYearNum" class="num" type="number" min="360" max="366" step="0.01" value="365.25"/>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <h3 class="mini">Daily Habits</h3>
+        <div class="row">
+          <span>Meals per day</span>
+          <div class="control">
+            <input id="mealsPerDay" type="range" min="0" max="8" step="0.1" value="3"/>
+            <input id="mealsPerDayNum" class="num" type="number" min="0" max="8" step="0.1" value="3"/>
+          </div>
+        </div>
+        <div class="row">
+          <span>Sleep (hours / night)</span>
+          <div class="control">
+            <input id="sleepPerNight" type="range" min="0" max="16" step="0.1" value="8"/>
+            <input id="sleepPerNightNum" class="num" type="number" min="0" max="16" step="0.1" value="8"/>
+          </div>
+        </div>
+        <div class="row">
+          <span>Screen time (hours / day)</span>
+          <div class="control">
+            <input id="screenPerDay" type="range" min="0" max="16" step="0.1" value="4"/>
+            <input id="screenPerDayNum" class="num" type="number" min="0" max="16" step="0.1" value="4"/>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <h3 class="mini">Work & Routine</h3>
+        <div class="row">
+          <span>Work start age</span>
+          <div class="control">
+            <input id="workStart" type="range" min="0" max="80" step="0.1" value="22"/>
+            <input id="workStartNum" class="num" type="number" min="0" max="80" step="0.1" value="22"/>
+          </div>
+        </div>
+        <div class="row">
+          <span>Retire age (for calculations)</span>
+          <div class="control">
+            <input id="workEnd" type="range" min="0" max="120" step="0.1" value="65"/>
+            <input id="workEndNum" class="num" type="number" min="0" max="120" step="0.1" value="65"/>
+          </div>
+        </div>
+        <div class="row">
+          <span>Work hours / week</span>
+          <div class="control">
+            <input id="workHrsWeek" type="range" min="0" max="80" step="0.5" value="40"/>
+            <input id="workHrsWeekNum" class="num" type="number" min="0" max="80" step="0.5" value="40"/>
+          </div>
+        </div>
+        <div class="row">
+          <span>Workdays / week</span>
+          <div class="control">
+            <input id="workdaysWeek" type="range" min="1" max="7" step="1" value="5"/>
+            <input id="workdaysWeekNum" class="num" type="number" min="1" max="7" step="1" value="5"/>
+          </div>
+        </div>
+        <div class="row">
+          <span>Commute (minutes / workday)</span>
+          <div class="control">
+            <input id="commuteMins" type="range" min="0" max="240" step="1" value="30"/>
+            <input id="commuteMinsNum" class="num" type="number" min="0" max="240" step="1" value="30"/>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <h3 class="mini">Wellbeing</h3>
+        <div class="row">
+          <span>Exercise (hours / week)</span>
+          <div class="control">
+            <input id="exerciseWeek" type="range" min="0" max="30" step="0.1" value="3"/>
+            <input id="exerciseWeekNum" class="num" type="number" min="0" max="30" step="0.1" value="3"/>
+          </div>
+        </div>
+        <div class="row">
+          <span>Reading (hours / week)</span>
+          <div class="control">
+            <input id="readingWeek" type="range" min="0" max="30" step="0.1" value="2"/>
+            <input id="readingWeekNum" class="num" type="number" min="0" max="30" step="0.1" value="2"/>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="stack">
+          <button id="reset" class="btn">Reset</button>
+          <button id="share" class="btn mini">Copy URL</button>
+        </div>
+        <noscript>This calculator requires JavaScript to run.</noscript>
+      </section>
+
+      <!-- Results -->
+      <section class="card">
+        <h2 class="section-title">Results So Far</h2>
+        <div class="kpi-grid" id="kpis"></div>
+        <div class="hr"></div>
+        <h3 class="mini">Breakdown</h3>
+        <div class="row"><span>Total days lived</span><span id="daysLived">—</span></div>
+        <div class="row"><span>Total hours alive</span><span id="hoursAlive">—</span></div>
+        <div class="hr"></div>
+        <h3 class="mini">Time Allocation (hours)</h3>
+        <div class="grid" style="gap:12px" id="bars"></div>
+        <p class="muted mini" style="margin-top:8px">Assumptions apply uniformly over the selected period (age 0 to your current age). Work accrues only between the selected work start and retire ages.</p>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:12px">
+      <h2 class="section-title">Notes</h2>
+      <ul class="muted" style="line-height:1.6">
+        <li>Every slider now has a matching number box. Type a value, press Enter or defocus, and the slider syncs.</li>
+        <li>Use <strong>Copy URL</strong> to save or share your current settings.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    (function(){
+      const $ = (id) => document.getElementById(id);
+      const controls = {
+        age: $('age'),
+        daysPerYear: $('daysPerYear'), daysPerYearNum: $('daysPerYearNum'),
+        mealsPerDay: $('mealsPerDay'), mealsPerDayNum: $('mealsPerDayNum'),
+        sleepPerNight: $('sleepPerNight'), sleepPerNightNum: $('sleepPerNightNum'),
+        screenPerDay: $('screenPerDay'), screenPerDayNum: $('screenPerDayNum'),
+        workStart: $('workStart'), workStartNum: $('workStartNum'),
+        workEnd: $('workEnd'), workEndNum: $('workEndNum'),
+        workHrsWeek: $('workHrsWeek'), workHrsWeekNum: $('workHrsWeekNum'),
+        workdaysWeek: $('workdaysWeek'), workdaysWeekNum: $('workdaysWeekNum'),
+        commuteMins: $('commuteMins'), commuteMinsNum: $('commuteMinsNum'),
+        exerciseWeek: $('exerciseWeek'), exerciseWeekNum: $('exerciseWeekNum'),
+        readingWeek: $('readingWeek'), readingWeekNum: $('readingWeekNum'),
+      };
+
+      const pairs = [
+        ['daysPerYear','daysPerYearNum'],
+        ['mealsPerDay','mealsPerDayNum'],
+        ['sleepPerNight','sleepPerNightNum'],
+        ['screenPerDay','screenPerDayNum'],
+        ['workStart','workStartNum'],
+        ['workEnd','workEndNum'],
+        ['workHrsWeek','workHrsWeekNum'],
+        ['workdaysWeek','workdaysWeekNum'],
+        ['commuteMins','commuteMinsNum'],
+        ['exerciseWeek','exerciseWeekNum'],
+        ['readingWeek','readingWeekNum'],
+      ];
+
+      const defaults = { age:40, daysPerYear:365.25, mealsPerDay:3, sleepPerNight:8, screenPerDay:4, workStart:22, workEnd:65, workHrsWeek:40, workdaysWeek:5, commuteMins:30, exerciseWeek:3, readingWeek:2 };
+      const numberFmt = (n) => (isFinite(n)? n:0).toLocaleString(undefined,{maximumFractionDigits:0});
+      const oneDecimal = (n) => (isFinite(n)? n:0).toLocaleString(undefined,{maximumFractionDigits:1});
+      const clamp = (v,min,max)=> Math.min(Math.max(v,min),max);
+
+      function getStepDecimals(step){
+        if(!step || isNaN(step)) return 0;
+        const s = String(step);
+        if(s.indexOf('.')<0) return 0;
+        return s.length - s.indexOf('.') - 1;
+      }
+
+      function syncPair(rangeEl, numEl){
+        // range -> number
+        rangeEl.addEventListener('input', ()=>{
+          numEl.value = rangeEl.value;
+          computeAndRender();
+        });
+        // number -> range (clamp & round to step)
+        function applyNum(){
+          const min = parseFloat(numEl.min); const max = parseFloat(numEl.max); const step = parseFloat(numEl.step);
+          let v = parseFloat(numEl.value);
+          if(!isFinite(v)) v = parseFloat(rangeEl.value);
+          v = clamp(v, isFinite(min)?min:-Infinity, isFinite(max)?max:Infinity);
+          if(isFinite(step) && step>0){ v = Math.round(v/step)*step; v = parseFloat(v.toFixed(getStepDecimals(step))); }
+          numEl.value = v; rangeEl.value = v; computeAndRender();
+        }
+        numEl.addEventListener('change', applyNum);
+        numEl.addEventListener('blur', applyNum);
+        numEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyNum(); } });
+      }
+
+      function bindAll(){
+        pairs.forEach(([r,n])=> syncPair(controls[r], controls[n]));
+        // Age is number-only
+        controls.age.addEventListener('input', ()=> computeAndRender());
+      }
+
+      function hoursToYDH(hours){
+        const dpy = parseFloat(controls.daysPerYear.value)||365.25;
+        const hpy = dpy*24; const years = Math.floor(hours/hpy);
+        const rem = hours - years*hpy; const days = Math.floor(rem/24); const hrs = Math.round(rem - days*24);
+        return `${years}y ${days}d ${hrs}h`;
+      }
+
+      function readState(){
+        return {
+          age: parseFloat(controls.age.value),
+          daysPerYear: parseFloat(controls.daysPerYear.value),
+          mealsPerDay: parseFloat(controls.mealsPerDay.value),
+          sleepPerNight: parseFloat(controls.sleepPerNight.value),
+          screenPerDay: parseFloat(controls.screenPerDay.value),
+          workStart: parseFloat(controls.workStart.value),
+          workEnd: parseFloat(controls.workEnd.value),
+          workHrsWeek: parseFloat(controls.workHrsWeek.value),
+          workdaysWeek: parseFloat(controls.workdaysWeek.value),
+          commuteMins: parseFloat(controls.commuteMins.value),
+          exerciseWeek: parseFloat(controls.exerciseWeek.value),
+          readingWeek: parseFloat(controls.readingWeek.value),
+        };
+      }
+
+      function setState(state){
+        const s = Object.assign({}, defaults, state||{});
+        controls.age.value = s.age;
+        pairs.forEach(([r,n])=>{ controls[r].value = s[r]; controls[n].value = s[r]; });
+        computeAndRender();
+      }
+
+      function compute(state){
+        const dpy = state.daysPerYear; const totalDays = state.age*dpy; const totalHours = totalDays*24;
+        const meals = totalDays*state.mealsPerDay; const sleepHrs = totalDays*state.sleepPerNight; const screenHrs = totalDays*state.screenPerDay;
+        const ws = state.workStart, we = state.workEnd; const wStart = Math.min(ws,we), wEnd = Math.max(ws,we);
+        const workedYears = clamp(state.age - wStart, 0, wEnd - wStart); const weeksPerYear = dpy/7; const workedWeeks = workedYears*weeksPerYear;
+        const workHrs = workedWeeks*state.workHrsWeek; const workdays = workedWeeks*state.workdaysWeek; const commuteHrs = workdays*(state.commuteMins/60);
+        const lifeWeeks = state.age*weeksPerYear; const exerciseHrs = lifeWeeks*state.exerciseWeek; const readingHrs = lifeWeeks*state.readingWeek;
+        return { totalDays,totalHours, meals,sleepHrs,screenHrs, workHrs,commuteHrs, exerciseHrs,readingHrs };
+      }
+
+      function renderKpis(res){
+        const k = [
+          {label:'Meals eaten', value: numberFmt(Math.round(res.meals))},
+          {label:'Sleeping', value: `${numberFmt(Math.round(res.sleepHrs))} h`},
+          {label:'Working', value: `${numberFmt(Math.round(res.workHrs))} h`},
+          {label:'Commuting', value: `${numberFmt(Math.round(res.commuteHrs))} h`},
+          {label:'Screen time', value: `${numberFmt(Math.round(res.screenHrs))} h`},
+          {label:'Exercise', value: `${numberFmt(Math.round(res.exerciseHrs))} h`},
+          {label:'Reading', value: `${numberFmt(Math.round(res.readingHrs))} h`},
+        ];
+        $('kpis').innerHTML = k.map(i=>`<div class="kpi"><div class="label">${i.label}</div><div class="value">${i.value}</div></div>`).join('');
+      }
+      function renderBreakdown(res){ $('daysLived').textContent = numberFmt(Math.round(res.totalDays)); $('hoursAlive').textContent = numberFmt(Math.round(res.totalHours)); }
+      function renderBars(res){
+        const items = [
+          {label:'Sleep', hours: res.sleepHrs}, {label:'Work', hours: res.workHrs}, {label:'Commute', hours: res.commuteHrs},
+          {label:'Screen time', hours: res.screenHrs}, {label:'Exercise', hours: res.exerciseHrs}, {label:'Reading', hours: res.readingHrs},
+        ];
+        const total = Math.max(1, items.reduce((a,b)=>a+b.hours,0));
+        $('bars').innerHTML = items.map(it=>{
+          const pct = Math.min(100,(it.hours/total)*100);
+          return `<div><div class="row" style="grid-template-columns:1fr auto"><span>${it.label}</span><span class="muted">${numberFmt(Math.round(it.hours))} h • ${hoursToYDH(it.hours)}</span></div><div class="bar"><span style="width:${pct}%"></span></div></div>`;
+        }).join('');
+      }
+      function writeHash(state){
+        try{
+          const params = new URLSearchParams(); Object.entries(state).forEach(([k,v])=>params.set(k,v));
+          history.replaceState(null,'','#'+params.toString());
+        }catch(e){ /* sandbox may block history; ignore */ }
+      }
+      function computeAndRender(){ const s = readState(); const r = compute(s); renderKpis(r); renderBreakdown(r); renderBars(r); writeHash(s); }
+
+      function readHash(){
+        try{ if(!location.hash) return null; const params = new URLSearchParams(location.hash.slice(1)); const s={}; Object.keys(defaults).forEach(k=>{ const val = params.get(k); if(val!==null) s[k]=parseFloat(val); }); return Object.keys(s).length? s:null; }
+        catch{ return null; }
+      }
+
+      function attach(){
+        bindAll();
+        $('reset').addEventListener('click', ()=> setState(defaults));
+        $('share').addEventListener('click', async ()=>{
+          try{ await navigator.clipboard.writeText(location.href); const t=$('share'); const p=t.textContent; t.textContent='Copied!'; setTimeout(()=>t.textContent=p,900); }
+          catch{ prompt('Copy this URL:', location.href); }
+        });
+      }
+
+      function init(){ attach(); const fromHash = readHash(); setState(fromHash || defaults); }
+      if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+    })();
+  </script>
+</body>
+</html>

@@ -32,7 +32,7 @@ After the initial setup & requirements, you only have to run the second venv lin
 
 ### Upgrade yt-dlp
 
-If necessary you may need to upgrade `yt-dlp`.
+If necessary you may need to upgrade `yt-dlp`. For example, if you see "The following content is not available on this app" or similar errors when running `yt-dlp --live-from-start -- video_id`
 
 Check version.
 

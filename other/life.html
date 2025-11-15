@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tierra‑Lite v2: Artificial Life Soup (Standalone)</title>
+<style>
+  :root { --bg:#0b0f14; --panel:#121821; --panel-2:#0e141c; --text:#e8f0ff; --muted:#9bb0c6; --accent:#62d3ff; --grid:#1b2430; }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  header{padding:14px 18px;display:flex;gap:12px;align-items:baseline;background:linear-gradient(180deg,#0f1520,#0b0f14);border-bottom:1px solid #1f2b3a}
+  header h1{margin:0;font-size:18px;letter-spacing:.3px}
+  header .sub{color:var(--muted);font-size:12px}
+  .wrap{display:grid;grid-template-columns:330px 1fr;gap:16px;padding:16px;max-width:1400px;margin:0 auto}
+  .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid #1c2735;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  .controls{padding:14px;display:grid;gap:12px}
+  .row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+  .row label{font-size:13px;color:var(--muted)} .value{font-variant-numeric:tabular-nums;color:var(--accent);font-size:12px}
+  .slider{display:flex;align-items:center;gap:10px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  button{background:#192232;color:var(--text);border:1px solid #223145;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:600}
+  button.primary{background:linear-gradient(180deg,#1b2a3f,#162233);border-color:#2a3d56}
+  button.danger{background:linear-gradient(180deg,#3a1b22,#2a1319);border-color:#4e2330}
+  canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
+  .stats{padding:10px 14px;border-top:1px solid #1c2735;display:grid;grid-template-columns:repeat(2,1fr);gap:8px 14px}
+  .stats div{font-size:12px;color:var(--muted)} .stats b{color:var(--text);font-variant-numeric:tabular-nums}
+  .legend,.footer{padding:10px 14px;border-top:1px solid #1c2735;font-size:12px;color:var(--muted)}
+  @media (max-width:980px){.wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tierra‑Lite v2</h1>
+  <div class="sub">Standalone artificial‑life soup inspired by Thomas Ray’s <em>Tierra</em>.</div>
+</header>
+<div class="wrap">
+  <aside class="panel">
+    <div class="controls">
+      <div class="row"><label>World size</label><div class="value"><span id="w">96</span> × <span id="h">64</span> cells</div></div>
+      <div class="slider"><label for="initAgents">Initial organisms</label><input id="initAgents" type="range" min="1" max="500" step="1" value="120" /><div class="value" id="initAgentsV">120</div></div>
+      <div class="slider"><label for="mutation">Mutation rate</label><input id="mutation" type="range" min="0" max="50" step="1" value="5" /><div class="value" id="mutationV">5%</div></div>
+      <div class="slider"><label for="cpu">CPU cycles / tick</label><input id="cpu" type="range" min="1" max="1000" step="1" value="200" /><div class="value" id="cpuV">200</div></div>
+      <div class="slider"><label for="speed">Sim speed</label><input id="speed" type="range" min="1" max="60" step="1" value="20" /><div class="value" id="speedV">20 tps</div></div>
+      <div class="slider"><label for="foodRate">Food spawn rate</label><input id="foodRate" type="range" min="1" max="2000" step="10" value="400" /><div class="value" id="foodRateV">/400</div></div>
+      <div class="slider"><label for="repro">Repro energy threshold</label><input id="repro" type="range" min="20" max="300" step="5" value="120" /><div class="value" id="reproV">120</div></div>
+      <div class="slider"><label for="genMin">Genome length (min)</label><input id="genMin" type="range" min="4" max="64" step="1" value="8" /><div class="value" id="genMinV">8</div></div>
+      <div class="slider"><label for="genMax">Genome length (max)</label><input id="genMax" type="range" min="8" max="128" step="1" value="24" /><div class="value" id="genMaxV">24</div></div>
+      <div class="btns"><button id="startBtn" class="primary">Start</button><button id="stepBtn">Step</button><button id="resetBtn" class="danger">Reset</button></div>
+    </div>
+    <div class="stats" id="stats">
+      <div>Tick <b id="tick">0</b></div>
+      <div>Organisms <b id="orgCount">0</b></div>
+      <div>Avg genome <b id="avgGenome">0</b></div>
+      <div>Avg energy <b id="avgEnergy">0</b></div>
+      <div>Births <b id="births">0</b></div>
+      <div>Deaths <b id="deaths">0</b></div>
+    </div>
+    <div class="legend">
+      <b>Instruction set</b><br>
+      0 NOP • 1 MOVE • 2 TURNL • 3 TURNR • 4 EAT • 5 ATTACK • 6 REPLICATE • 7 SENSE
+      <div style="margin-top:8px">Food appears randomly; EAT to gain energy. REPLICATE splits energy and spawns a mutated offspring nearby if space allows. Colors derive from genome hash; food is dim squares.</div>
+      <div id="status" style="margin-top:6px">ready</div>
+    </div>
+    <div class="footer">Made for learning; not a faithful Tierra but spiritually similar.</div>
+  </aside>
+  <main class="panel">
+    <canvas id="world" width="96" height="64" aria-label="World grid"></canvas>
+  </main>
+</div>
+<script>
+(() => {
+  const q = (sel) => document.querySelector(sel);
+  const W = 96, H = 64;
+  const worldCanvas = q('#world');
+  const ctx = worldCanvas.getContext('2d', { alpha: false });
+  q('#w').textContent = W; q('#h').textContent = H;
+
+  const els = {
+    initAgents: q('#initAgents'), initAgentsV: q('#initAgentsV'),
+    mutation: q('#mutation'), mutationV: q('#mutationV'),
+    cpu: q('#cpu'), cpuV: q('#cpuV'),
+    speed: q('#speed'), speedV: q('#speedV'),
+    foodRate: q('#foodRate'), foodRateV: q('#foodRateV'),
+    repro: q('#repro'), reproV: q('#reproV'),
+    genMin: q('#genMin'), genMinV: q('#genMinV'),
+    genMax: q('#genMax'), genMaxV: q('#genMaxV'),
+    startBtn: q('#startBtn'), stepBtn: q('#stepBtn'), resetBtn: q('#resetBtn'),
+    tick: q('#tick'), orgCount: q('#orgCount'), avgGenome: q('#avgGenome'), avgEnergy: q('#avgEnergy'), births: q('#births'), deaths: q('#deaths'),
+    status: q('#status')
+  };
+
+  function updateLabels(){
+    els.initAgentsV.textContent = els.initAgents.value;
+    els.mutationV.textContent = els.mutation.value + '%';
+    els.cpuV.textContent = els.cpu.value;
+    els.speedV.textContent = els.speed.value + ' tps';
+    els.foodRateV.textContent = '/' + els.foodRate.value;
+    els.reproV.textContent = els.repro.value;
+    els.genMinV.textContent = els.genMin.value;
+    els.genMaxV.textContent = els.genMax.value;
+  }
+  for (const id of ['initAgents','mutation','cpu','speed','foodRate','repro','genMin','genMax']){
+    els[id].addEventListener('input', updateLabels);
+    els[id].addEventListener('change', updateLabels);
+  }
+  function ensureMinMax(){ const min=+els.genMin.value, max=+els.genMax.value; if (max<min) els.genMax.value=min; updateLabels(); }
+  els.genMin.addEventListener('change', ensureMinMax);
+  els.genMax.addEventListener('change', ensureMinMax);
+  updateLabels();
+
+  const gridFood = new Uint8Array(W*H);
+  const cellOccupant = new Int32Array(W*H);
+  const DIRS = [[1,0],[0,1],[-1,0],[0,-1]]; // R,D,L,U
+
+  class Org{
+    constructor(x,y,genome,energy){ this.x=x; this.y=y; this.dir=(Math.random()*4)|0; this.genome=genome; this.ip=0; this.energy=energy; this.alive=true; this.color=hueFromGenome(genome); this.id=Org.nextId++; this.age=0; }
+  }
+  Org.nextId=1;
+  let organisms=[]; let births=0, deaths=0, tick=0;
+
+  const idx=(x,y)=>y*W+x; const wrap=(v,max)=>(v+max)%max;
+
+  function hueFromGenome(gen){ let h=0; for(let i=0;i<gen.length;i++) h=(h*131+gen[i])>>>0; const hue=h%360; const s=65,l=55; return hslToRgbInt(hue/360,s/100,l/100); }
+  function hslToRgbInt(h,s,l){ const a=s*Math.min(l,1-l); const f=n=>{const k=(n+(l*1000|0))%12; return l-a*Math.max(-1,Math.min(k-3,Math.min(9-k,1)));}; const r=f(0),g=f(8),b=f(4); return ((r*255)&255)<<16 | ((g*255)&255)<<8 | ((b*255)&255); }
+
+  function resetWorld(){ gridFood.fill(0); cellOccupant.fill(-1); organisms=[]; births=deaths=tick=0; for(let i=0;i<W*H/4;i++) gridFood[(Math.random()*W*H)|0]=1; const n=+els.initAgents.value; for(let i=0;i<n;i++) seedRandomOrganism(); drawWorld(); updateStats(); els.status.textContent='ready'; }
+
+  function randGenome(){ const minL=+els.genMin.value, maxL=+els.genMax.value; const len=(Math.random()*(maxL-minL+1)+minL)|0; const g=new Uint8Array(len); for(let i=0;i<len;i++) g[i]=(Math.random()*8)|0; // ensure EAT & REPLICATE appear at least once
+    let seen4=false,seen6=false; for(let i=0;i<g.length;i++){ if(g[i]===4) seen4=true; if(g[i]===6) seen6=true; }
+    if(!seen6) g[(Math.random()*len)|0]=6; if(!seen4) g[(Math.random()*len)|0]=4; return g; }
+
+  function placeFreeCell(attempts=64){ while(attempts--){ const x=(Math.random()*W)|0, y=(Math.random()*H)|0; if(cellOccupant[idx(x,y)]===-1) return {x,y}; } return null; }
+  function seedRandomOrganism(){ const spot=placeFreeCell(); if(!spot) return; const energy=60+((Math.random()*40)|0); const o=new Org(spot.x,spot.y,randGenome(),energy); organisms.push(o); cellOccupant[idx(o.x,o.y)]=organisms.length-1; }
+
+  function mutateGenome(g){ const rate=+els.mutation.value/100; const out=new Uint8Array(g.length); for(let i=0;i<g.length;i++){ let gene=g[i]; if(Math.random()<rate){ const r=Math.random(); gene = (r<0.5) ? (gene + 1 + ((Math.random()*3)|0)) % 8 : (Math.random()*8)|0; } out[i]=gene; }
+    if(Math.random()<rate*0.25){ if(Math.random()<0.5 && out.length>4){ const di=(Math.random()*out.length)|0; const tmp=new Uint8Array(out.length-1); tmp.set(out.slice(0,di)); tmp.set(out.slice(di+1),di); return tmp; } else if(out.length<128){ const ai=(Math.random()*out.length+1)|0; const tmp=new Uint8Array(out.length+1); tmp.set(out.slice(0,ai)); tmp[ai]=(Math.random()*8)|0; tmp.set(out.slice(ai),ai+1); return tmp; } }
+    return out; }
+
+  function front(o){ const d=DIRS[o.dir]; return {x:wrap(o.x+d[0],W), y:wrap(o.y+d[1],H)} }
+  function emptyNeighbor(o){ const dirs=[0,1,2,3].sort(()=>Math.random()-0.5); for(const k of dirs){ const d=DIRS[k]; const nx=wrap(o.x+d[0],W), ny=wrap(o.y+d[1],H); if(cellOccupant[idx(nx,ny)]===-1) return {x:nx,y:ny}; } return null; }
+
+  function tryMove(o){ const f=front(o); const i1=idx(f.x,f.y); if(cellOccupant[i1]===-1){ const i0=idx(o.x,o.y); cellOccupant[i0]=-1; o.x=f.x; o.y=f.y; cellOccupant[i1]=organisms.indexOf(o); } }
+  function kill(o){ if(!o.alive) return; o.alive=false; const i0=idx(o.x,o.y); if(cellOccupant[i0]>=0) cellOccupant[i0]=-1; deaths++; }
+
+  function executeInstruction(o){ if(!o.alive) return; if(o.genome.length===0){ o.energy -= 1; return; } const instr=o.genome[o.ip % o.genome.length]; o.ip=(o.ip+1)%o.genome.length; switch(instr){
+    case 0: o.energy -= 0.05; break; // NOP
+    case 1: tryMove(o); o.energy -= 0.5; break; // MOVE
+    case 2: o.dir=(o.dir+3)%4; o.energy -= 0.05; break; // TURNL
+    case 3: o.dir=(o.dir+1)%4; o.energy -= 0.05; break; // TURNR
+    case 4: { const id0=idx(o.x,o.y); if(gridFood[id0]>0){ o.energy+=6; gridFood[id0]=0; } else o.energy -= 0.05; } break; // EAT
+    case 5: { const f=front(o); const ni=cellOccupant[idx(f.x,f.y)]; if(ni>=0){ const victim=organisms[ni]; const steal=Math.min(6,victim.energy); victim.energy-=steal; o.energy += steal*0.8; if(victim.energy<=0) kill(victim); } else { o.energy -= 0.2; } } break; // ATTACK
+    case 6: // REPLICATE
+      if(o.energy >= +els.repro.value){ const spot=emptyNeighbor(o); if(spot){ const childGenome=mutateGenome(o.genome); const childEnergy=o.energy*0.45; o.energy *= 0.5; const child=new Org(spot.x,spot.y,childGenome,childEnergy); organisms.push(child); cellOccupant[idx(child.x,child.y)]=organisms.length-1; births++; } else { o.energy -= 0.2; } }
+      else { o.energy -= 0.1; }
+      break;
+    case 7: { const ahead=front(o); const occupied=cellOccupant[idx(ahead.x,ahead.y)]!==-1; if(occupied) o.ip=(o.ip+1)%o.genome.length; o.energy -= 0.05; } break; // SENSE
+    default: o.energy -= 0.2; }
+    if(o.energy<=0) kill(o);
+  }
+
+  function stepSim(){
+    const cpu=+els.cpu.value; const fInterval=Math.max(1,+els.foodRate.value);
+    if(tick % fInterval === 0){ for(let i=0;i<Math.max(1,(W*H/200)|0); i++){ gridFood[(Math.random()*W*H)|0]=1; } }
+    const snap=organisms.slice();
+    for(const o of snap){ if(!o.alive) continue; o.energy -= 0.2; o.age++; if(o.energy<=0){ kill(o); continue; }
+      let cycles=0; while(cycles++ < (cpu / Math.max(1, snap.length))) { executeInstruction(o); if(!o.alive) break; }
+    }
+    tick++; drawWorld(); updateStats();
+  }
+
+  const img = ctx.createImageData(W,H);
+  function drawWorld(){ const data=img.data; let oi=0; for(let y=0;y<H;y++){ for(let x=0;x<W;x++){ const i=idx(x,y); let r=14,g=18,b=26; if(gridFood[i]){ r=28; g=42; b=30; } const occ=cellOccupant[i]; if(occ>=0){ const o=organisms[occ]; const col=o?o.color:0xFFFFFF; r=(col>>16)&255; g=(col>>8)&255; b=col&255; } data[oi++]=r; data[oi++]=g; data[oi++]=b; data[oi++]=255; } } ctx.putImageData(img,0,0); }
+
+  function updateStats(){ els.tick.textContent=String(tick); const alive=organisms.filter(o=>o.alive); els.orgCount.textContent=String(alive.length); let gl=0,en=0; for(const o of alive){ gl+=o.genome.length; en+=o.energy; } els.avgGenome.textContent = alive.length? (gl/alive.length).toFixed(1):'0'; els.avgEnergy.textContent = alive.length? (en/alive.length).toFixed(1):'0'; els.births.textContent=String(births); els.deaths.textContent=String(deaths); }
+
+  // Loop using setInterval for reliability
+  let running=false; let timerId=null;
+  function setTimer(){ clearTimer(); const tps=Math.max(1,+els.speed.value); timerId=setInterval(() => { try{ stepSim(); } catch(e){ running=false; clearTimer(); els.status.textContent='error: '+e.message; } }, 1000/tps); }
+  function clearTimer(){ if(timerId){ clearInterval(timerId); timerId=null; } }
+  function start(){ if(running){ running=false; els.startBtn.textContent='Start'; els.status.textContent='paused'; clearTimer(); return; } running=true; els.startBtn.textContent='Pause'; els.status.textContent='running'; stepSim(); setTimer(); }
+  function stepOnce(){ if(running) return; stepSim(); }
+
+  els.startBtn.addEventListener('click', start);
+  els.stepBtn.addEventListener('click', stepOnce);
+  els.resetBtn.addEventListener('click', () => { running=false; clearTimer(); els.startBtn.textContent='Start'; resetWorld(); });
+  els.speed.addEventListener('input', () => { if(running) setTimer(); });
+
+  resetWorld();
+})();
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@ from datetime import datetime
 def extract_message_info(obj):
     """
     Extracts info from a single chat JSON object.
-    Returns a dict with keys: timestamp, author, message, type, amount, currency, extra.
+    Returns a dict with keys: timestamp, author, message, type, amount, currency, extra, role.
     """
     try:
         actions = obj.get('replayChatItemAction', {}).get('actions', [])
@@ -21,8 +21,30 @@ def extract_message_info(obj):
                 ts_usec = renderer.get('timestampUsec')
                 timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
                 author = renderer.get('authorName', {}).get('simpleText', '')
+                
+                # Extract message including emojis
                 runs = renderer.get('message', {}).get('runs', [])
-                message = ''.join([run.get('text', '') for run in runs])
+                message_parts = []
+                for run in runs:
+                    if 'text' in run:
+                        message_parts.append(run['text'])
+                    elif 'emoji' in run:
+                        emoji = run['emoji']
+                        emoji_text = emoji.get('image', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
+                        if emoji_text:
+                            message_parts.append(emoji_text)
+                message = ''.join(message_parts)
+
+                # Extract user role
+                role = ''
+                badges = renderer.get('authorBadges', [])
+                for badge in badges:
+                    badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
+                    badge_type = badge_renderer.get('icon', {}).get('iconType', '')
+                    if badge_type in ['OWNER', 'MODERATOR']:
+                        role = badge_type.lower()
+                        break
+
                 return {
                     'timestamp': timestamp,
                     'author': author,
@@ -30,7 +52,8 @@ def extract_message_info(obj):
                     'type': 'chat',
                     'amount': '',
                     'currency': '',
-                    'extra': ''
+                    'extra': '',
+                    'role': role
                 }
 
             # Super Chat messages
@@ -39,19 +62,39 @@ def extract_message_info(obj):
                 ts_usec = renderer.get('timestampUsec')
                 timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
                 author = renderer.get('authorName', {}).get('simpleText', '')
+                
+                # Extract message including emojis
                 runs = renderer.get('message', {}).get('runs', [])
-                message = ''.join([run.get('text', '') for run in runs])
+                message_parts = []
+                for run in runs:
+                    if 'text' in run:
+                        message_parts.append(run['text'])
+                    elif 'emoji' in run:
+                        emoji = run['emoji']
+                        emoji_text = emoji.get('image', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
+                        if emoji_text:
+                            message_parts.append(emoji_text)
+                message = ''.join(message_parts)
+                
                 amount = renderer.get('purchaseAmountText', {}).get('simpleText', '')
-                currency = ''
-                extra = ''
+                role = ''
+                badges = renderer.get('authorBadges', [])
+                for badge in badges:
+                    badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
+                    badge_type = badge_renderer.get('icon', {}).get('iconType', '')
+                    if badge_type in ['OWNER', 'MODERATOR']:
+                        role = badge_type.lower()
+                        break
+
                 return {
                     'timestamp': timestamp,
                     'author': author,
                     'message': message,
                     'type': 'superchat',
                     'amount': amount,
-                    'currency': currency,
-                    'extra': extra
+                    'currency': '',
+                    'extra': '',
+                    'role': role
                 }
 
             # Memberships
@@ -125,7 +168,8 @@ def extract_message_info(obj):
                     'extra': ''
                 }
 
-    except Exception:
+    except Exception as e:
+        print(f"Error processing message: {e}")
         pass
     return None
 
@@ -134,7 +178,7 @@ def livechat_json_to_csv(json_file_path, csv_file_path):
         lines = f.readlines()
 
     with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['timestamp', 'author', 'message', 'type', 'amount', 'currency', 'extra']
+        fieldnames = ['timestamp', 'author', 'message', 'type', 'amount', 'currency', 'extra', 'role']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
