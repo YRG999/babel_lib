@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List, cast
 from yt_dlp import YoutubeDL
 
 class YouTubeDownloader:
@@ -30,7 +30,9 @@ class YouTubeDownloader:
             ydl_opts['writeinfojson'] = True
         else:
             ydl_opts.update({
-                'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+                # Do NOT force -f; let yt-dlp choose like the plain CLI.
+                # Only force the final container to mp4, if possible.
+                'merge_output_format': 'mp4',
                 'writesubtitles': True,
                 'writeautomaticsub': True,
                 'subtitleslangs': ['en', 'live_chat'],
@@ -44,7 +46,7 @@ class YouTubeDownloader:
             ydl_opts['cookiesfrombrowser'] = ('firefox',)
 
         try:
-            with YoutubeDL(ydl_opts) as ydl:
+            with YoutubeDL(cast(Any, ydl_opts)) as ydl:
                 for url in urls:
                     print(f"Processing: {url}")
                     ydl.download([url])
