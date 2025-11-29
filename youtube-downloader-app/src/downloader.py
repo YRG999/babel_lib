@@ -21,6 +21,7 @@ class YouTubeDownloader:
             'nocheckcertificate': True,
             'ignoreerrors': True,
             'no_warnings': True,
+            'remote_components': 'ejs:npm',
         }
 
         if self.comments_only:

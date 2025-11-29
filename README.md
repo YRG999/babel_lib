@@ -17,14 +17,14 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 
 For initial setup, create a virtual environment & run it:
 
-```bash
+```zsh
 python -m venv venv
 . venv/bin/activate
 ```
 
 Then install requirements:
 
-```shell
+```zsh
 pip install -r requirements.txt
 ```
 
@@ -48,7 +48,7 @@ pip install yt-dlp --upgrade
 
 Or
 
-```shell
+```zsh
 pip install -U yt-dlp
 ```
 
