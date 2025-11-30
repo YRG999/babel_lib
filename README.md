@@ -15,14 +15,14 @@ Named after the [Library of Babel](https://libraryofbabel.info/) website. This s
 
 ## Quick start
 
-Two main YouTube downloader entrypoints:
+The most updated files are the two main YouTube downloaders:
 
-- **Modern downloader app** – `youtube-downloader-app/src/main.py`
+- **Modern downloader CLI** – `youtube-downloader-app/src/main.py`
 - **Live chat–focused CLI** – `ytdownload/livechat.py`
 
 These both wrap `yt-dlp` under the hood to download videos and/or live chats.
 
-### 1. Modern downloader app (`youtube-downloader-app/src/main.py`)
+### 1. Modern downloader CLI (`youtube-downloader-app/src/main.py`)
 
 Requirements:
 
@@ -348,8 +348,8 @@ yt-dlp -f "bestvideo+bestaudio/best" "https://www.youtube.com/watch?v=VIDEO_ID"
 
 ## Additional documentation
 
-- [chatGPT documentation.md](_doc/chatGPT%20documentation.md)
-- [Claude debugging.md](_doc/Claude%20debugging.md)
+- [chatGPT_documentation.md](_doc/chatGPT_documentation.md)
+- [Claude_debugging.md](_doc/Claude_debugging.md)
 - [mistral20240725.md](_doc/mistral20240725.md)
 - [Programming_notes.md](_doc/Programming_notes.md)
 - [Using_yt-dlp_cookies.md](_doc/Using_yt-dlp_cookies.md)
