@@ -21,12 +21,12 @@ def encode_image(img_path, secret_message):
         for j in range(img.size[1]):
             if data_index >= len(binary):
                 break
-            pixel = list(pixels[i, j])
+            pixel = list(pixels[i, j])  # type: ignore[assignment]
             for k in range(3):  # RGB
                 if data_index < len(binary):
-                    pixel[k] = pixel[k] & ~1 | int(binary[data_index])
+                    pixel[k] = pixel[k] & ~1 | int(binary[data_index])  # type: ignore[assignment]
                     data_index += 1
-            pixels[i, j] = tuple(pixel)
+            pixels[i, j] = tuple(pixel)  # type: ignore[assignment]
     
     img.save('encoded_image.png')
     return 'encoded_image.png'

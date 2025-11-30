@@ -5,6 +5,7 @@ charset-normalizer>=3.1.0
 contourpy>=1.0.7
 cycler>=0.11.0
 emoji>=2.11.0
+folium
 fonttools>=4.39.3
 google-api-python-client
 idna>=3.4

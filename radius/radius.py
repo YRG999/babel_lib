@@ -4,12 +4,12 @@ import googlemaps
 import folium
 import os
 from dotenv import load_dotenv
-
+from typing import Any
 load_dotenv()
-api_key = os.getenv("MAPS_API_KEY2")
 
 # Step 1: Set up Google Maps Client
-# api_key = 'YOUR_GOOGLE_MAPS_API_KEY'  # Replace with your API Key
+api_key = os.getenv("MAPS_API_KEY2")    # Replace with your YOUR_GOOGLE_MAPS_API_KEY
+gmaps: Any = googlemaps.Client(key=api_key)
 gmaps = googlemaps.Client(key=api_key)
 
 # Step 2: Define the location

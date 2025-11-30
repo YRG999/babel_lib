@@ -16,6 +16,7 @@ import sys
 # Use a non-interactive backend for environments without a display
 import matplotlib
 matplotlib.use("Agg")
+from matplotlib import transforms as mtransforms
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
@@ -96,10 +97,9 @@ def build_timeline(start: date, end: date, out_path: str) -> None:
     ax.set_xlim(0, total_span_days)
     ax.set_ylim(0, 1)
     ax.axis("off")
-
     # Compute bar height as fraction of axes height (for use with blended transform)
     bar_frac = bar_px / height_px
-    trans = matplotlib.transforms.blended_transform_factory(ax.transData, ax.transAxes)
+    trans = mtransforms.blended_transform_factory(ax.transData, ax.transAxes)
 
     # Draw blue horizontal bar (spanning the date range in data coordinates, 100px tall in screen space)
     bar = Rectangle((0, 0.5 - bar_frac / 2), total_span_days, bar_frac, transform=trans,
