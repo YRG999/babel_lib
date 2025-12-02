@@ -85,31 +85,35 @@ class YouTubeProcessor:
 
 class ChatProcessor:
     def process_chat(self, filename: str) -> str:
-        json_data = self._load_json_data(filename)
-        extracted_data = self._extract_data_from_json(json_data)
+        # Optimization: Stream processing - process JSON line by line and write to CSV
         output_filename = filename + "_extracted.csv"
-        self._save_to_csv(extracted_data, output_filename)
+        
+        with open(output_filename, 'w', newline='', encoding='utf-8') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow(['Message', 'Author', 'Timestamp'])
+            
+            # Stream processing: read and process one line at a time
+            try:
+                with open(filename, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            data = json.loads(line)
+                            actions = data.get('replayChatItemAction', {}).get('actions', [])
+                            for action in actions:
+                                item = action.get('addChatItemAction', {}).get('item', {})
+                                chat_renderer = item.get('liveChatTextMessageRenderer') or item.get('liveChatPaidMessageRenderer')
+                                if chat_renderer:
+                                    message, authorname, timestamp = self._extract_chat_info(chat_renderer)
+                                    csv_writer.writerow([message, authorname, timestamp])
+                        except json.JSONDecodeError:
+                            continue
+            except FileNotFoundError as e:
+                logging.error(f"Error processing file {filename}: {e}")
+        
         return output_filename
-
-    def _load_json_data(self, filename: str) -> List[Dict[str, Any]]:
-        try:
-            with open(filename, "r") as f:
-                return [json.loads(line.strip()) for line in f]
-        except (json.JSONDecodeError, FileNotFoundError) as e:
-            logging.error(f"Error processing file {filename}: {e}")
-            return []
-
-    def _extract_data_from_json(self, json_data: List[Dict[str, Any]]) -> List[List[str]]:
-        extracted_data = []
-        for data in json_data:
-            actions = data.get('replayChatItemAction', {}).get('actions', [])
-            for action in actions:
-                item = action.get('addChatItemAction', {}).get('item', {})
-                chat_renderer = item.get('liveChatTextMessageRenderer') or item.get('liveChatPaidMessageRenderer')
-                if chat_renderer:
-                    message, authorname, timestamp = self._extract_chat_info(chat_renderer)
-                    extracted_data.append([message, authorname, timestamp])
-        return extracted_data
 
     def _extract_chat_info(self, chat_renderer: Dict[str, Any]) -> tuple[str, str, str]:
         authorname = chat_renderer.get('authorName', {}).get('simpleText', '')
@@ -120,12 +124,6 @@ class ChatProcessor:
         timestamp = extract_timestamp(chat_renderer)
         eastern_time = convert_to_eastern(timestamp).strftime('%Y-%m-%d %H:%M:%S')
         return message, authorname, eastern_time
-
-    def _save_to_csv(self, data: List[List[str]], output_filename: str):
-        with open(output_filename, 'w', newline='', encoding='utf-8') as csvfile:
-            csv_writer = csv.writer(csvfile)
-            csv_writer.writerow(['Message', 'Author', 'Timestamp'])
-            csv_writer.writerows(data)
 
 class TranscriptProcessor:
     def clean_transcript(self, vtt_filepath: str) -> str:

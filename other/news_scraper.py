@@ -10,17 +10,12 @@ import datetime
 # Creates a header
 headers = {'User-agent': 'Mozilla/5.0'}
 
-# Requests the webpages
-request1 = requests.get('https://www.bbc.com/news', headers=headers)
-request2 = requests.get('https://www.nytimes.com/', headers=headers)
-html1 = request1.content
-html2 = request2.content
-
-# Create some soup
-soup1 = BeautifulSoup(html1, 'html.parser')
-soup2 = BeautifulSoup(html2, 'html.parser')
-
 def bbc_news_scraper():
+    # Optimization: Move request inside function to avoid unnecessary network call on import
+    request1 = requests.get('https://www.bbc.com/news', headers=headers)
+    html1 = request1.content
+    soup1 = BeautifulSoup(html1, 'html.parser')
+    
     news_list = []
 
     # Finds all the headers in BBC Home
@@ -37,9 +32,12 @@ def bbc_news_scraper():
         text = ''
         print('BBC', i + 1, ':', title, text)
 
-bbc_news_scraper()
-
 def nyt_news_scraper():
+    # Optimization: Move request inside function to avoid unnecessary network call on import
+    request2 = requests.get('https://www.nytimes.com/', headers=headers)
+    html2 = request2.content
+    soup2 = BeautifulSoup(html2, 'html.parser')
+    
     news_list = []
 
     # Finds all the headers in New York Times Home
@@ -55,8 +53,10 @@ def nyt_news_scraper():
         text = ''
         print('NYT', i + 1, ':', title, text)
 
-nyt_news_scraper()
-
-# Print the current date and time
-current_datetime = datetime.datetime.now()
-print("\nDate and Time:", current_datetime)
+if __name__ == "__main__":
+    bbc_news_scraper()
+    nyt_news_scraper()
+    
+    # Print the current date and time
+    current_datetime = datetime.datetime.now()
+    print("\nDate and Time:", current_datetime)
