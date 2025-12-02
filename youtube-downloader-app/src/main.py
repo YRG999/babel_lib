@@ -25,15 +25,6 @@ def move_file_to_folder(filepath, folder):
     if os.path.exists(filepath):
         shutil.move(filepath, os.path.join(folder, os.path.basename(filepath)))
 
-def remove_all_duplicates(input_path, output_path):
-    seen = set()
-    with open(input_path, 'r', encoding='utf-8') as infile, \
-         open(output_path, 'w', encoding='utf-8') as outfile:
-        for line in infile:
-            if line not in seen:
-                outfile.write(line)
-                seen.add(line)
-
 def main():
     url = input("Please enter the full YouTube URL: ")
     use_cookies = input("Do you want to use cookies from your browser? (y/n): ").strip().lower() == 'y'
@@ -57,9 +48,17 @@ def main():
 
         # Comments CSV
         if download_comments or comments_only:
-            info_json_files = glob.glob("*.info.json")
-            if info_json_files:
-                latest_info_json = max(info_json_files, key=os.path.getctime)
+            # More efficient: use os.scandir instead of glob + max with getctime
+            latest_info_json = None
+            latest_time = 0
+            for entry in os.scandir('.'):
+                if entry.is_file() and entry.name.endswith('.info.json'):
+                    entry_time = entry.stat().st_ctime
+                    if entry_time > latest_time:
+                        latest_time = entry_time
+                        latest_info_json = entry.name
+            
+            if latest_info_json:
                 comments_csv = latest_info_json.replace('.info.json', '_comments.csv')
                 extract_comments_to_csv(latest_info_json, comments_csv)
             else:

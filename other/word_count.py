@@ -4,12 +4,17 @@ import re
 from collections import Counter
 
 def count_words(file_path, target_word):
+    # Optimized: stream processing instead of loading entire file into memory
+    word_count = Counter()
+    target_lower = target_word.lower()
+    
     with open(file_path, 'r') as f:
-        text = f.read().lower()
-        words = re.findall(r'\b\w+\b', text)
-        word_count = Counter(words)
+        for line in f:
+            # Process line by line for better memory efficiency with large files
+            words = re.findall(r'\b\w+\b', line.lower())
+            word_count.update(words)
 
-    freq = word_count.get(target_word.lower(), 0)
+    freq = word_count.get(target_lower, 0)
     print(f"The word '{target_word}' appears {freq} times in the file.")
 
 if __name__ == "__main__":

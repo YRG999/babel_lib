@@ -23,14 +23,17 @@ def get_recently_edited_titles():
     return titles
 
 filename = 'output/recently_edited_titles.txt'
-with open(filename, 'a') as f:
-    while True:
-        current_date_time = get_time()
+while True:
+    current_date_time = get_time()
+    titles = get_recently_edited_titles()
+    
+    # Fix: Open file inside loop to avoid handle leak
+    with open(filename, 'a') as f:
         f.write('\n' + current_date_time + '\n\n')
-        titles = get_recently_edited_titles()
         for title in titles:
             f.write(title + '\n')
-        print('Titles written to', filename)
-        time.sleep(60)  # wait 1 minute before checking again
+    
+    print('Titles written to', filename)
+    time.sleep(60)  # wait 1 minute before checking again
 
 # curl "https://en.wikipedia.org/w/api.php?action=query&list=recentchanges&rcprop=title&format=json&rclimit=1"

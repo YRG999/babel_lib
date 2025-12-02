@@ -35,7 +35,9 @@ def analyze_csv(filename: str) -> Tuple[int, Dict[str, float], Dict[str, int], f
     superchats = 0
     superchat_values = defaultdict(float)
     author_counts = defaultdict(int)
-    messages = []
+    # Optimization: Track min/max timestamps instead of storing all messages
+    first_timestamp = None
+    last_timestamp = None
 
     def process_row(row: Dict[str, Any], row_num: int) -> Optional[Tuple[str, str, datetime, Optional[Tuple[str, float]]]]:
         """
@@ -103,8 +105,11 @@ def analyze_csv(filename: str) -> Tuple[int, Dict[str, float], Dict[str, int], f
                 # Update author message count
                 author_counts[author] += 1
 
-                # Append message and timestamp
-                messages.append((message, timestamp))
+                # Optimization: Track first and last timestamp without storing all messages
+                if first_timestamp is None or timestamp < first_timestamp:
+                    first_timestamp = timestamp
+                if last_timestamp is None or timestamp > last_timestamp:
+                    last_timestamp = timestamp
 
                 # If it's a Superchat, update Superchat counts and values
                 if superchat_info:
@@ -113,9 +118,8 @@ def analyze_csv(filename: str) -> Tuple[int, Dict[str, float], Dict[str, int], f
                     superchat_values[currency] += value
 
         # Calculate total time in seconds between first and last message
-        if messages:
-            sorted_messages = sorted(messages, key=lambda x: x[1])
-            total_time = (sorted_messages[-1][1] - sorted_messages[0][1]).total_seconds()
+        if first_timestamp and last_timestamp:
+            total_time = (last_timestamp - first_timestamp).total_seconds()
         else:
             total_time = 0.0
 

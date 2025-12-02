@@ -2,6 +2,40 @@ import json
 import csv
 from datetime import datetime
 
+def safe_nested_get(obj, *keys, default=''):
+    """Helper function to safely access nested dictionary values."""
+    for key in keys:
+        if isinstance(obj, dict):
+            obj = obj.get(key, {})
+        else:
+            return default
+    return obj if obj != {} else default
+
+def extract_emoji_text(emoji):
+    """Extract accessibility label from emoji object."""
+    return safe_nested_get(emoji, 'image', 'accessibility', 'accessibilityData', 'label')
+
+def extract_message_from_runs(runs):
+    """Extract message text from runs array, including emojis."""
+    message_parts = []
+    for run in runs:
+        if 'text' in run:
+            message_parts.append(run['text'])
+        elif 'emoji' in run:
+            emoji_text = extract_emoji_text(run['emoji'])
+            if emoji_text:
+                message_parts.append(emoji_text)
+    return ''.join(message_parts)
+
+def extract_role_from_badges(badges):
+    """Extract role (owner/moderator) from author badges."""
+    for badge in badges:
+        badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
+        badge_type = safe_nested_get(badge_renderer, 'icon', 'iconType')
+        if badge_type in ['OWNER', 'MODERATOR']:
+            return badge_type.lower()
+    return ''
+
 def extract_message_info(obj):
     """
     Extracts info from a single chat JSON object.
@@ -20,30 +54,14 @@ def extract_message_info(obj):
             if renderer:
                 ts_usec = renderer.get('timestampUsec')
                 timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = renderer.get('authorName', {}).get('simpleText', '')
+                author = safe_nested_get(renderer, 'authorName', 'simpleText')
                 
                 # Extract message including emojis
                 runs = renderer.get('message', {}).get('runs', [])
-                message_parts = []
-                for run in runs:
-                    if 'text' in run:
-                        message_parts.append(run['text'])
-                    elif 'emoji' in run:
-                        emoji = run['emoji']
-                        emoji_text = emoji.get('image', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
-                        if emoji_text:
-                            message_parts.append(emoji_text)
-                message = ''.join(message_parts)
+                message = extract_message_from_runs(runs)
 
                 # Extract user role
-                role = ''
-                badges = renderer.get('authorBadges', [])
-                for badge in badges:
-                    badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
-                    badge_type = badge_renderer.get('icon', {}).get('iconType', '')
-                    if badge_type in ['OWNER', 'MODERATOR']:
-                        role = badge_type.lower()
-                        break
+                role = extract_role_from_badges(renderer.get('authorBadges', []))
 
                 return {
                     'timestamp': timestamp,
@@ -61,30 +79,14 @@ def extract_message_info(obj):
             if renderer:
                 ts_usec = renderer.get('timestampUsec')
                 timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = renderer.get('authorName', {}).get('simpleText', '')
+                author = safe_nested_get(renderer, 'authorName', 'simpleText')
                 
                 # Extract message including emojis
                 runs = renderer.get('message', {}).get('runs', [])
-                message_parts = []
-                for run in runs:
-                    if 'text' in run:
-                        message_parts.append(run['text'])
-                    elif 'emoji' in run:
-                        emoji = run['emoji']
-                        emoji_text = emoji.get('image', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
-                        if emoji_text:
-                            message_parts.append(emoji_text)
-                message = ''.join(message_parts)
+                message = extract_message_from_runs(runs)
                 
-                amount = renderer.get('purchaseAmountText', {}).get('simpleText', '')
-                role = ''
-                badges = renderer.get('authorBadges', [])
-                for badge in badges:
-                    badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
-                    badge_type = badge_renderer.get('icon', {}).get('iconType', '')
-                    if badge_type in ['OWNER', 'MODERATOR']:
-                        role = badge_type.lower()
-                        break
+                amount = safe_nested_get(renderer, 'purchaseAmountText', 'simpleText')
+                role = extract_role_from_badges(renderer.get('authorBadges', []))
 
                 return {
                     'timestamp': timestamp,
@@ -174,16 +176,16 @@ def extract_message_info(obj):
     return None
 
 def livechat_json_to_csv(json_file_path, csv_file_path):
-    with open(json_file_path, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-
-    with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
+    # Stream processing: process line by line instead of loading entire file into memory
+    with open(json_file_path, 'r', encoding='utf-8') as f, \
+         open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = ['timestamp', 'author', 'message', 'type', 'amount', 'currency', 'extra', 'role']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
-        for line in lines:
-            if not line.strip():
+        for line in f:
+            line = line.strip()
+            if not line:
                 continue
             try:
                 obj = json.loads(line)
