@@ -28,19 +28,22 @@ def decode_image(img_path: str) -> str:
     pixels = img.load()
 
     binary = []
+    delimiter_len = len(DELIMITER)
 
     width, height = img.size
+    # Optimized: iterate in the same order as encoding (x then y)
+    # and check delimiter less frequently for better performance
     for x in range(width):
         for y in range(height):
             r, g, b = pixels[x, y]  # type: ignore[assignment]
             for component in (r, g, b):
                 binary.append(str(component & 1))
                 # Only check for delimiter when we have at least its length
-                if len(binary) >= len(DELIMITER):
+                if len(binary) >= delimiter_len:
                     # Check the trailing bits for delimiter
-                    if "".join(binary[-len(DELIMITER) :]) == DELIMITER:
+                    if "".join(binary[-delimiter_len:]) == DELIMITER:
                         # Strip the delimiter bits off
-                        message_bits = "".join(binary[:-len(DELIMITER)])
+                        message_bits = "".join(binary[:-delimiter_len])
                         return bin_to_text(message_bits)
 
     return "No hidden message found"

@@ -13,20 +13,24 @@ def encode_image(img_path, secret_message):
     img = Image.open(img_path)
     binary = text_to_bin(secret_message) + '1111111111111110'  # Delimiter to indicate end of message
     pixels = img.load()
+    binary_len = len(binary)
     
     data_index = 0
-    for i in range(img.size[0]):
-        if data_index >= len(binary):
-            break
-        for j in range(img.size[1]):
-            if data_index >= len(binary):
+    width, height = img.size
+    
+    # Optimized loop: check length once, avoid redundant checks
+    for i in range(width):
+        for j in range(height):
+            if data_index >= binary_len:
                 break
             pixel = list(pixels[i, j])  # type: ignore[assignment]
             for k in range(3):  # RGB
-                if data_index < len(binary):
+                if data_index < binary_len:
                     pixel[k] = pixel[k] & ~1 | int(binary[data_index])  # type: ignore[assignment]
                     data_index += 1
             pixels[i, j] = tuple(pixel)  # type: ignore[assignment]
+        if data_index >= binary_len:
+            break
     
     img.save('encoded_image.png')
     return 'encoded_image.png'
