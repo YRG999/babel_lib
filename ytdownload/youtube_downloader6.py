@@ -94,7 +94,7 @@ class ChatProcessor:
             
             # Stream processing: read and process one line at a time
             try:
-                with open(filename, "r") as f:
+                with open(filename, "r", encoding='utf-8') as f:
                     for line in f:
                         line = line.strip()
                         if not line:
