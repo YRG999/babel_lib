@@ -12,4 +12,5 @@ videos/
 kickcomcookies.txt
 radius/map_with_radius.html
 ytdownload/from
+ytdownload/.youtube_quota.json
 youtube-downloader-app/src/output*/

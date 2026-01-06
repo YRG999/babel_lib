@@ -1,13 +1,16 @@
-# youtube_live_chat_fetcher14.py
-# updates to handle API usage quota: 
-# https://stackoverflow.com/questions/67232262/how-much-quota-cost-does-the-livechatmessages-list-method-incur
+# youtube_live_chat_fetcher15.py
+#   - Updated code to better handle API errors and quota limits.
+#   - Added a QuotaManager class to share quota usage across multiple processes.
 
 import os
 import time
 import csv
 import logging
+import json
 from datetime import datetime
-from typing import Dict, Any
+from pathlib import Path
+from typing import Dict, Any, Callable, Optional, Tuple
+from contextlib import contextmanager
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -29,8 +32,119 @@ class UnrecoverableAPIError(Exception):
     """Custom exception for unrecoverable API errors."""
     pass
 
+
+class QuotaManager:
+    """Share daily YouTube API quota usage across multiple processes."""
+
+    def __init__(
+        self,
+        max_daily_quota: int = 10000,
+        storage_path: Optional[Path] = None,
+        timezone: Optional[pytz.BaseTzInfo] = None,
+    ) -> None:
+        self.max_daily_quota = max_daily_quota
+        self.storage_path = Path(storage_path) if storage_path else Path(__file__).resolve().with_name('.youtube_quota.json')
+        self.timezone = timezone or pytz.UTC
+        try:
+            import fcntl  # type: ignore
+
+            self._lock_module = fcntl
+        except ImportError:
+            self._lock_module = None
+
+    @contextmanager
+    def _locked_file(self):
+        self.storage_path.parent.mkdir(parents=True, exist_ok=True)
+        mode = 'r+' if self.storage_path.exists() else 'w+'
+        with open(self.storage_path, mode) as file_handle:
+            if self._lock_module:
+                self._lock_module.flock(file_handle.fileno(), self._lock_module.LOCK_EX)
+            try:
+                yield file_handle
+            finally:
+                if self._lock_module:
+                    self._lock_module.flock(file_handle.fileno(), self._lock_module.LOCK_UN)
+
+    def _today_key(self) -> str:
+        return datetime.now(self.timezone).strftime('%Y-%m-%d')
+
+    def _default_state(self) -> Dict[str, Any]:
+        return {
+            'date': self._today_key(),
+            'used': 0,
+            'entries': [],
+        }
+
+    def _read_state(self, file_handle) -> Tuple[Dict[str, Any], bool]:
+        file_handle.seek(0)
+        raw = file_handle.read()
+        dirty = False
+        if raw:
+            try:
+                state = json.loads(raw)
+            except json.JSONDecodeError:
+                state = self._default_state()
+                dirty = True
+        else:
+            state = self._default_state()
+            dirty = True
+
+        if state.get('date') != self._today_key():
+            state = self._default_state()
+            dirty = True
+
+        if 'used' not in state:
+            state['used'] = 0
+            dirty = True
+
+        if 'entries' not in state:
+            state['entries'] = []
+            dirty = True
+
+        return state, dirty
+
+    def _write_state(self, file_handle, state: Dict[str, Any]) -> None:
+        file_handle.seek(0)
+        file_handle.truncate()
+        json.dump(state, file_handle)
+        file_handle.flush()
+        try:
+            os.fsync(file_handle.fileno())
+        except OSError:
+            pass
+
+    def remaining_quota(self) -> int:
+        with self._locked_file() as file_handle:
+            state, dirty = self._read_state(file_handle)
+            remaining = max(self.max_daily_quota - state['used'], 0)
+            if dirty:
+                self._write_state(file_handle, state)
+            return remaining
+
+    def log_consumption(self, cost: int, note: str = '') -> int:
+        with self._locked_file() as file_handle:
+            state, _ = self._read_state(file_handle)
+
+            if cost > 0:
+                state['used'] = min(self.max_daily_quota, state['used'] + cost)
+
+            state['entries'].append({
+                'timestamp': datetime.now(self.timezone).isoformat(),
+                'cost': cost,
+                'note': note,
+            })
+            state['entries'] = state['entries'][-100:]
+
+            self._write_state(file_handle, state)
+            return state['used']
+
+    def register_session(self, video_id: str, expected_duration_seconds: float) -> None:
+        hours = expected_duration_seconds / 3600.0
+        note = f'Start session video={video_id} expected_hours={hours:.2f}'
+        self.log_consumption(0, note)
+
 class YouTubeLiveChatFetcher:
-    def __init__(self, expected_duration_hours: float = 4.0):
+    def __init__(self, expected_duration_hours: float = 4.0, quota_manager: Optional[QuotaManager] = None):
         self.api_key = os.getenv('YOUTUBE_API_KEY')
         self.youtube = build('youtube', 'v3', developerKey=self.api_key)
         self.utc = pytz.UTC
@@ -43,7 +157,10 @@ class YouTubeLiveChatFetcher:
         self.MAX_DAILY_QUOTA = 10000
         self.LIVE_CHAT_MESSAGES_COST = 5
         self.VIDEOS_LIST_COST = 1  # Cost for videos.list API call
-        self.api_calls_made = 0  # Initialize API call counter
+        self.quota_manager = quota_manager or QuotaManager(
+            max_daily_quota=self.MAX_DAILY_QUOTA,
+            timezone=self.eastern,
+        )
 
         # Expected live stream duration in seconds
         self.expected_duration = expected_duration_hours * 3600  # Convert hours to seconds
@@ -100,6 +217,9 @@ class YouTubeLiveChatFetcher:
         filename = f"chat_log_{video_id}_{timestamp}.csv"
         last_flush_time = time.time()
         termination_reason = None  # Variable to hold termination reason
+        start_time = time.time()
+
+        self.quota_manager.register_session(video_id, self.expected_duration)
 
         with open(filename, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
@@ -111,40 +231,28 @@ class YouTubeLiveChatFetcher:
                     termination_reason = "Live chat ID not found."
                     return
 
-                # Increment API calls for videos.list
-                self.api_calls_made += self.VIDEOS_LIST_COST
-
-                # Calculate remaining quota and maximum live chat API calls
-                remaining_quota = self.MAX_DAILY_QUOTA - self.api_calls_made
-                max_live_chat_calls = remaining_quota // self.LIVE_CHAT_MESSAGES_COST
-
-                if max_live_chat_calls <= 0:
+                remaining_quota = self.quota_manager.remaining_quota()
+                if remaining_quota < self.LIVE_CHAT_MESSAGES_COST:
                     termination_reason = "No quota available for live chat messages."
                     logging.info(termination_reason)
                     return
 
-                # Calculate polling interval
-                polling_interval = self.expected_duration / max_live_chat_calls
-                polling_interval = max(polling_interval, 5)  # Set a minimum polling interval of 5 seconds
-
-                # Initial API call
                 chat_response = self._get_initial_chat_response(live_chat_id)
-                self.api_calls_made += self.LIVE_CHAT_MESSAGES_COST
 
                 while chat_response:
+                    remaining_quota = self.quota_manager.remaining_quota()
+                    polling_interval = self._calculate_polling_interval(chat_response, start_time, remaining_quota)
                     try:
                         last_flush_time = self._process_chat_response(
                             chat_response, writer, f, last_flush_time, flush_interval
                         )
 
-                        # Check if we've reached the maximum API calls
-                        if self.api_calls_made >= self.MAX_DAILY_QUOTA:
-                            termination_reason = "Reached maximum API calls for the day."
+                        if remaining_quota < self.LIVE_CHAT_MESSAGES_COST:
+                            termination_reason = "Quota exhausted before next poll."
                             logging.info(termination_reason)
                             break
 
                         chat_response = self._get_next_chat_response(chat_response, live_chat_id)
-                        self.api_calls_made += self.LIVE_CHAT_MESSAGES_COST
 
                     except HttpError as e:
                         try:
@@ -153,17 +261,34 @@ class YouTubeLiveChatFetcher:
                             logging.info(str(ex))
                             termination_reason = str(ex)
                             break  # Exit the loop gracefully
+                        time.sleep(polling_interval)
                         continue  # Retry after handling the error
+                    except QuotaExceeded as ex:
+                        logging.info(str(ex))
+                        termination_reason = str(ex)
+                        break
                     except Exception as e:
                         logging.error(f"An unexpected error occurred: {e}")
                         termination_reason = f"An unexpected error occurred: {e}"
                         break
-                    finally:
-                        time.sleep(polling_interval)  # Sleep at the end to maintain consistent intervals
+
+                    if chat_response:
+                        time.sleep(polling_interval)
 
             except KeyboardInterrupt:
                 logging.info("Interrupted by user.")
                 termination_reason = "Interrupted by user."
+            except QuotaExceeded as ex:
+                logging.info(str(ex))
+                termination_reason = str(ex)
+            except HttpError as e:
+                try:
+                    self._handle_http_error(e)
+                except (LiveChatEnded, QuotaExceeded, UnrecoverableAPIError) as ex:
+                    logging.info(str(ex))
+                    termination_reason = str(ex)
+                else:
+                    termination_reason = f"HTTP error during setup: {e}"
             finally:
                 if termination_reason:
                     writer.writerow(['Termination Reason:', termination_reason])
@@ -171,38 +296,88 @@ class YouTubeLiveChatFetcher:
                 logging.info(f"Chat log saved to {filename}")
 
     def _get_live_chat_id(self, video_id: str) -> str:
+        request = self.youtube.videos().list(
+            part="liveStreamingDetails",
+            id=video_id
+        )
+
         try:
-            video_response = self.youtube.videos().list(
-                part="liveStreamingDetails",
-                id=video_id
-            ).execute()
-            # print("API response:", video_response)  # <-- Add this line for debugging
-
-            if 'items' not in video_response or not video_response['items']:
-                logging.error(f"Video with id {video_id} not found or not a live stream.")
-                return ''
-
-            return video_response['items'][0]['liveStreamingDetails']['activeLiveChatId']
+            video_response = self._execute_quota_guarded_request(
+                self.VIDEOS_LIST_COST,
+                f"videos.list video={video_id}",
+                request.execute
+            )
         except HttpError as e:
             logging.error(f"An HTTP error {e.resp.status} occurred while fetching live chat ID:\n{e.content}")
             return ''
 
+        if 'items' not in video_response or not video_response['items']:
+            logging.error(f"Video with id {video_id} not found or not a live stream.")
+            return ''
+
+        return video_response['items'][0]['liveStreamingDetails']['activeLiveChatId']
+
     def _get_initial_chat_response(self, live_chat_id: str) -> Dict[str, Any]:
-        return self.youtube.liveChatMessages().list(
+        request = self.youtube.liveChatMessages().list(
             liveChatId=live_chat_id,
             part="snippet,authorDetails",
             maxResults=200  # Set maxResults to maximum
-        ).execute()
+        )
 
-    def _get_next_chat_response(self, chat_response: Dict[str, Any], live_chat_id: str) -> Dict[str, Any]:
-        if 'nextPageToken' in chat_response:
-            return self.youtube.liveChatMessages().list(
-                liveChatId=live_chat_id,
-                part="snippet,authorDetails",
-                pageToken=chat_response['nextPageToken'],
-                maxResults=200  # Set maxResults to maximum
-            ).execute()
-        return None
+        return self._execute_quota_guarded_request(
+            self.LIVE_CHAT_MESSAGES_COST,
+            f"liveChatMessages.list initial live_chat_id={live_chat_id}",
+            request.execute
+        )
+
+    def _get_next_chat_response(self, chat_response: Dict[str, Any], live_chat_id: str) -> Optional[Dict[str, Any]]:
+        if 'nextPageToken' not in chat_response:
+            return None
+
+        request = self.youtube.liveChatMessages().list(
+            liveChatId=live_chat_id,
+            part="snippet,authorDetails",
+            pageToken=chat_response['nextPageToken'],
+            maxResults=200  # Set maxResults to maximum
+        )
+
+        return self._execute_quota_guarded_request(
+            self.LIVE_CHAT_MESSAGES_COST,
+            f"liveChatMessages.list page live_chat_id={live_chat_id}",
+            request.execute
+        )
+
+    def _execute_quota_guarded_request(
+        self,
+        cost: int,
+        note: str,
+        request_callable: Callable[[], Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        remaining = self.quota_manager.remaining_quota()
+        if remaining < cost:
+            raise QuotaExceeded(
+                f"Quota exhausted: needed {cost} units for {note}, remaining={remaining}."
+            )
+
+        response = request_callable()
+        self.quota_manager.log_consumption(cost, note)
+        return response
+
+    def _calculate_polling_interval(
+        self,
+        chat_response: Dict[str, Any],
+        start_time: float,
+        remaining_quota: int
+    ) -> float:
+        interval_hint_ms = chat_response.get('pollingIntervalMillis', 5000)
+        interval_hint = max(interval_hint_ms / 1000.0, 5.0)
+
+        elapsed = max(time.time() - start_time, 0.0)
+        remaining_time = max(self.expected_duration - elapsed, 5.0)
+        remaining_calls = max(remaining_quota // self.LIVE_CHAT_MESSAGES_COST, 1)
+
+        budget_interval = remaining_time / remaining_calls if remaining_calls else remaining_time
+        return max(interval_hint, budget_interval, 5.0)
 
     def _process_chat_response(self, chat_response: Dict[str, Any], writer: csv.writer,
                                file_handle, last_flush_time: float, flush_interval: int) -> float:
@@ -232,8 +407,12 @@ class YouTubeLiveChatFetcher:
         error_content = e.content.decode('utf-8') if isinstance(e.content, bytes) else str(e.content)
         try:
             error_response = e.error_details[0]
-            reason = error_response.get('reason', '')
-            message = error_response.get('message', '')
+            if isinstance(error_response, dict):
+                reason = error_response.get('reason', '')
+                message = error_response.get('message', '')
+            else:
+                reason = ''
+                message = str(error_response)
         except (AttributeError, IndexError, KeyError):
             reason = ''
             message = ''
