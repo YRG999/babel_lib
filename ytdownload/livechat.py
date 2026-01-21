@@ -1,12 +1,14 @@
-# youtube_live_chat_fetcher15.py
-#   - Updated code to better handle API errors and quota limits.
-#   - Added a QuotaManager class to share quota usage across multiple processes.
+# livechat.py
+#   - See livechat_README.md for usage instructions and version history.
 
 import os
+import sys
 import time
 import csv
 import logging
 import json
+import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Callable, Optional, Tuple
@@ -438,13 +440,138 @@ class YouTubeLiveChatFetcher:
         else:
             print(f"{chat_message['timestamp']} - {chat_message['author']} ({chat_message['type']}): {chat_message['message']}")
 
+def extract_video_id(url_or_id: str) -> str:
+    """Extract video ID from YouTube URL or return as-is if already an ID."""
+    # If it doesn't contain common URL patterns, assume it's already a video ID
+    if not any(pattern in url_or_id for pattern in ['youtube.com', 'youtu.be']):
+        return url_or_id
+
+    # Common YouTube URL patterns
+    patterns = [
+        r'(?:v=|\/)([0-9A-Za-z_-]{11}).*',  # Standard and short URLs
+        r'(?:embed\/)([0-9A-Za-z_-]{11})',  # Embed URLs
+        r'(?:watch\?v=)([0-9A-Za-z_-]{11})',  # Watch URLs
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, url_or_id)
+        if match:
+            return match.group(1)
+
+    # If no pattern matches, return original (might be an ID already)
+    return url_or_id
+
+def get_venv_activation_command() -> Optional[str]:
+    """Detect if running in a virtual environment and return the activation command."""
+    # Check if we're in a virtual environment
+    venv_path = os.environ.get('VIRTUAL_ENV')
+
+    if not venv_path:
+        # Alternative check: compare sys.prefix with sys.base_prefix
+        if hasattr(sys, 'base_prefix') and sys.prefix != sys.base_prefix:
+            venv_path = sys.prefix
+        else:
+            return None
+
+    # Build activation command based on platform
+    import platform
+    system = platform.system()
+
+    if system == 'Windows':
+        activate_script = os.path.join(venv_path, 'Scripts', 'activate.bat')
+    else:  # Unix-like (macOS, Linux)
+        activate_script = os.path.join(venv_path, 'bin', 'activate')
+
+    if os.path.exists(activate_script):
+        return activate_script
+
+    return None
+
+def open_terminal_with_ytdlp(video_id: str) -> None:
+    """Open a new terminal window and start downloading the live stream with yt-dlp."""
+    base_command = f"yt-dlp --live-from-start -- {video_id}"
+
+    # Get virtual environment activation command if applicable
+    venv_activate = get_venv_activation_command()
+
+    # Detect platform
+    import platform
+    system = platform.system()
+
+    if system == 'Darwin':  # macOS
+        # Build the full command with venv activation
+        if venv_activate:
+            full_command = f'source "{venv_activate}" && {base_command}'
+            logging.info(f"Activating virtual environment: {venv_activate}")
+        else:
+            full_command = base_command
+
+        # Use osascript to open a new Terminal window
+        # Need to escape quotes for AppleScript
+        escaped_command = full_command.replace('"', '\\"')
+        script = f'''
+        tell application "Terminal"
+            do script "{escaped_command}"
+            activate
+        end tell
+        '''
+        subprocess.Popen(['osascript', '-e', script])
+        logging.info(f"Opened new terminal window with command: {full_command}")
+
+    elif system == 'Linux':
+        # Build the full command with venv activation
+        if venv_activate:
+            full_command = f'source "{venv_activate}" && {base_command}; exec bash'
+        else:
+            full_command = f'{base_command}; exec bash'
+
+        # Try common Linux terminal emulators
+        terminals = ['gnome-terminal', 'konsole', 'xterm']
+        for term in terminals:
+            try:
+                if term == 'gnome-terminal':
+                    subprocess.Popen([term, '--', 'bash', '-c', full_command])
+                elif term == 'konsole':
+                    subprocess.Popen([term, '-e', 'bash', '-c', full_command])
+                else:
+                    subprocess.Popen([term, '-e', 'bash', '-c', full_command])
+                logging.info(f"Opened new terminal window ({term}) with command: {full_command}")
+                break
+            except FileNotFoundError:
+                continue
+
+    elif system == 'Windows':
+        # Build the full command with venv activation
+        if venv_activate:
+            full_command = f'"{venv_activate}" && {base_command}'
+        else:
+            full_command = base_command
+
+        subprocess.Popen(['start', 'cmd', '/k', full_command], shell=True)
+        logging.info(f"Opened new command prompt with command: {full_command}")
+    else:
+        logging.warning(f"Unsupported platform: {system}. Please run manually: {base_command}")
+
 def main():
     expected_duration_hours = float(input("Enter expected live stream duration in hours (e.g., 4): "))
     fetcher = YouTubeLiveChatFetcher(expected_duration_hours=expected_duration_hours)
-    video_id = input("Enter video ID: ")
-    yt_dlp_command = f"yt-dlp --live-from-start -- {video_id}"
-    print(f"Run in new terminal to capture live:\n\n\n{yt_dlp_command}\n\n\n")
-    input("Press Enter to start capturing live chat...")
+
+    # Accept full YouTube URL or video ID
+    url_input = input("Enter YouTube URL or video ID: ")
+    video_id = extract_video_id(url_input)
+
+    print(f"\nExtracted video ID: {video_id}")
+
+    # Toggle for downloading video or just capturing chat
+    download_video = input("Download video as well? (y/n) [y]: ").strip().lower()
+    if download_video != 'n':
+        print(f"Opening new terminal window to download live stream...")
+        open_terminal_with_ytdlp(video_id)
+        time.sleep(2)  # Give terminal time to open
+
+    print(f"\nStarting live chat capture...")
+
+    # Start capturing chat
     fetcher.fetch_live_chat(video_id)
 
 if __name__ == "__main__":
