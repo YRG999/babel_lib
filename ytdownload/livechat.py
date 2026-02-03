@@ -1,5 +1,6 @@
 # livechat.py
 #   - See livechat_README.md for usage instructions and version history.
+#   - Sign in to 1Password with `eval $(op signin)` and password to use environment variable secrets.
 
 import os
 import sys
@@ -21,6 +22,38 @@ from dateutil import parser
 
 # Load environment variables from .env file
 load_dotenv()
+
+def get_youtube_api_key():
+    """Fetch the YouTube API key from 1Password or environment."""
+    # Get the API key from environment (which may contain an op:// reference)
+    api_key_ref = os.getenv("YOUTUBE_API_KEY")
+    if not api_key_ref:
+        raise ValueError("YOUTUBE_API_KEY environment variable is not set")
+    
+    # If it's a 1Password secret reference, resolve it using op CLI
+    if api_key_ref.startswith("op://"):
+        try:
+            result = subprocess.run(
+                ["op", "read", api_key_ref],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.strip()
+            raise ValueError(
+                f"Failed to retrieve API key from 1Password.\n"
+                f"Error: {error_msg}"
+            )
+        except FileNotFoundError:
+            raise ValueError(
+                "1Password CLI (op) is not installed.\n"
+                "Install it from: https://developer.1password.com/docs/cli/get-started/"
+            )
+    else:
+        # If it's a plain API key, return it directly
+        return api_key_ref
 
 class LiveChatEnded(Exception):
     """Custom exception to indicate that the live chat has ended."""
@@ -147,7 +180,7 @@ class QuotaManager:
 
 class YouTubeLiveChatFetcher:
     def __init__(self, expected_duration_hours: float = 4.0, quota_manager: Optional[QuotaManager] = None):
-        self.api_key = os.getenv('YOUTUBE_API_KEY')
+        self.api_key = get_youtube_api_key()
         self.youtube = build('youtube', 'v3', developerKey=self.api_key)
         self.utc = pytz.UTC
         self.eastern = pytz.timezone('US/Eastern')
@@ -169,7 +202,9 @@ class YouTubeLiveChatFetcher:
 
     def convert_to_eastern(self, timestamp: str) -> str:
         dt = parser.parse(timestamp)
-        dt = dt.replace(tzinfo=self.utc)
+        # Only set UTC if no timezone info present (dateutil.parser preserves tz if provided)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=self.utc)
         eastern_time = dt.astimezone(self.eastern)
         return eastern_time.strftime('%Y-%m-%d %H:%M:%S %Z')
 
@@ -182,7 +217,11 @@ class YouTubeLiveChatFetcher:
             'textMessageEvent': self._handle_text_message,
             'superChatEvent': self._handle_super_chat,
             'superStickerEvent': self._handle_super_sticker,
-            'newSponsorEvent': self._handle_new_sponsor
+            'newSponsorEvent': self._handle_new_sponsor,
+            'memberMilestoneChatEvent': self._handle_member_milestone,
+            'giftMembershipReceivedEvent': self._handle_gift_membership_received,
+            'membershipGiftingEvent': self._handle_membership_gifting,
+            'messageDeletedEvent': self._handle_message_deleted,
         }
 
         handler = message_handlers.get(message_type, self._handle_other_event)
@@ -210,6 +249,27 @@ class YouTubeLiveChatFetcher:
 
     def _handle_new_sponsor(self, item: Dict[str, Any]) -> tuple:
         return "New Sponsor!", ''
+
+    def _handle_member_milestone(self, item: Dict[str, Any]) -> tuple:
+        details = item['snippet'].get('memberMilestoneChatDetails', {})
+        months = details.get('memberMonth', '?')
+        message = details.get('userComment', '')
+        return f"Member Milestone ({months} months): {message}" if message else f"Member Milestone ({months} months)", ''
+
+    def _handle_gift_membership_received(self, item: Dict[str, Any]) -> tuple:
+        details = item['snippet'].get('giftMembershipReceivedDetails', {})
+        gifter = details.get('gifterChannelId', 'Anonymous')
+        tier = details.get('memberLevelName', 'membership')
+        return f"Received gift {tier} from {gifter}", ''
+
+    def _handle_membership_gifting(self, item: Dict[str, Any]) -> tuple:
+        details = item['snippet'].get('membershipGiftingDetails', {})
+        count = details.get('giftMembershipsCount', 1)
+        tier = details.get('giftMembershipsLevelName', 'memberships')
+        return f"Gifted {count} {tier}", ''
+
+    def _handle_message_deleted(self, item: Dict[str, Any]) -> tuple:
+        return "[Message Deleted]", ''
 
     def _handle_other_event(self, item: Dict[str, Any]) -> tuple:
         return f"Other event type: {item['snippet']['type']}", ''
@@ -317,7 +377,11 @@ class YouTubeLiveChatFetcher:
             logging.error(f"Video with id {video_id} not found or not a live stream.")
             return ''
 
-        return video_response['items'][0]['liveStreamingDetails']['activeLiveChatId']
+        live_details = video_response['items'][0].get('liveStreamingDetails', {})
+        live_chat_id = live_details.get('activeLiveChatId', '')
+        if not live_chat_id:
+            logging.error(f"Video {video_id} has no active live chat. Stream may have ended or not started.")
+        return live_chat_id
 
     def _get_initial_chat_response(self, live_chat_id: str) -> Dict[str, Any]:
         request = self.youtube.liveChatMessages().list(
