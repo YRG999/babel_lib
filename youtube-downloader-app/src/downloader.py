@@ -1,3 +1,4 @@
+import shutil
 from typing import Any, List, cast
 from yt_dlp import YoutubeDL
 
@@ -15,7 +16,18 @@ class YouTubeDownloader:
                 self.filenames.append(filename)
                 print(f"Finished downloading: {filename}")
 
+    def _warn_if_missing_ffmpeg(self) -> None:
+        if not shutil.which('ffmpeg'):
+            print(
+                "Warning: FFmpeg not found. yt-dlp may download separate audio/video "
+                "streams and fail to merge them. Install FFmpeg to get a single "
+                "audio+video file."
+            )
+
     def download_video_info_comments(self, urls: List[str]) -> List[str]:
+        if not self.comments_only:
+            self._warn_if_missing_ffmpeg()
+
         ydl_opts = {
             'progress_hooks': [self._progress_hook],
             'nocheckcertificate': True,
@@ -31,7 +43,8 @@ class YouTubeDownloader:
             ydl_opts['writeinfojson'] = True
         else:
             ydl_opts.update({
-                # Do NOT force -f; let yt-dlp choose like the plain CLI.
+                # Prefer separate best video + best audio, and fall back to single-file best.
+                'format': 'bv*+ba/best',
                 # Only force the final container to mp4, if possible.
                 'merge_output_format': 'mp4',
                 'writesubtitles': True,

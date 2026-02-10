@@ -17,7 +17,7 @@ YouTube live content capture and analysis toolkit. Designed for real-time stream
 | File | Size | Description |
 |------|------|-------------|
 | `livechat.py` | 22 KB | Main live chat capture tool with quota management |
-| `livecaptions.py` | 15 KB | Real-time transcription using mlx-whisper |
+| `captions.py` | 15 KB | Real-time transcription using mlx-whisper |
 | `download.py` | 6.6 KB | Video/comment/transcript downloader |
 | `youtube_downloader6.py` | 6.9 KB | Alternative downloader with Firefox cookie support |
 | `analyze.py` | 6 KB | Live chat statistical analysis |
@@ -37,8 +37,8 @@ YouTube live content capture and analysis toolkit. Designed for real-time stream
 
 | File | Description |
 |------|-------------|
-| `livechat_README.md` | Detailed livechat.py documentation |
-| `livecaptions_README.md` | Detailed livecaptions.py documentation |
+| `README_livechat.md` | Detailed livechat.py documentation |
+| `README_livecaptions.md` | Detailed captions.py documentation |
 
 ### Configuration
 
@@ -106,7 +106,7 @@ Captures live chat messages in real-time. Automatically:
 ### Live Transcription
 
 ```bash
-python livecaptions.py
+python captions.py
 ```
 
 Real-time speech-to-text transcription using mlx-whisper (requires Apple Silicon Mac).
@@ -225,7 +225,7 @@ YouTube Data API v3 has a daily quota limit of **10,000 units**.
 - `QuotaExceeded` - Daily quota limit reached
 - `UnrecoverableAPIError` - Fatal API error
 
-### livecaptions.py
+### captions.py
 
 | Class | Purpose |
 |-------|---------|
@@ -301,8 +301,8 @@ Timestamp (ET),Start,End,Text
 ## Platform Notes
 
 - **macOS (Apple Silicon)** - Full support including mlx-whisper GPU acceleration
-- **macOS (Intel)** - Supported, but livecaptions.py requires alternative whisper implementation
-- **Linux** - Supported, livecaptions.py requires alternative whisper implementation
+- **macOS (Intel)** - Supported, but captions.py requires alternative whisper implementation
+- **Linux** - Supported, captions.py requires alternative whisper implementation
 - **Windows** - Supported with platform-specific terminal launching
 
 ---
@@ -335,5 +335,5 @@ For age-restricted or member-only content:
 
 ## Related Documentation
 
-- [livechat_README.md](livechat_README.md) - Detailed livechat.py documentation
-- [livecaptions_README.md](livecaptions_README.md) - Detailed livecaptions.py documentation
+- [README_livechat.md](README_livechat.md) - Detailed livechat.py documentation
+- [README_livecaptions.md](README_livecaptions.md) - Detailed captions.py documentation

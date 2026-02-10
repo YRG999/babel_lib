@@ -1,6 +1,7 @@
 # livechat.py
 #   - See livechat_README.md for usage instructions and version history.
 #   - Sign in to 1Password with `eval $(op signin)` and password to use environment variable secrets.
+#   - On first run, this script will automatically prompt you to sign in to 1Password if needed.
 
 import os
 import sys
@@ -23,6 +24,53 @@ from dateutil import parser
 # Load environment variables from .env file
 load_dotenv()
 
+def ensure_1password_signin() -> bool:
+    """
+    Ensure user is signed into 1Password.
+    Automatically prompts for sign-in if not authenticated.
+    Returns True if sign-in was successful or already authenticated, False otherwise.
+    """
+    try:
+        # Test if we can access 1Password without authentication
+        result = subprocess.run(
+            ["op", "account", "get"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            # Already signed in
+            return True
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+    
+    # Not signed in, prompt user to sign in
+    logging.info("1Password authentication required. Starting sign-in process...")
+    try:
+        # Run op signin interactively
+        result = subprocess.run(
+            ["op", "signin"],
+            timeout=300  # 5 minute timeout for user to sign in
+        )
+        if result.returncode == 0:
+            logging.info("Successfully signed in to 1Password.")
+            return True
+        else:
+            logging.warning("1Password sign-in was not completed.")
+            return False
+    except FileNotFoundError:
+        logging.error(
+            "1Password CLI (op) is not installed.\n"
+            "Install it from: https://developer.1password.com/docs/cli/get-started/"
+        )
+        return False
+    except subprocess.TimeoutExpired:
+        logging.error("1Password sign-in timed out.")
+        return False
+    except Exception as e:
+        logging.error(f"Error during 1Password sign-in: {e}")
+        return False
+
 def get_youtube_api_key():
     """Fetch the YouTube API key from 1Password or environment."""
     # Get the API key from environment (which may contain an op:// reference)
@@ -32,6 +80,13 @@ def get_youtube_api_key():
     
     # If it's a 1Password secret reference, resolve it using op CLI
     if api_key_ref.startswith("op://"):
+        # Ensure user is signed into 1Password
+        if not ensure_1password_signin():
+            raise ValueError(
+                "Failed to authenticate with 1Password. "
+                "Please sign in manually using: op signin"
+            )
+        
         try:
             result = subprocess.run(
                 ["op", "read", api_key_ref],
