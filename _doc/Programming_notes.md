@@ -89,6 +89,20 @@
 * [Adding locally hosted code to github](https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github)
 * [Is there a better guide to using yt-dlp with Python?](https://www.reddit.com/r/youtubedl/comments/skgjon/is_there_a_better_guide_to_using_ytdlp_with_python/) [comment](https://www.reddit.com/r/youtubedl/comments/skgjon/comment/hvl1xcg/?utm_source=reddit&utm_medium=web2x&context=3) lists locations of [`YoutubeDL` class](https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L191) and [YT-DLP CLI](https://github.com/yt-dlp/yt-dlp#embedding-yt-dlp) usage.
 
+### yt-dlp tips
+
+```zsh
+# Download best quality video+audio, merge to mp4
+# This one worked when webm was downloading & failing to merge
+yt-dlp -f "bv*+ba/b" --merge-output-format mp4 URL
+
+# Or download best video+audio up to 1080p
+yt-dlp -f "bv*[height<=1080]+ba/b" URL
+
+# Prefer mp4 video codec (more compatible)
+yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b" URL
+```
+
 ### Git asks for SSH key & passphrase
 
 [Git keeps asking me for my SSH key and passphrase](https://stackoverflow.com/questions/10032461/git-keeps-asking-me-for-my-ssh-key-passphrase)
