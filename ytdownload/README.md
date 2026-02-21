@@ -14,46 +14,45 @@ YouTube live content capture and analysis toolkit. Designed for real-time stream
 
 ### Core Tools
 
-| File | Size | Description |
-|------|------|-------------|
-| `livechat.py` | 22 KB | Main live chat capture tool with quota management |
-| `captions.py` | 15 KB | Real-time transcription using mlx-whisper |
-| `download.py` | 6.6 KB | Video/comment/transcript downloader |
+| File                     | Size   | Description                                        |
+| ------------------------ | ------ | -------------------------------------------------- |
+| `livechat.py`            | 22 KB  | Main live chat capture tool with quota management  |
+| `captions.py`            | 15 KB  | Real-time transcription using mlx-whisper          |
+| `download.py`            | 6.6 KB | Video/comment/transcript downloader                |
 | `youtube_downloader6.py` | 6.9 KB | Alternative downloader with Firefox cookie support |
-| `analyze.py` | 6 KB | Live chat statistical analysis |
-| `comments.py` | 4.5 KB | Comment download utility |
+| `analyze.py`             | 6 KB   | Live chat statistical analysis                     |
+| `comments.py`            | 4.5 KB | Comment download utility                           |
 
 ### Utilities
 
-| File | Description |
-|------|-------------|
-| `extract_functions.py` | Shared helpers for emoji/text extraction |
-| `firefox_cookies.py` | Browser cookie handler for authentication |
-| `report_formats.py` | List available video formats |
-| `merge_parts.py` | Merge yt-dlp .part files using ffmpeg |
-| `count_livechat.py` | Simple message counter |
+| File                   | Description                               |
+| ---------------------- | ----------------------------------------- |
+| `extract_functions.py` | Shared helpers for emoji/text extraction  |
+| `firefox_cookies.py`   | Browser cookie handler for authentication |
+| `report_formats.py`    | List available video formats              |
+| `merge_parts.py`       | Merge yt-dlp .part files using ffmpeg     |
+| `count_livechat.py`    | Simple message counter                    |
 
 ### Documentation
 
-| File | Description |
-|------|-------------|
-| `README_livechat.md` | Detailed livechat.py documentation |
+| File                     | Description                        |
+| ------------------------ | ---------------------------------- |
+| `README_livechat.md`     | Detailed livechat.py documentation |
 | `README_livecaptions.md` | Detailed captions.py documentation |
 
 ### Configuration
 
-| File | Description |
-|------|-------------|
+| File                  | Description                       |
+| --------------------- | --------------------------------- |
 | `.youtube_quota.json` | API quota tracking (auto-managed) |
-| `.env` | Environment variables (API keys) |
-
----
+| `.env`                | Environment variables (API keys)  |
 
 ## Installation
 
 ### Prerequisites
 
 **External tools:**
+
 ```bash
 # yt-dlp - YouTube downloading engine
 brew install yt-dlp  # or pip install yt-dlp
@@ -63,6 +62,7 @@ brew install ffmpeg
 ```
 
 **Python packages:**
+
 ```bash
 pip install google-api-python-client  # YouTube Data API v3
 pip install python-dotenv             # Environment variable management
@@ -76,13 +76,14 @@ pip install mlx-whisper               # Apple Silicon transcription (macOS only)
 ### Configuration
 
 1. Create a `.env` file in the ytdownload folder:
-```
-YOUTUBE_API_KEY=your_api_key_here
-```
+
+   ```bash
+   YOUTUBE_API_KEY=your_api_key_here
+   ```
+
+   > [Uses 1Password to store API credentials](https://developer.1password.com/docs/cli/use-cases#secrets)
 
 2. Get a YouTube Data API v3 key from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
-
----
 
 ## Usage
 
@@ -95,6 +96,7 @@ python livechat.py
 ```
 
 Captures live chat messages in real-time. Automatically:
+
 - Opens a new terminal window to download the video via yt-dlp
 - Tracks API quota usage
 - Exports to CSV with Eastern Time timestamps
@@ -112,6 +114,7 @@ python captions.py
 Real-time speech-to-text transcription using mlx-whisper (requires Apple Silicon Mac).
 
 **Options:**
+
 - Whisper model sizes: tiny, base, small, medium, large-v3
 - Configurable chunk duration (default 10 seconds)
 
@@ -134,6 +137,7 @@ python analyze.py
 ```
 
 Generates statistical analysis of captured chat data:
+
 - Superchat counts and totals by currency
 - Message counts per author
 - Stream duration calculations
@@ -151,13 +155,11 @@ Downloads all comments from a video to CSV.
 
 **Output:** CSV with Comment ID, Author, Text, Timestamp, Eastern Time, Likes
 
----
-
 ## Architecture
 
 ### Live Chat Capture Workflow
 
-```
+```text
 YouTube Live Stream
         ↓
 Extract Video ID (from URL or direct ID)
@@ -175,7 +177,7 @@ CSV export with termination reason
 
 ### Live Caption Workflow
 
-```
+```text
 YouTube Live Stream
         ↓
 yt-dlp → Audio stream URL
@@ -189,17 +191,15 @@ Calculate segment timestamps
 CSV export with termination reason
 ```
 
----
-
 ## API Quota Management
 
 YouTube Data API v3 has a daily quota limit of **10,000 units**.
 
 ### Quota Costs
 
-| API Call | Cost |
-|----------|------|
-| `videos.list` | 1 unit |
+| API Call                | Cost    |
+| ----------------------- | ------- |
+| `videos.list`           | 1 unit  |
 | `liveChatMessages.list` | 5 units |
 
 ### Features
@@ -209,31 +209,28 @@ YouTube Data API v3 has a daily quota limit of **10,000 units**.
 - **Auto-reset** - Quota resets daily at midnight Pacific Time
 - **Dynamic polling** - Adjusts poll rate based on remaining quota and expected stream duration
 
----
-
 ## Key Classes
 
 ### livechat.py
 
-| Class | Purpose |
-|-------|---------|
-| `QuotaManager` | Manages daily API quota with file-based locking |
+| Class                    | Purpose                                                 |
+| ------------------------ | ------------------------------------------------------- |
+| `QuotaManager`           | Manages daily API quota with file-based locking         |
 | `YouTubeLiveChatFetcher` | Fetches live chat messages and handles API interactions |
 
 **Custom Exceptions:**
+
 - `LiveChatEnded` - Stream ended normally
 - `QuotaExceeded` - Daily quota limit reached
 - `UnrecoverableAPIError` - Fatal API error
 
 ### captions.py
 
-| Class | Purpose |
-|-------|---------|
+| Class                | Purpose                                          |
+| -------------------- | ------------------------------------------------ |
 | `LiveCaptionFetcher` | Manages audio capture and transcription pipeline |
 
 Uses threaded architecture: audio capture in background thread, transcription in main thread with queue-based processing.
-
----
 
 ## Code Patterns
 
@@ -246,20 +243,16 @@ Uses threaded architecture: audio capture in background thread, transcription in
 - **Cross-platform** - OS detection for terminal/shell integration (macOS, Linux, Windows)
 - **Graceful degradation** - Handles API limits, network errors, stream endings
 
----
-
 ## Configuration Reference
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Daily quota limit | 10,000 units | YouTube API limit |
-| Chat flush interval | 300 seconds | How often to write to CSV |
-| Caption chunk duration | 10 seconds | Audio segment length |
-| Whisper model | base | Transcription model size |
-| Audio settings | 16kHz mono | WAV format for transcription |
-| Timezone | US/Eastern | All timestamp outputs |
-
----
+| Setting                | Default      | Description                  |
+| ---------------------- | ------------ | ---------------------------- |
+| Daily quota limit      | 10,000 units | YouTube API limit            |
+| Chat flush interval    | 300 seconds  | How often to write to CSV    |
+| Caption chunk duration | 10 seconds   | Audio segment length         |
+| Whisper model          | base         | Transcription model size     |
+| Audio settings         | 16kHz mono   | WAV format for transcription |
+| Timezone               | US/Eastern   | All timestamp outputs        |
 
 ## Output Examples
 
@@ -296,8 +289,6 @@ Timestamp (ET),Start,End,Text
 | EUR | 5 | €45.00 |
 ```
 
----
-
 ## Platform Notes
 
 - **macOS (Apple Silicon)** - Full support including mlx-whisper GPU acceleration
@@ -305,13 +296,12 @@ Timestamp (ET),Start,End,Text
 - **Linux** - Supported, captions.py requires alternative whisper implementation
 - **Windows** - Supported with platform-specific terminal launching
 
----
-
 ## Troubleshooting
 
 ### Quota Exceeded
 
 If you hit the daily quota limit:
+
 - Wait until midnight Pacific Time for reset
 - Or use a different API key
 
@@ -328,10 +318,9 @@ If you hit the daily quota limit:
 ### Authentication Errors
 
 For age-restricted or member-only content:
+
 - Use Firefox cookies via `firefox_cookies.py`
 - Ensure you're logged into YouTube in Firefox
-
----
 
 ## Related Documentation
 

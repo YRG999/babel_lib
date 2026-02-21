@@ -35,6 +35,7 @@ pip install mlx-whisper yt-dlp pytz
 ```
 
 The `mlx-whisper` installation includes these dependencies:
+
 - `mlx` and `mlx-metal` - Apple's ML framework
 - `torch` - PyTorch
 - `huggingface_hub` - Model downloads
@@ -44,6 +45,7 @@ The `mlx-whisper` installation includes these dependencies:
 ### 3. First Run Model Download
 
 On first run, the Whisper model will be downloaded from Hugging Face:
+
 - `tiny`: ~75 MB
 - `base`: ~140 MB
 - `small`: ~460 MB
@@ -53,11 +55,13 @@ On first run, the Whisper model will be downloaded from Hugging Face:
 ## Usage
 
 Run the script:
+
 ```bash
 python ytdownload/livecaptions.py
 ```
 
 You'll be prompted for:
+
 1. **Model size** - Accuracy vs. speed tradeoff (default: base)
 2. **Language code** - e.g., "en" for English (default: en)
 3. **Chunk duration** - Seconds between transcriptions (default: 10)
@@ -69,7 +73,7 @@ You'll be prompted for:
 
 ### Example
 
-```
+```txt
 Whisper model sizes (runs on Apple Silicon GPU):
   tiny   - Fastest, least accurate
   base   - Good balance [default]
@@ -100,7 +104,7 @@ Starting audio capture...
 ## Model Selection Guide
 
 | Model | Speed | Accuracy | Memory | Best For |
-|-------|-------|----------|--------|----------|
+| ------- | ------- | ---------- | -------- | ---------- |
 | tiny | Fastest | Basic | ~1 GB | Quick testing, clear audio |
 | base | Fast | Good | ~1 GB | General use, recommended |
 | small | Medium | Better | ~2 GB | Important recordings |
@@ -110,12 +114,14 @@ Starting audio capture...
 ## Output Format
 
 The script creates a CSV file with the following columns:
+
 - **Timestamp (ET)**: Eastern Time timestamp of when the words were spoken
 - **Start**: Start time within the chunk (seconds)
 - **End**: End time within the chunk (seconds)
 - **Text**: The transcribed text
 
 Example output:
+
 ```csv
 Timestamp (ET),Start,End,Text
 2026-01-20 14:30:52 EST,0.00,3.42,"Hello everyone, welcome to the stream"
@@ -134,7 +140,7 @@ The last row includes the termination reason (stream ended, user interrupt, etc.
 
 ### Architecture
 
-```
+```txt
 YouTube Live Stream
        │
        ▼
@@ -153,6 +159,7 @@ YouTube Live Stream
 ## Latency
 
 The transcription delay is approximately:
+
 - **Chunk duration** (default 10s) + **Transcription time** (~1-3s for base model)
 - Total: ~11-15 seconds behind real-time
 
@@ -162,7 +169,7 @@ For lower latency, reduce chunk duration (e.g., 5 seconds), but this may affect 
 
 ### [v1.0.0] - 2026-01-20
 
-**Initial Release**
+#### Initial Release
 
 - Real-time live caption capture from YouTube streams
 - Local transcription using mlx-whisper (Apple Silicon optimized)
@@ -172,7 +179,7 @@ For lower latency, reduce chunk duration (e.g., 5 seconds), but this may affect 
 - Automatic stream URL refresh on expiration
 - Same URL parsing as livechat.py for consistent UX
 
-**Core Features:**
+#### Core Features
 
 - `LiveCaptionFetcher` class with threaded audio capture
 - Uses ffmpeg for audio extraction (16kHz mono WAV)
@@ -180,13 +187,15 @@ For lower latency, reduce chunk duration (e.g., 5 seconds), but this may affect 
 - Graceful handling of stream end and user interrupts
 - Dependency checking with helpful installation instructions
 
-**Dependencies installed:**
+#### Dependencies installed
 
 Homebrew:
+
 - `pkg-config` - Required for building Python packages
 - `ffmpeg` - Audio/video processing (likely already installed)
 
 Python (via pip):
+
 - `mlx-whisper` - Whisper implementation for Apple Silicon
 - `mlx`, `mlx-metal` - Apple ML framework
 - `torch` - PyTorch
@@ -198,6 +207,7 @@ Python (via pip):
 ## Error Handling
 
 The script handles:
+
 - Stream URL expiration (auto-refresh)
 - Network errors and timeouts
 - ffmpeg capture failures
@@ -217,25 +227,30 @@ All errors are logged, and the CSV file includes the termination reason.
 
 ## Troubleshooting
 
-**"yt-dlp error" or no stream URL**
+### "yt-dlp error" or no stream URL
+
 - Verify the video ID is correct
 - Ensure the stream is currently live
 - Check your internet connection
 
-**Transcription is slow**
+### Transcription is slow
+
 - Use a smaller model (tiny or base)
 - Increase chunk duration to reduce processing overhead
 - Ensure no other GPU-intensive tasks are running
 
-**"mlx-whisper not found"**
+### "mlx-whisper not found"
+
 - Run: `pip install mlx-whisper`
 - Ensure you're using the correct Python environment
 
-**ffmpeg errors**
+### ffmpeg errors
+
 - Verify ffmpeg is installed: `which ffmpeg`
 - Try: `brew reinstall ffmpeg`
 
-**Model download fails**
+### Model download fails
+
 - Check internet connection
 - Try a smaller model first
 - Hugging Face may have rate limits; try again later
@@ -243,7 +258,7 @@ All errors are logged, and the CSV file includes the termination reason.
 ## Comparison with livechat.py
 
 | Feature | livechat.py | livecaptions.py |
-|---------|-------------|-----------------|
+| --------- | ------------- | ----------------- |
 | Data source | YouTube API | Audio stream |
 | Captures | Chat messages | Spoken words |
 | API key needed | Yes | No |

@@ -53,6 +53,7 @@ Requirements:
 - Python virtualenv activated and dependencies installed.
 - `yt-dlp` installed.
 - (Optional but recommended) `ffmpeg` installed for robust video merging:
+
   ```zsh
   brew install ffmpeg
   ```
@@ -257,7 +258,7 @@ If you get the error "file name too long", use the following:
 yt-dlp -o "%(id)s.%(ext)s" X_URL
 ```
 
-See more [here](https://forum.porteus.org/viewtopic.php?t=10408), [here](https://github.com/yt-dlp/yt-dlp/issues/5060), and [here](https://github.com/yt-dlp/yt-dlp/issues/1136).
+See more [Porteus forum discussion](https://forum.porteus.org/viewtopic.php?t=10408), [yt-dlp issue #5060](https://github.com/yt-dlp/yt-dlp/issues/5060), and [yt-dlp issue #1136](https://github.com/yt-dlp/yt-dlp/issues/1136).
 
 ***See [Using yt-dlp cookies](more/Using_yt-dlp_cookies.md) if you need to log in to download***
 
@@ -294,16 +295,16 @@ Merge downloaded fragments with ffmpeg’s concat demuxer.
 
 1. Create a file named filelist.txt with the files listed in order.
 
-```txt
-file 'filename.f137.mp4.part'
-file 'filename.f140.mp4.part'
-```
+    ```txt
+    file 'filename.f137.mp4.part'
+    file 'filename.f140.mp4.part'
+    ```
 
 2. Run the ffmpeg command to merge them:
 
-```zsh
-ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
-```
+    ```zsh
+    ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
+    ```
 
 This will merge the fragments into output.mp4.
 

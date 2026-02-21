@@ -22,12 +22,14 @@ A Python tool that captures YouTube live chat messages in real-time and automati
 ## Setup
 
 1. **Install required packages:**
-   ```bash
+
+   ```zsh
    pip install google-api-python-client python-dotenv pytz python-dateutil
    ```
 
 2. **Install yt-dlp:**
-   ```bash
+
+   ```zsh
    pip install yt-dlp
    # or
    brew install yt-dlp  # macOS
@@ -35,7 +37,8 @@ A Python tool that captures YouTube live chat messages in real-time and automati
 
 3. **Configure API Key:**
    Create a `.env` file in the project root with your YouTube API key:
-   ```
+
+   ```zsh
    YOUTUBE_API_KEY=your_api_key_here
    ```
 
@@ -48,11 +51,13 @@ A Python tool that captures YouTube live chat messages in real-time and automati
 ## Usage
 
 Run the script:
-```bash
+
+```zsh
 python ytdownload/livechat.py
 ```
 
 You'll be prompted for:
+
 1. **Expected stream duration** (in hours) - helps with quota management
 2. **YouTube URL or video ID** - accepts any of these formats:
    - Full URL: `https://www.youtube.com/watch?v=VIDEO_ID`
@@ -62,7 +67,7 @@ You'll be prompted for:
 
 ### Example
 
-```
+```txt
 Enter expected live stream duration in hours (e.g., 4): 3
 Enter YouTube URL or video ID: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
@@ -73,6 +78,7 @@ Starting live chat capture...
 ```
 
 The script will:
+
 1. Extract the video ID from your input
 2. Open a new terminal window that runs `yt-dlp --live-from-start -- VIDEO_ID`
 3. Start capturing live chat in the current terminal
@@ -164,6 +170,7 @@ This major release changes the user interface to accept full YouTube URLs instea
 ## Output Format
 
 The script creates a CSV file with the following columns:
+
 - **Timestamp (ET)**: Eastern Time timestamp of the message
 - **Author**: Display name of the message author
 - **Message**: The chat message content
@@ -175,18 +182,21 @@ The last row includes the termination reason (chat ended, quota exceeded, user i
 ## Quota Management
 
 The script includes intelligent quota management:
+
 - Tracks API usage across multiple sessions
 - Calculates optimal polling intervals
 - Prevents quota exhaustion mid-stream
 - Stores quota data in `.youtube_quota.json`
 
 Daily quota limit: 10,000 units (configurable)
+
 - `videos.list` call: 1 unit
 - `liveChatMessages.list` call: 5 units
 
 ## Chat Message Types
 
 The script captures and logs:
+
 - **Text Messages**: Regular chat messages
 - **Super Chats**: Paid messages with amount
 - **Super Stickers**: Paid stickers with amount
@@ -202,6 +212,7 @@ The script captures and logs:
 ## Error Handling
 
 The script handles:
+
 - API quota limits and rate limiting
 - Live chat ending naturally
 - Network errors and HTTP errors
@@ -220,17 +231,20 @@ All errors are logged, and the CSV file includes the termination reason.
 
 ## Troubleshooting
 
-**"Video not found or not a live stream"**
+### "Video not found or not a live stream"
+
 - Verify the video ID is correct
 - Ensure the stream is currently live
 - Check that live chat is enabled for the stream
 
-**"API quota exceeded"**
+### "API quota exceeded"
+
 - Wait until the next day (resets at midnight Pacific Time)
 - Reduce polling frequency by increasing expected duration
 - Use multiple API keys if needed
 
-**Terminal doesn't open automatically**
+### Terminal doesn't open automatically
+
 - Verify yt-dlp is installed: `which yt-dlp`
 - Check terminal emulator is available on your system
 - Manually run the displayed yt-dlp command if needed
