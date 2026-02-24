@@ -32,13 +32,15 @@ YouTube live content capture and analysis toolkit. Designed for real-time stream
 | `report_formats.py`    | List available video formats              |
 | `merge_parts.py`       | Merge yt-dlp .part files using ffmpeg     |
 | `count_livechat.py`    | Simple message counter                    |
+| `infojson2csv.py`      | Convert yt-dlp .info.json files to CSV    |
 
 ### Documentation
 
-| File                     | Description                        |
-| ------------------------ | ---------------------------------- |
-| `README_livechat.md`     | Detailed livechat.py documentation |
-| `README_livecaptions.md` | Detailed captions.py documentation |
+| File                     | Description                             |
+| ------------------------ | --------------------------------------- |
+| `README_livechat.md`     | Detailed livechat.py documentation      |
+| `README_livecaptions.md` | Detailed captions.py documentation      |
+| `README_infojson2csv.md` | Detailed infojson2csv.py documentation  |
 
 ### Configuration
 
