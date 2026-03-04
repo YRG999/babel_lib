@@ -3,11 +3,18 @@ from typing import Any, List, cast
 from yt_dlp import YoutubeDL
 
 class YouTubeDownloader:
-    def __init__(self, use_cookies: bool = False, download_comments: bool = False, comments_only: bool = False):
+    def __init__(
+        self,
+        use_cookies: bool = False,
+        download_comments: bool = False,
+        metadata_only: bool = False,
+        transcript_only: bool = False,
+    ):
         self.filenames = []
         self.use_cookies = use_cookies
         self.download_comments = download_comments
-        self.comments_only = comments_only
+        self.metadata_only = metadata_only
+        self.transcript_only = transcript_only
 
     def _progress_hook(self, d):
         if d['status'] == 'finished':
@@ -25,7 +32,8 @@ class YouTubeDownloader:
             )
 
     def download_video_info_comments(self, urls: List[str]) -> List[str]:
-        if not self.comments_only:
+        skip_video = self.metadata_only or self.transcript_only
+        if not skip_video:
             self._warn_if_missing_ffmpeg()
 
         ydl_opts = {
@@ -36,11 +44,26 @@ class YouTubeDownloader:
             'remote_components': 'ejs:npm',
         }
 
-        if self.comments_only:
-            ydl_opts['extract_flat'] = True
-            ydl_opts['getcomments'] = True
-            ydl_opts['skip_download'] = True
-            ydl_opts['writeinfojson'] = True
+        if self.transcript_only:
+            ydl_opts.update({
+                'format': 'best',
+                'skip_download': True,
+                'writesubtitles': True,
+                'writeautomaticsub': True,
+                'subtitleslangs': ['en'],
+            })
+        elif self.metadata_only:
+            ydl_opts.update({
+                'format': 'best',
+                'skip_download': True,
+                'writesubtitles': True,
+                'writeautomaticsub': True,
+                'subtitleslangs': ['en', 'live_chat'],
+                'writedescription': True,
+                'writeinfojson': True,
+            })
+            if self.download_comments:
+                ydl_opts['getcomments'] = True
         else:
             ydl_opts.update({
                 # Prefer separate best video + best audio, and fall back to single-file best.

@@ -1,10 +1,9 @@
-# This script downloads YouTube video information, comments, and live chat, and processes them into
-# CSV and text formats. It handles cookies, allows for comments-only downloads, and organizes output
-# into a new folder each time it runs.
+# CLI for downloading YouTube videos, metadata, and transcripts using yt-dlp.
+# Converts live chat to CSV and deduplicates transcripts automatically.
 
 import glob
 import os
-import shutil
+import click
 from downloader import YouTubeDownloader
 from extract_comments import extract_comments_to_csv
 from vtt_to_text import vtt_to_text
@@ -21,70 +20,89 @@ def get_new_output_folder(base_name="output"):
             return folder
         i += 1
 
-def move_file_to_folder(filepath, folder):
-    if os.path.exists(filepath):
-        shutil.move(filepath, os.path.join(folder, os.path.basename(filepath)))
+def convert_transcripts():
+    """Convert all VTT files to text and deduplicate."""
+    vtt_files = glob.glob("*.vtt")
+    for vtt_file in vtt_files:
+        txt_file = vtt_to_text(vtt_file)
+        if not txt_file:
+            txt_file = os.path.splitext(vtt_file)[0] + ".txt"
+        deduped_file = os.path.splitext(txt_file)[0] + "_deduped.txt"
+        remove_duplicate_lines(txt_file, deduped_file)
 
-def remove_all_duplicates(input_path, output_path):
-    seen = set()
-    with open(input_path, 'r', encoding='utf-8') as infile, \
-         open(output_path, 'w', encoding='utf-8') as outfile:
-        for line in infile:
-            if line not in seen:
-                outfile.write(line)
-                seen.add(line)
 
-def main():
-    url = input("Please enter the full YouTube URL: ")
-    use_cookies = input("Do you want to use cookies from your browser? (y/n): ").strip().lower() == 'y'
-    download_comments = input("Do you want to download comments? (y/n): ").strip().lower() == 'y'
-    comments_only = input("Do you want to ONLY download comments (no video)? (y/n): ").strip().lower() == 'y'
+def convert_livechat():
+    """Convert all live chat NDJSON files to CSV."""
+    livechat_json_files = glob.glob("*.live_chat.json")
+    for livechat_file in livechat_json_files:
+        csv_file = livechat_file.rsplit('.', 1)[0] + '_livechat.csv'
+        livechat_json_to_csv(livechat_file, csv_file)
 
-    # Create output folder before any downloads
+def extract_comments():
+    """Extract comments from info.json to CSV."""
+    info_json_files = glob.glob("*.info.json")
+    if info_json_files:
+        latest_info_json = max(info_json_files, key=os.path.getctime)
+        comments_csv = latest_info_json.replace('.info.json', '_comments.csv')
+        extract_comments_to_csv(latest_info_json, comments_csv)
+    else:
+        click.echo("No .info.json file found for comment extraction.", err=True)
+
+@click.command()
+@click.argument('url')
+@click.option('--cookies', is_flag=True, default=False,
+              help='Use cookies from Firefox browser.')
+@click.option('--comments', is_flag=True, default=False,
+              help='Download and extract comments to CSV.')
+@click.option('--metadata-only', is_flag=True, default=False,
+              help='Skip video download; fetch metadata, subtitles, and live chat, '
+                   'then convert transcripts and live chat.')
+@click.option('--transcript-only', is_flag=True, default=False,
+              help='Download subtitles only and convert to deduplicated text.')
+def main(url, cookies, comments, metadata_only, transcript_only):
+    """Download a YouTube video (or just its metadata/transcript) and convert outputs.
+
+    URL is the full YouTube video URL. Always quote it in zsh/bash to prevent
+    the shell from interpreting '?' as a glob wildcard:
+
+        python src/main.py "https://www.youtube.com/watch?v=VIDEO_ID"
+
+    By default, downloads the video, subtitles, description, and info JSON,
+    then converts subtitles to text (deduped) and live chat to CSV.
+    Comments are not downloaded unless --comments is specified.
+    """
+    if metadata_only and transcript_only:
+        raise click.UsageError("--metadata-only and --transcript-only are mutually exclusive.")
+
     output_folder = get_new_output_folder()
-
-    # Change working directory for all output
     original_cwd = os.getcwd()
     os.chdir(output_folder)
 
     try:
         downloader = YouTubeDownloader(
-            use_cookies=use_cookies,
-            download_comments=download_comments,
-            comments_only=comments_only
+            use_cookies=cookies,
+            download_comments=comments,
+            metadata_only=metadata_only,
+            transcript_only=transcript_only,
         )
         downloader.download_video_info_comments([url])
 
-        # Comments CSV
-        if download_comments or comments_only:
-            info_json_files = glob.glob("*.info.json")
-            if info_json_files:
-                latest_info_json = max(info_json_files, key=os.path.getctime)
-                comments_csv = latest_info_json.replace('.info.json', '_comments.csv')
-                extract_comments_to_csv(latest_info_json, comments_csv)
-            else:
-                print("No .info.json file found. Please check your download.")
-
-        # VTT to text
-        vtt_files = glob.glob("*.vtt")
-        for vtt_file in vtt_files:
-            txt_file = vtt_to_text(vtt_file)
-            # If vtt_to_text returns the txt filename, use it; otherwise, construct it:
-            if not txt_file:
-                txt_file = os.path.splitext(vtt_file)[0] + ".txt"
-            deduped_file = os.path.splitext(txt_file)[0] + "_deduped.txt"
-            remove_duplicate_lines(txt_file, deduped_file)
-
-        # Live chat NDJSON to CSV
-        livechat_json_files = glob.glob("*.live_chat.json")
-        for livechat_file in livechat_json_files:
-            csv_file = livechat_file.rsplit('.', 1)[0] + '_livechat.csv'
-            livechat_json_to_csv(livechat_file, csv_file)
+        if transcript_only:
+            convert_transcripts()
+        elif metadata_only:
+            convert_transcripts()
+            convert_livechat()
+            if comments:
+                extract_comments()
+        else:
+            convert_transcripts()
+            convert_livechat()
+            if comments:
+                extract_comments()
 
     finally:
-        # Return to original directory
         os.chdir(original_cwd)
-        print(f"All output files are saved in: {output_folder}")
+        click.echo(f"All output files saved in: {output_folder}")
 
 if __name__ == "__main__":
     main()

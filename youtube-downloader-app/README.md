@@ -1,26 +1,38 @@
 # YouTube Downloader Application
 
-This project is a YouTube downloader application that allows users to download videos and comments from YouTube. Users can choose whether to use cookies from their browser for authentication and whether to download comments associated with the videos.
+A CLI tool for downloading YouTube videos, metadata, and transcripts using yt-dlp. Automatically converts subtitles to deduplicated text and live chat to CSV.
 
 ## Features
 
-- Download video information and comments from YouTube.
-- Option to use cookies from the browser for authentication.
-- Option to download comments in CSV format.
-- Progress logging for downloads.
+- Download video with best-quality audio+video (merged to MP4).
+- Download subtitles (English) and live chat, automatically converted to text and CSV.
+- Deduplicate transcript lines after conversion.
+- Extract comments to CSV (opt-in).
+- `--metadata-only`: skip the video download and fetch subtitles, live chat, description, info JSON, and optionally comments.
+- `--transcript-only`: download and convert subtitles only.
+- Optional Firefox cookie support for authenticated downloads.
+- FFmpeg availability warning when merging streams.
+- All output saved to a timestamped `outputN/` folder.
 
 ## Project Structure
 
 ```text
 youtube-downloader-app
 ├── src
-│   ├── main.py            # Entry point of the application
-│   ├── downloader.py      # Handles downloading video information and comments
-│   ├── comments.py        # Functions for downloading comments and tracking progress
-│   ├── utils.py           # Utility functions for timestamp conversion and other helpers
-│   └── extract_functions.py # Functions for extracting text and timestamps from messages
-├── requirements.txt       # Lists dependencies for the project
-└── README.md              # Documentation for the project
+│   ├── main.py                 # CLI entry point (click)
+│   ├── downloader.py           # yt-dlp download logic
+│   ├── extract_comments.py     # Extract comments from info.json to CSV
+│   ├── livechat_to_csv.py      # Convert live chat NDJSON to CSV
+│   ├── vtt_to_text.py          # Convert VTT subtitle files to plain text
+│   ├── remove_dupe_lines.py    # Deduplicate transcript lines
+│   ├── firefox_cookie_export.py # Export Firefox cookies for yt-dlp
+│   ├── kick_downloader.py      # Kick.com stream downloader
+│   ├── timestamp_converter.py  # EST/epoch timestamp converter utility
+│   ├── comments.py             # Legacy comment helpers
+│   ├── utils.py                # Utility functions
+│   └── extract_functions.py    # Text/timestamp extraction helpers
+├── requirements.txt            # Python dependencies
+└── README.md                   # This file
 ```
 
 ## Installation
@@ -38,21 +50,90 @@ youtube-downloader-app
    pip install -r requirements.txt
    ```
 
+3. Install [FFmpeg](https://ffmpeg.org/download.html) for merging audio and video streams into a single MP4 file.
+
 ## Usage
 
-1. Run the application:
+```zsh
+python src/main.py [OPTIONS] "URL"
+```
 
-   ```zsh
-   python src/main.py
-   ```
+> **Note:** Always quote the URL in zsh or bash. The `?` in a YouTube URL (e.g. `?v=...`) is a glob wildcard in the shell — without quotes, the shell tries to expand it against local files and prints `no matches found` before Python runs.
 
-2. Follow the prompts to enter the YouTube URL and choose your options regarding cookies and comments.
+### Options
+
+| Option | Description |
+| --- | --- |
+| `--cookies` | Use cookies from Firefox for authenticated downloads |
+| `--comments` | Download and extract comments to CSV |
+| `--metadata-only` | Skip video; fetch subtitles, live chat, description, info JSON, and convert |
+| `--transcript-only` | Download subtitles only and convert to deduplicated text |
+| `--help` | Show help message and exit |
+
+### Examples
+
+Download a video (default — no comments):
+
+```zsh
+python src/main.py "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+Download with comments:
+
+```zsh
+python src/main.py --comments "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+Download everything except the video (metadata, subtitles, live chat, comments):
+
+```zsh
+python src/main.py --metadata-only --comments "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+Download and convert transcript only:
+
+```zsh
+python src/main.py --transcript-only "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+Use Firefox cookies for a members-only or age-restricted video:
+
+```zsh
+python src/main.py --cookies "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+## Downloading a channel
+
+To download all videos in a channel, pass a channel URL instead of a single video URL:
+
+```txt
+https://www.youtube.com/@ChannelName
+https://www.youtube.com/channel/UCxxxxxxxxx
+```
+
+yt-dlp handles channel URLs natively and will iterate over every video in the channel.
+
+### Channel download support by feature
+
+| Feature | Channel support |
+| --- | --- |
+| Video download | Works for all videos |
+| Subtitles/VTT | Works for all videos |
+| Live chat | Works for all videos |
+| Comments CSV | **Last video only** |
+
+### Comments limitation
+
+When downloading a channel, comment extraction only processes a single `.info.json` file (the most recently created one). All other per-video `.info.json` files are ignored, so comments are only extracted for the last video downloaded.
+
+> **Recommendation:** Do not enable `--comments` when downloading a channel or multiple videos. Download comments for individual videos instead.
 
 ## Dependencies
 
-- `yt-dlp`: A command-line program to download videos from YouTube and other sites.
-- `pytz`: A library for accurate and cross-platform timezone calculations.
-- Other dependencies as required by the application.
+- `yt-dlp`: Download videos from YouTube and other sites.
+- `click`: CLI framework.
+- `pytz`: Timezone calculations.
+- `browser-cookie3`: Read cookies from the browser for authenticated downloads.
 
 ## Contributing
 
