@@ -84,89 +84,6 @@ The script will:
 3. Start capturing live chat in the current terminal
 4. Save all messages to a CSV file: `chat_log_VIDEO_ID_TIMESTAMP.csv`
 
-## Changelog
-
-### [v16.0.2] - 2026-01-20
-
-**Added** - Optional video download toggle
-
-Added a prompt to skip video downloading when restarting the live chat capture. Useful when the chat capture stops mid-stream but the video is still downloading in another terminal.
-
-**Changes:**
-
-- New prompt after entering video ID: `Download video as well? (y/n) [y]:`
-- Press Enter or `y` to download video and capture chat (existing behavior)
-- Type `n` to skip video download and only capture live chat
-
-### [v16.0.1] - 2026-01-20
-
-**Fixed** - Virtual environment activation in new terminal windows
-
-When running the script from within a virtual environment, the new terminal window now automatically activates the same virtual environment before executing yt-dlp. This ensures that yt-dlp and all dependencies are accessible in the spawned terminal.
-
-**Changes:**
-
-- Added `get_venv_activation_command()` function that:
-  - Detects if running in a virtual environment using `VIRTUAL_ENV` environment variable
-  - Falls back to comparing `sys.prefix` vs `sys.base_prefix` for alternative detection
-  - Locates the correct activation script path for the current platform
-  - Returns `None` if not running in a virtual environment
-
-- Updated `open_terminal_with_ytdlp()` function to:
-  - Detect virtual environment before building commands
-  - Prepend activation command to yt-dlp execution
-  - Platform-specific implementations:
-    - **macOS/Linux**: `source "/path/to/venv/bin/activate" && yt-dlp ...`
-    - **Windows**: `"path\to\venv\Scripts\activate.bat" && yt-dlp ...`
-  - Log virtual environment activation for debugging
-
-**Benefits:**
-
-- No more "command not found" errors when yt-dlp is installed in a virtual environment
-- Consistent environment between chat capture and video download processes
-- Works seamlessly with Poetry, venv, virtualenv, and conda environments
-
-### [v16.0.0] - 2026-01-20
-
-**Added** - URL parsing, automatic stream download, and streamlined workflow
-
-This major release changes the user interface to accept full YouTube URLs instead of just video IDs, and introduces automatic live stream downloading in a separate terminal window.
-
-**Breaking Changes:**
-
-- Changed input prompt from "Enter video ID:" to "Enter YouTube URL or video ID:"
-- The script now accepts full YouTube URLs (backward compatible with video IDs)
-
-**New Features:**
-
-- **URL Parsing Enhancement:**
-  - Added `extract_video_id()` function to accept full YouTube URLs
-  - Supports multiple URL formats (standard, short, embed, live)
-  - Backward compatible with direct video ID input
-
-- **Automatic Stream Download:**
-  - Added `open_terminal_with_ytdlp()` function
-  - Automatically detects OS (macOS, Linux, Windows)
-  - Opens new terminal window with yt-dlp command
-  - No manual intervention needed to start video download
-
-- **Streamlined Workflow:**
-  - Removed manual prompt to start chat capture
-  - Both processes (video download + chat capture) start automatically
-  - Improved user experience with clearer status messages
-
-### [v15.0.0] - Base Version
-
-**Core Features:**
-
-- YouTube live chat capture with real-time logging
-- Quota management system with `QuotaManager` class
-- Support for all chat message types (text, Super Chats, Super Stickers, sponsors)
-- CSV export with Eastern Time timestamps
-- Dynamic polling interval calculation
-- Cross-session quota tracking
-- Error handling for API limits and stream ending
-
 ## Output Format
 
 The script creates a CSV file with the following columns:
@@ -252,3 +169,8 @@ All errors are logged, and the CSV file includes the termination reason.
 ## License
 
 Part of the babel_lib repository.
+
+## Related Documentation
+
+- [CHANGELOG_livechat.md](CHANGELOG_livechat.md) - Version history
+- [README.md](README.md) - ytdownload toolkit overview

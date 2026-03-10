@@ -34,14 +34,6 @@ YouTube live content capture and analysis toolkit. Designed for real-time stream
 | `count_livechat.py`    | Simple message counter                    |
 | `infojson2csv.py`      | Convert yt-dlp .info.json files to CSV    |
 
-### Documentation
-
-| File                     | Description                             |
-| ------------------------ | --------------------------------------- |
-| `README_livechat.md`     | Detailed livechat.py documentation      |
-| `README_livecaptions.md` | Detailed captions.py documentation      |
-| `README_infojson2csv.md` | Detailed infojson2csv.py documentation  |
-
 ### Configuration
 
 | File                  | Description                       |
@@ -326,5 +318,10 @@ For age-restricted or member-only content:
 
 ## Related Documentation
 
-- [README_livechat.md](README_livechat.md) - Detailed livechat.py documentation
-- [README_livecaptions.md](README_livecaptions.md) - Detailed captions.py documentation
+| README | Changelog | Description |
+| --- | --- | --- |
+| [README_livechat.md](README_livechat.md) | [CHANGELOG_livechat.md](CHANGELOG_livechat.md) | livechat.py — live chat capture, quota management, CSV output |
+| [README_captions.md](README_captions.md) | [CHANGELOG_captions.md](CHANGELOG_captions.md) | captions.py — real-time speech-to-text transcription |
+| [README_infojson2csv.md](README_infojson2csv.md) | [CHANGELOG_infojson2csv.md](CHANGELOG_infojson2csv.md) | infojson2csv.py — batch convert .info.json files to CSV |
+| [README_csv_to_livechat.md](README_csv_to_livechat.md) | [CHANGELOG_csv_to_livechat.md](CHANGELOG_csv_to_livechat.md) | csv_to_livechat.py — convert livechat.py CSV to .live_chat.json for mpv |
+| [convertcsv/README.md](convertcsv/README.md) | [convertcsv/CHANGELOG.md](convertcsv/CHANGELOG.md) | convertcsv — CSV conversion utilities |

@@ -57,7 +57,7 @@ On first run, the Whisper model will be downloaded from Hugging Face:
 Run the script:
 
 ```bash
-python ytdownload/livecaptions.py
+python ytdownload/captions.py
 ```
 
 You'll be prompted for:
@@ -165,45 +165,6 @@ The transcription delay is approximately:
 
 For lower latency, reduce chunk duration (e.g., 5 seconds), but this may affect accuracy for sentences that span chunk boundaries.
 
-## Changelog
-
-### [v1.0.0] - 2026-01-20
-
-#### Initial Release
-
-- Real-time live caption capture from YouTube streams
-- Local transcription using mlx-whisper (Apple Silicon optimized)
-- Support for multiple Whisper model sizes (tiny through large-v3)
-- Configurable chunk duration for latency vs. accuracy tradeoff
-- CSV export with timestamps
-- Automatic stream URL refresh on expiration
-- Same URL parsing as livechat.py for consistent UX
-
-#### Core Features
-
-- `LiveCaptionFetcher` class with threaded audio capture
-- Uses ffmpeg for audio extraction (16kHz mono WAV)
-- Queue-based processing for smooth transcription pipeline
-- Graceful handling of stream end and user interrupts
-- Dependency checking with helpful installation instructions
-
-#### Dependencies installed
-
-Homebrew:
-
-- `pkg-config` - Required for building Python packages
-- `ffmpeg` - Audio/video processing (likely already installed)
-
-Python (via pip):
-
-- `mlx-whisper` - Whisper implementation for Apple Silicon
-- `mlx`, `mlx-metal` - Apple ML framework
-- `torch` - PyTorch
-- `huggingface_hub` - Model downloads
-- `tiktoken` - Tokenization
-- `numba`, `llvmlite` - JIT compilation
-- `pytz` - Timezone handling (likely already installed from livechat.py)
-
 ## Error Handling
 
 The script handles:
@@ -257,7 +218,7 @@ All errors are logged, and the CSV file includes the termination reason.
 
 ## Comparison with livechat.py
 
-| Feature | livechat.py | livecaptions.py |
+| Feature | livechat.py | captions.py |
 | --------- | ------------- | ----------------- |
 | Data source | YouTube API | Audio stream |
 | Captures | Chat messages | Spoken words |
@@ -269,3 +230,8 @@ All errors are logged, and the CSV file includes the termination reason.
 ## License
 
 Part of the babel_lib repository.
+
+## Related Documentation
+
+- [CHANGELOG_captions.md](CHANGELOG_captions.md) - Version history
+- [README.md](README.md) - ytdownload toolkit overview
