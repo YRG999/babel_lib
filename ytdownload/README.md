@@ -14,32 +14,32 @@ YouTube live content capture and analysis toolkit. Designed for real-time stream
 
 ### Core Tools
 
-| File                     | Size   | Description                                        |
-| ------------------------ | ------ | -------------------------------------------------- |
-| `livechat.py`            | 22 KB  | Main live chat capture tool with quota management  |
-| `captions.py`            | 15 KB  | Real-time transcription using mlx-whisper          |
-| `download.py`            | 6.6 KB | Video/comment/transcript downloader                |
+| File | Size | Description |
+| --- | --- | --- |
+| `livechat.py` | 22 KB | Live chat capture via YouTube API (no transcription) |
+| `captions.py` | 15 KB | Live speech-to-text transcription via mlx-whisper — run separately from `livechat.py` |
+| `download.py` | 6.6 KB | Video/comment/transcript downloader |
 | `youtube_downloader6.py` | 6.9 KB | Alternative downloader with Firefox cookie support |
-| `analyze.py`             | 6 KB   | Live chat statistical analysis                     |
-| `comments.py`            | 4.5 KB | Comment download utility                           |
+| `analyze.py` | 6 KB | Live chat statistical analysis |
+| `comments.py` | 4.5 KB | Comment download utility |
 
 ### Utilities
 
-| File                   | Description                               |
-| ---------------------- | ----------------------------------------- |
-| `extract_functions.py` | Shared helpers for emoji/text extraction  |
-| `firefox_cookies.py`   | Browser cookie handler for authentication |
-| `report_formats.py`    | List available video formats              |
-| `merge_parts.py`       | Merge yt-dlp .part files using ffmpeg     |
-| `count_livechat.py`    | Simple message counter                    |
-| `infojson2csv.py`      | Convert yt-dlp .info.json files to CSV    |
+| File | Description |
+| --- | --- |
+| `extract_functions.py` | Shared helpers for emoji/text extraction |
+| `firefox_cookies.py` | Browser cookie handler for authentication |
+| `report_formats.py` | List available video formats |
+| `merge_parts.py` | Merge yt-dlp .part files using ffmpeg |
+| `count_livechat.py` | Simple message counter |
+| `infojson2csv.py` | Convert yt-dlp .info.json files to CSV |
 
 ### Configuration
 
-| File                  | Description                       |
-| --------------------- | --------------------------------- |
+| File | Description |
+| --- | --- |
 | `.youtube_quota.json` | API quota tracking (auto-managed) |
-| `.env`                | Environment variables (API keys)  |
+| `.env` | Environment variables (API keys) |
 
 ## Installation
 
@@ -191,9 +191,9 @@ YouTube Data API v3 has a daily quota limit of **10,000 units**.
 
 ### Quota Costs
 
-| API Call                | Cost    |
-| ----------------------- | ------- |
-| `videos.list`           | 1 unit  |
+| API Call | Cost |
+| --- | --- |
+| `videos.list` | 1 unit |
 | `liveChatMessages.list` | 5 units |
 
 ### Features
@@ -207,9 +207,9 @@ YouTube Data API v3 has a daily quota limit of **10,000 units**.
 
 ### livechat.py
 
-| Class                    | Purpose                                                 |
-| ------------------------ | ------------------------------------------------------- |
-| `QuotaManager`           | Manages daily API quota with file-based locking         |
+| Class | Purpose |
+| --- | --- |
+| `QuotaManager` | Manages daily API quota with file-based locking |
 | `YouTubeLiveChatFetcher` | Fetches live chat messages and handles API interactions |
 
 **Custom Exceptions:**
@@ -220,8 +220,8 @@ YouTube Data API v3 has a daily quota limit of **10,000 units**.
 
 ### captions.py
 
-| Class                | Purpose                                          |
-| -------------------- | ------------------------------------------------ |
+| Class | Purpose |
+| --- | --- |
 | `LiveCaptionFetcher` | Manages audio capture and transcription pipeline |
 
 Uses threaded architecture: audio capture in background thread, transcription in main thread with queue-based processing.
@@ -239,14 +239,14 @@ Uses threaded architecture: audio capture in background thread, transcription in
 
 ## Configuration Reference
 
-| Setting                | Default      | Description                  |
-| ---------------------- | ------------ | ---------------------------- |
-| Daily quota limit      | 10,000 units | YouTube API limit            |
-| Chat flush interval    | 300 seconds  | How often to write to CSV    |
-| Caption chunk duration | 10 seconds   | Audio segment length         |
-| Whisper model          | base         | Transcription model size     |
-| Audio settings         | 16kHz mono   | WAV format for transcription |
-| Timezone               | US/Eastern   | All timestamp outputs        |
+| Setting | Default | Description |
+| --- | --- | --- |
+| Daily quota limit | 10,000 units | YouTube API limit |
+| Chat flush interval | 300 seconds | How often to write to CSV |
+| Caption chunk duration | 10 seconds | Audio segment length |
+| Whisper model | base | Transcription model size |
+| Audio settings | 16kHz mono | WAV format for transcription |
+| Timezone | US/Eastern | All timestamp outputs |
 
 ## Output Examples
 
