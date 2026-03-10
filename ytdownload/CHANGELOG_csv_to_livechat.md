@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+> This script has not been tested. All versions below were written but never run against real data.
+
 ## [1.3.0] - 2026-03-09
 
 ### Added
@@ -36,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `parse_start_time()` function that accepts either a plain Unix timestamp (integer or float, as returned by `yt-dlp --print release_timestamp`) or a human-readable date string, enabling shell substitution like:
+  
   ```bash
   python csv_to_livechat.py chat_log.csv --start "$(yt-dlp --print release_timestamp --skip-download -- VIDEO_ID)"
   ```

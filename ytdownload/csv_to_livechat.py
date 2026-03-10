@@ -2,6 +2,8 @@
 # Converts livechat.py CSV output to yt-dlp .live_chat.json format
 # for use with mpv-youtube-chat (https://github.com/BanchouBoo/mpv-youtube-chat)
 #
+# NOTE: This script has not been tested. Use with caution.
+#
 # Usage:
 #   python csv_to_livechat.py chat_log.csv                        # prompts for stream start time
 #   python csv_to_livechat.py chat_log.csv video.info.json        # reads start time from info.json
