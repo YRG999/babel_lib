@@ -115,10 +115,10 @@ Starting audio capture...
 
 The script creates a CSV file with the following columns:
 
-- **Timestamp (ET)**: Eastern Time timestamp of when the words were spoken
-- **Start**: Start time within the chunk (seconds)
-- **End**: End time within the chunk (seconds)
-- **Text**: The transcribed text
+- **Timestamp (ET)**: Eastern Time wall-clock timestamp of when the words were spoken. This is the primary time reference — computed as the moment the audio chunk began capturing plus the segment's Start offset.
+- **Start**: Start time of the segment within its audio chunk (seconds). Not a wall-clock time — resets to 0 at the beginning of each chunk.
+- **End**: End time of the segment within its audio chunk (seconds). Same frame of reference as Start.
+- **Text**: The transcribed text. `[silence]` rows have an empty Start and End and indicate that no speech was detected for 5 or more consecutive minutes.
 
 Example output:
 
@@ -127,6 +127,14 @@ Timestamp (ET),Start,End,Text
 2026-01-20 14:30:52 EST,0.00,3.42,"Hello everyone, welcome to the stream"
 2026-01-20 14:30:55 EST,3.42,7.18,"Today we're going to be talking about"
 ```
+
+In this example, both rows come from the same 10-second audio chunk:
+
+- `Start: 0.00, End: 3.42` — spoken in the first 3.4 seconds of the chunk
+- `Start: 3.42, End: 7.18` — spoken from 3.4s to 7.2s into the chunk
+- The **Timestamp** for each row is `chunk_capture_start + Start`, so it reflects the actual wall-clock time those words were spoken
+
+Each transcribed segment is written to the CSV immediately. The file buffer is flushed to disk every 60 seconds, so in the worst case you could lose up to 60 seconds of captions if the process is killed ungracefully. A clean exit (Ctrl+C or stream ending naturally) always flushes before closing.
 
 The last row includes the termination reason (stream ended, user interrupt, etc.)
 
@@ -155,6 +163,24 @@ YouTube Live Stream
        ▼
    CSV file + console output
 ```
+
+## Cost & Runtime
+
+**There are no API costs.** Everything runs locally on your Mac:
+
+- `yt-dlp` fetches a stream URL from YouTube for free
+- `ffmpeg` downloads audio chunks directly from that URL
+- `mlx-whisper` transcribes on your Apple Silicon GPU — no cloud, no tokens, no billing
+
+The only resources consumed are electricity and GPU time on your own machine.
+
+**It can run for hours.** The script is designed to run for the full duration of a live stream. The main limits are:
+
+- **Stream URL expiration** — YouTube stream URLs expire periodically; the script detects the 403 error and automatically fetches a new URL
+- **Disk space** — audio chunks are written to a temp directory and deleted immediately after transcription, so disk usage stays flat; only the CSV grows
+- **GPU memory** — the Whisper model stays loaded the whole time (~500 MB for `base`); no other memory accumulates
+
+The only things that stop it are Ctrl+C, the stream ending naturally, or too many consecutive ffmpeg failures.
 
 ## Latency
 

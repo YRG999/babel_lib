@@ -98,13 +98,27 @@ class LiveCaptionFetcher:
 
         # Map model sizes to mlx-whisper model names
         self.model_map = {
-            'tiny': 'mlx-community/whisper-tiny',
-            'base': 'mlx-community/whisper-base',
-            'small': 'mlx-community/whisper-small',
-            'medium': 'mlx-community/whisper-medium',
-            'large': 'mlx-community/whisper-large-v3',
-            'large-v3': 'mlx-community/whisper-large-v3',
+            'tiny': 'mlx-community/whisper-tiny-mlx',
+            'base': 'mlx-community/whisper-base-mlx',
+            'small': 'mlx-community/whisper-small-mlx',
+            'medium': 'mlx-community/whisper-medium-mlx',
+            'large': 'mlx-community/whisper-large-v3-mlx',
+            'large-v3': 'mlx-community/whisper-large-v3-mlx',
         }
+
+    def _is_stream_live(self, video_id: str) -> bool:
+        """Check if a YouTube stream is currently live."""
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        try:
+            result = subprocess.run(
+                ['yt-dlp', '--print', 'is_live', '--no-warnings', url],
+                capture_output=True, text=True, timeout=30,
+            )
+            if result.returncode == 0:
+                return result.stdout.strip().lower() == 'true'
+        except Exception:
+            pass
+        return False
 
     def _get_stream_url(self, video_id: str) -> Optional[str]:
         """Get the audio stream URL for a YouTube video."""
@@ -114,7 +128,7 @@ class LiveCaptionFetcher:
             result = subprocess.run(
                 [
                     'yt-dlp',
-                    '-f', 'bestaudio',
+                    '-f', 'bestaudio/best',
                     '-g',  # Get URL only
                     '--no-warnings',
                     url,
@@ -155,14 +169,12 @@ class LiveCaptionFetcher:
             return
 
         logging.info("Starting audio capture...")
-        start_time = datetime.now(self.eastern)
         url = f"https://www.youtube.com/watch?v={video_id}"
         consecutive_failures = 0
         max_failures = 5
 
         while not self._stop_event.is_set():
             chunk_file = os.path.join(temp_dir, f"chunk_{chunk_index:05d}.wav")
-            chunk_start_time = start_time + timedelta(seconds=chunk_index * self.chunk_duration)
 
             try:
                 # Capture a chunk of audio
@@ -179,6 +191,7 @@ class LiveCaptionFetcher:
                     chunk_file,
                 ]
 
+                chunk_capture_start = datetime.now(self.eastern)
                 process = subprocess.run(
                     ffmpeg_cmd,
                     capture_output=True,
@@ -189,9 +202,13 @@ class LiveCaptionFetcher:
                 if process.returncode == 0 and os.path.exists(chunk_file):
                     file_size = os.path.getsize(chunk_file)
                     if file_size > 1000:  # Minimum valid file size
-                        audio_queue.put((chunk_file, chunk_start_time))
+                        audio_queue.put((chunk_file, chunk_capture_start))
                         chunk_index += 1
                         consecutive_failures = 0
+                        # Periodically verify the stream is still live
+                        if chunk_index % 10 == 0 and not self._is_stream_live(video_id):
+                            logging.info("Stream is no longer live, stopping")
+                            break
                     else:
                         logging.warning(f"Chunk too small ({file_size} bytes), skipping")
                         try:
@@ -205,6 +222,9 @@ class LiveCaptionFetcher:
                         stderr_lower = process.stderr.lower()
                         # Check if stream ended or URL expired
                         if '403' in process.stderr or 'forbidden' in stderr_lower:
+                            if not self._is_stream_live(video_id):
+                                logging.info("Stream has ended")
+                                break
                             logging.info("Stream URL expired, refreshing...")
                             new_url = self._get_stream_url(video_id)
                             if new_url:
@@ -240,12 +260,18 @@ class LiveCaptionFetcher:
         model_name = self.model_map.get(self.model_size, 'mlx-community/whisper-base')
 
         try:
-            result = mlx_whisper.transcribe(
+            result: dict = mlx_whisper.transcribe(
                 audio_file,
                 path_or_hf_repo=model_name,
                 language=self.language,
+                condition_on_previous_text=False,
             )
-            return result.get('segments', [])
+            return [
+                seg for seg in result.get('segments', [])
+                if seg.get('no_speech_prob', 0) < 0.6
+                and seg.get('compression_ratio', 0) < 2.4
+                and not re.search(r'\b(\w+)\b(?:\s+\1){3,}', seg.get('text', ''), re.IGNORECASE)
+            ]
         except Exception as e:
             logging.error(f"Transcription error: {e}")
             return []
@@ -272,10 +298,12 @@ class LiveCaptionFetcher:
         # Pre-load model by doing a test transcription
         logging.info("Loading Whisper model (this may take a moment on first run)...")
         import mlx_whisper
-        model_name = self.model_map.get(self.model_size, 'mlx-community/whisper-base')
+        model_name = self.model_map.get(self.model_size, 'mlx-community/whisper-base-mlx')
 
         audio_queue = queue.Queue(maxsize=5)
         last_flush_time = time.time()
+        last_output_time = datetime.now(self.eastern)
+        silence_marker_interval = 300  # seconds (5 minutes)
         termination_reason = None
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -311,6 +339,7 @@ class LiveCaptionFetcher:
                         # Transcribe the chunk
                         segments = self._transcribe_chunk(chunk_file)
 
+                        wrote_speech = False
                         for segment in segments:
                             # Calculate actual timestamp
                             seg_start = segment.get('start', 0)
@@ -327,6 +356,17 @@ class LiveCaptionFetcher:
                                     f"{seg_end:.2f}",
                                     text,
                                 ])
+                                last_output_time = datetime.now(self.eastern)
+                                wrote_speech = True
+
+                        if not wrote_speech:
+                            now = datetime.now(self.eastern)
+                            silence_secs = (now - last_output_time).total_seconds()
+                            if silence_secs >= silence_marker_interval:
+                                timestamp_str = now.strftime('%Y-%m-%d %H:%M:%S %Z')
+                                print(f"{timestamp_str}: [silence]")
+                                writer.writerow([timestamp_str, '', '', '[silence]'])
+                                last_output_time = now
 
                         # Clean up chunk file
                         try:

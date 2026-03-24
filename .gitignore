@@ -6,11 +6,13 @@ __pycache__/
 _notes/
 audio/
 browser_history/
+kickcomcookies.txt
 output/
+radius/map_with_radius.html
 venv/
 videos/
-kickcomcookies.txt
-radius/map_with_radius.html
-ytdownload/from
-ytdownload/.youtube_quota.json
 youtube-downloader-app/src/output*/
+ytdownload/.youtube_quota.json
+ytdownload/captions_*
+ytdownload/chat_log_*
+ytdownload/from
