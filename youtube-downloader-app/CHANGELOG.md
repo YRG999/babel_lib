@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-03-26
+
+### Added
+
+- `kick_vod_downloader.py`: chat CSV now includes a `vod_offset` column (first column, formatted `H:MM:SS`) giving the playback position in the downloaded video for each message, computed as `message_timestamp − vod_start_time`.
+
+## [2.1.0] - 2026-03-26
+
+### Added
+
+- `kick_vod_downloader.py`: downloads Kick.com VOD replays and full chat history (CSV + NDJSON).
+  - VOD metadata (`channel_id`, `start_time`, `duration`) fetched automatically from `kick.com/api/v1/video/{uuid}`.
+  - Chat fetched via time-windowed polling of `web.kick.com/api/v1/chat/{channel_id}/history` in 5-second windows.
+  - Message deduplication by ID and chronological sort before output.
+  - Chat exported to CSV (`timestamp`, `username`, `user_id`, `message`, `type`, `badges`, `color`, `amount`, `message_id`, `metadata`) and raw NDJSON.
+  - `metadata.json` saved alongside outputs.
+  - `--video-only`, `--chat-only`, and `--chat-delay` flags.
+  - Auto-detection of Kick's `duration` field unit (seconds vs. milliseconds).
+  - Retry logic with exponential backoff (up to 5 attempts) and `429` rate-limit handling.
+  - Output written to a new `kick_outputN/` folder.
+- `main.py`: Kick live stream support — detects `kick.com/username` URLs, tries yt-dlp first, and automatically falls back to `kick_live_downloader` (Playwright + ffmpeg) on failure.
+- `kick_live_downloader.py`: m3u8 auto-detection via Playwright network interception — `--m3u8` is now optional; the URL is captured from the player's network traffic when omitted.
+- `kick_live_downloader.download_kick_live()`: callable function so `main.py` can invoke the fallback directly without a subprocess.
+
+### Changed
+
+- `kick_downloader.py` renamed to `kick_live_downloader.py` to distinguish it from the new VOD downloader.
+
 ## [2.0.0] - 2026-03-04
 
 ### Added

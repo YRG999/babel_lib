@@ -1,8 +1,11 @@
 # CLI for downloading YouTube videos, metadata, and transcripts using yt-dlp.
 # Converts live chat to CSV and deduplicates transcripts automatically.
+# For Kick live streams, tries yt-dlp first and falls back to kick_live_downloader.
 
 import glob
 import os
+import re
+import subprocess
 import click
 from downloader import YouTubeDownloader
 from extract_comments import extract_comments_to_csv
@@ -48,6 +51,25 @@ def extract_comments():
     else:
         click.echo("No .info.json file found for comment extraction.", err=True)
 
+def _is_kick_live_url(url: str) -> bool:
+    """Return True if url looks like a Kick channel page (live stream), not a VOD or clip."""
+    # Kick live:  kick.com/username
+    # Kick VOD:   kick.com/username/videos/UUID
+    # Kick clip:  kick.com/username/clips/ID  or  kick.com/username?clip=...
+    return bool(re.match(r"https?://(?:www\.)?kick\.com/[^/?#]+/?$", url))
+
+def _try_ytdlp(url: str, out_pattern: str) -> bool:
+    """Run yt-dlp as a subprocess. Returns True if it exits cleanly."""
+    result = subprocess.run(["yt-dlp", "-o", out_pattern, url])
+    return result.returncode == 0
+
+def _fallback_kick_live(url: str, out: str) -> bool:
+    """Fall back to kick_live_downloader for a Kick live stream."""
+    from kick_live_downloader import download_kick_live
+    click.echo("yt-dlp failed — falling back to kick_live_downloader (Playwright + ffmpeg)...")
+    click.echo("Note: if Cloudflare blocks the headless browser, re-run kick_live_downloader.py directly with --headful.")
+    return download_kick_live(page_url=url, out=out)
+
 @click.command()
 @click.argument('url')
 @click.option('--cookies', is_flag=True, default=False,
@@ -62,10 +84,15 @@ def extract_comments():
 def main(url, cookies, comments, metadata_only, transcript_only):
     """Download a YouTube video (or just its metadata/transcript) and convert outputs.
 
-    URL is the full YouTube video URL. Always quote it in zsh/bash to prevent
+    URL is the full video URL. Always quote it in zsh/bash to prevent
     the shell from interpreting '?' as a glob wildcard:
 
         python src/main.py "https://www.youtube.com/watch?v=VIDEO_ID"
+
+    For Kick live streams, yt-dlp is tried first. If it fails, the download
+    automatically falls back to kick_live_downloader (Playwright + ffmpeg):
+
+        python src/main.py "https://kick.com/username"
 
     By default, downloads the video, subtitles, description, and info JSON,
     then converts subtitles to text (deduped) and live chat to CSV.
@@ -79,26 +106,39 @@ def main(url, cookies, comments, metadata_only, transcript_only):
     os.chdir(output_folder)
 
     try:
-        downloader = YouTubeDownloader(
-            use_cookies=cookies,
-            download_comments=comments,
-            metadata_only=metadata_only,
-            transcript_only=transcript_only,
-        )
-        downloader.download_video_info_comments([url])
-
-        if transcript_only:
-            convert_transcripts()
-        elif metadata_only:
-            convert_transcripts()
-            convert_livechat()
-            if comments:
-                extract_comments()
+        if _is_kick_live_url(url):
+            # Try yt-dlp first; fall back to Playwright + ffmpeg on failure.
+            click.echo(f"Detected Kick live stream URL: {url}")
+            click.echo("Attempting download with yt-dlp...")
+            success = _try_ytdlp(url, out_pattern="%(title)s.%(ext)s")
+            if not success:
+                success = _fallback_kick_live(url, out="kick_live.mp4")
+            if not success:
+                raise click.ClickException(
+                    "Both yt-dlp and kick_live_downloader failed. "
+                    "Try running kick_live_downloader.py directly with --headful."
+                )
         else:
-            convert_transcripts()
-            convert_livechat()
-            if comments:
-                extract_comments()
+            downloader = YouTubeDownloader(
+                use_cookies=cookies,
+                download_comments=comments,
+                metadata_only=metadata_only,
+                transcript_only=transcript_only,
+            )
+            downloader.download_video_info_comments([url])
+
+            if transcript_only:
+                convert_transcripts()
+            elif metadata_only:
+                convert_transcripts()
+                convert_livechat()
+                if comments:
+                    extract_comments()
+            else:
+                convert_transcripts()
+                convert_livechat()
+                if comments:
+                    extract_comments()
 
     finally:
         os.chdir(original_cwd)

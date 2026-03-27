@@ -26,7 +26,8 @@ youtube-downloader-app
 │   ├── vtt_to_text.py          # Convert VTT subtitle files to plain text
 │   ├── remove_dupe_lines.py    # Deduplicate transcript lines
 │   ├── firefox_cookie_export.py # Export Firefox cookies for yt-dlp
-│   ├── kick_downloader.py      # Kick.com stream downloader
+│   ├── kick_live_downloader.py # Kick.com live stream downloader (Playwright + ffmpeg)
+│   ├── kick_vod_downloader.py  # Kick.com VOD + chat downloader
 │   ├── timestamp_converter.py  # EST/epoch timestamp converter utility
 │   ├── comments.py             # Legacy comment helpers
 │   ├── utils.py                # Utility functions
@@ -102,6 +103,12 @@ Use Firefox cookies for a members-only or age-restricted video:
 python src/main.py --cookies "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
+Download a Kick live stream (tries yt-dlp, falls back to Playwright + ffmpeg automatically):
+
+```zsh
+python src/main.py "https://kick.com/username"
+```
+
 ## Downloading a channel
 
 To download all videos in a channel, pass a channel URL instead of a single video URL:
@@ -127,6 +134,66 @@ yt-dlp handles channel URLs natively and will iterate over every video in the ch
 When downloading a channel, comment extraction only processes a single `.info.json` file (the most recently created one). All other per-video `.info.json` files are ignored, so comments are only extracted for the last video downloaded.
 
 > **Recommendation:** Do not enable `--comments` when downloading a channel or multiple videos. Download comments for individual videos instead.
+
+## Kick.com
+
+### Live streams — `main.py`
+
+Pass a Kick channel URL to `main.py`. yt-dlp is tried first; if it fails, the download falls back automatically to `kick_live_downloader.py` (Playwright + ffmpeg with m3u8 auto-detection):
+
+```zsh
+python src/main.py "https://kick.com/username"
+```
+
+If the automated fallback also fails (e.g. Cloudflare blocks the headless browser), run `kick_live_downloader.py` directly with `--headful`:
+
+```zsh
+python src/kick_live_downloader.py --page "https://kick.com/username" --headful
+```
+
+### VOD replays — `kick_vod_downloader.py`
+
+Downloads a VOD and its full chat history. Requires only the VOD URL — metadata, `channel_id`, and stream timestamps are resolved automatically.
+
+```zsh
+python src/kick_vod_downloader.py [OPTIONS] "URL"
+```
+
+`URL` must be a Kick VOD URL containing a UUID:
+
+```text
+https://kick.com/username/videos/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+| Option | Description |
+| --- | --- |
+| `--video-only` | Download video only, skip chat |
+| `--chat-only` | Download chat only, skip video |
+| `--chat-delay N` | Milliseconds between chat API requests (default: 300, min: 100) |
+
+Examples:
+
+```zsh
+# Video + full chat (default)
+python src/kick_vod_downloader.py "https://kick.com/username/videos/UUID"
+
+# Chat only
+python src/kick_vod_downloader.py --chat-only "https://kick.com/username/videos/UUID"
+
+# Video only
+python src/kick_vod_downloader.py --video-only "https://kick.com/username/videos/UUID"
+```
+
+Output is written to a new `kick_outputN/` folder:
+
+| File | Contents |
+| --- | --- |
+| `metadata.json` | Raw VOD metadata from the Kick API |
+| `<title>_chat.csv` | Chat messages (vod_offset, timestamp, username, user_id, message, type, badges, color, amount, message_id, metadata) |
+| `<title>_chat.ndjson` | Raw chat messages, one JSON object per line |
+| `<title>.mp4` | Downloaded video (unless `--chat-only`) |
+
+The `vod_offset` column is formatted as `H:MM:SS` and gives the playback position in the downloaded video where each message appears — computed as `message_timestamp − vod_start_time`. Chat messages include emotes as `[emote:ID:name]` tokens. The `duration` field unit (seconds vs. milliseconds) is auto-detected. Increase `--chat-delay` if you encounter `429` rate-limit responses.
 
 ## Dependencies
 
