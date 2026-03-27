@@ -1,5 +1,3 @@
-# filepath: /youtube-downloader-app/youtube-downloader-app/src/comments.py
-
 import csv
 from datetime import datetime
 import pytz
@@ -22,10 +20,6 @@ class ProgressLogger:
             if percentage >= self.last_percentage + 10 or percentage == 100:
                 print(f"Downloaded {self.current}/{self.total} comments ({percentage}%)")
                 self.last_percentage = (percentage // 10) * 10
-
-# def convert_to_eastern(timestamp):
-#     utc_time = datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
-#     return utc_time.astimezone(pytz.timezone('US/Eastern'))
 
 def download_comments(url: str, use_cookies: bool) -> str:
     progress = ProgressLogger()
@@ -55,12 +49,12 @@ def download_comments(url: str, use_cookies: bool) -> str:
             with open(csv_filename, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 writer.writerow(['Comment ID', 'Author', 'Text', 'Timestamp', 'Eastern Time', 'Likes'])
-                
+                last_pct = 0
                 for i, comment in enumerate(info['comments'], 1):
                     try:
                         timestamp = comment.get('timestamp', 0)
                         eastern_time = convert_to_eastern(timestamp)
-                        
+
                         writer.writerow([
                             comment.get('id', ''),
                             comment.get('author', ''),
@@ -69,11 +63,12 @@ def download_comments(url: str, use_cookies: bool) -> str:
                             eastern_time.strftime('%Y-%m-%d %H:%M:%S'),
                             comment.get('like_count', 0)
                         ])
-                        
-                        percentage = (i / total_comments) * 100
-                        if percentage % 10 == 0:
-                            print(f"Writing to CSV: {int(percentage)}%")
-                            
+
+                        pct = int((i / total_comments) * 100)
+                        if pct >= last_pct + 10:
+                            print(f"Writing to CSV: {pct}%")
+                            last_pct = pct
+
                     except Exception as e:
                         print(f"Error processing comment: {e}")
                         continue

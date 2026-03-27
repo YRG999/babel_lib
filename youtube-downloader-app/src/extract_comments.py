@@ -34,5 +34,3 @@ def extract_comments_to_csv(json_path, csv_path):
                 row['author_url'] = f"https://www.youtube.com/channel/{row['author_id']}"
             writer.writerow(row)
     print(f"CSV file '{csv_path}' created with {len(comments)} comments.")
-
-# To format JSON in VS Code, right-click & select "Format Document" or use Shift+Option+F on macOS.

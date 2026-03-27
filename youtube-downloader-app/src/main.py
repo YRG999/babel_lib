@@ -127,15 +127,8 @@ def main(url, cookies, comments, metadata_only, transcript_only):
             )
             downloader.download_video_info_comments([url])
 
-            if transcript_only:
-                convert_transcripts()
-            elif metadata_only:
-                convert_transcripts()
-                convert_livechat()
-                if comments:
-                    extract_comments()
-            else:
-                convert_transcripts()
+            convert_transcripts()
+            if not transcript_only:
                 convert_livechat()
                 if comments:
                     extract_comments()

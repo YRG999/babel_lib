@@ -38,6 +38,7 @@ def vtt_to_text(vtt_file_path):
     with open(output_file_path, 'w', encoding='utf-8') as f:
         f.write(plain_text)
     print(f"Transcript saved to: {output_file_path}")
+    return output_file_path
 
 if __name__ == "__main__":
     vtt_file = input("Enter the path to the VTT file: ").strip()

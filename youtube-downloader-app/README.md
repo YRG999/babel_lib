@@ -29,9 +29,7 @@ youtube-downloader-app
 │   ├── kick_live_downloader.py # Kick.com live stream downloader (Playwright + ffmpeg)
 │   ├── kick_vod_downloader.py  # Kick.com VOD + chat downloader
 │   ├── timestamp_converter.py  # EST/epoch timestamp converter utility
-│   ├── comments.py             # Legacy comment helpers
-│   ├── utils.py                # Utility functions
-│   └── extract_functions.py    # Text/timestamp extraction helpers
+│   └── comments.py             # Legacy comment helpers (unused by main.py)
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This file
 ```

@@ -18,6 +18,37 @@ def _update_base_timestamp(ts_usec, offset_msec):
     if BASE_STREAM_TS_USEC is None or base_candidate < BASE_STREAM_TS_USEC:
         BASE_STREAM_TS_USEC = base_candidate
 
+
+def _format_ts(ts_usec, offset_msec):
+    """Update base timestamp and return a formatted datetime string."""
+    _update_base_timestamp(ts_usec, offset_msec)
+    if not ts_usec:
+        return ''
+    return datetime.fromtimestamp(int(ts_usec) // 1000000).strftime('%Y-%m-%d %H:%M:%S')
+
+
+def _extract_runs_text(renderer):
+    """Extract text + emoji labels from a renderer's 'message.runs' field."""
+    parts = []
+    for run in renderer.get('message', {}).get('runs', []):
+        if 'text' in run:
+            parts.append(run['text'])
+        elif 'emoji' in run:
+            label = run['emoji'].get('image', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
+            if label:
+                parts.append(label)
+    return ''.join(parts)
+
+
+def _extract_role(renderer):
+    """Return 'owner' or 'moderator' from authorBadges, or empty string."""
+    for badge in renderer.get('authorBadges', []):
+        badge_type = badge.get('liveChatAuthorBadgeRenderer', {}).get('icon', {}).get('iconType', '')
+        if badge_type in ('OWNER', 'MODERATOR'):
+            return badge_type.lower()
+    return ''
+
+
 def extract_message_info(obj):
     """
     Extracts info from a single chat JSON object.
@@ -48,9 +79,8 @@ def extract_message_info(obj):
                 message = gift.get('text', {}).get('content', '')
                 role = ''
                 for badge in gift.get('authorBadges', []):
-                    badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
-                    badge_type = badge_renderer.get('icon', {}).get('iconType', '')
-                    if badge_type in ['OWNER', 'MODERATOR']:
+                    badge_type = badge.get('liveChatAuthorBadgeRenderer', {}).get('icon', {}).get('iconType', '')
+                    if badge_type in ('OWNER', 'MODERATOR'):
                         role = badge_type.lower()
                         break
 
@@ -62,171 +92,89 @@ def extract_message_info(obj):
                     'amount': '',
                     'currency': '',
                     'extra': '',
-                    'role': role
+                    'role': role,
                 }
 
             # Normal chat messages
             renderer = item.get('liveChatTextMessageRenderer')
             if renderer:
                 ts_usec = renderer.get('timestampUsec')
-                _update_base_timestamp(ts_usec, offset_msec)
-                timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = renderer.get('authorName', {}).get('simpleText', '')
-                
-                # Extract message including emojis
-                runs = renderer.get('message', {}).get('runs', [])
-                message_parts = []
-                for run in runs:
-                    if 'text' in run:
-                        message_parts.append(run['text'])
-                    elif 'emoji' in run:
-                        emoji = run['emoji']
-                        emoji_text = emoji.get('image', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
-                        if emoji_text:
-                            message_parts.append(emoji_text)
-                message = ''.join(message_parts)
-
-                # Extract user role
-                role = ''
-                badges = renderer.get('authorBadges', [])
-                for badge in badges:
-                    badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
-                    badge_type = badge_renderer.get('icon', {}).get('iconType', '')
-                    if badge_type in ['OWNER', 'MODERATOR']:
-                        role = badge_type.lower()
-                        break
-
                 return {
-                    'timestamp': timestamp,
-                    'author': author,
-                    'message': message,
+                    'timestamp': _format_ts(ts_usec, offset_msec),
+                    'author': renderer.get('authorName', {}).get('simpleText', ''),
+                    'message': _extract_runs_text(renderer),
                     'type': 'chat',
                     'amount': '',
                     'currency': '',
                     'extra': '',
-                    'role': role
+                    'role': _extract_role(renderer),
                 }
 
             # Super Chat messages
             renderer = item.get('liveChatPaidMessageRenderer')
             if renderer:
                 ts_usec = renderer.get('timestampUsec')
-                _update_base_timestamp(ts_usec, offset_msec)
-                timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = renderer.get('authorName', {}).get('simpleText', '')
-                
-                # Extract message including emojis
-                runs = renderer.get('message', {}).get('runs', [])
-                message_parts = []
-                for run in runs:
-                    if 'text' in run:
-                        message_parts.append(run['text'])
-                    elif 'emoji' in run:
-                        emoji = run['emoji']
-                        emoji_text = emoji.get('image', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
-                        if emoji_text:
-                            message_parts.append(emoji_text)
-                message = ''.join(message_parts)
-                
-                amount = renderer.get('purchaseAmountText', {}).get('simpleText', '')
-                role = ''
-                badges = renderer.get('authorBadges', [])
-                for badge in badges:
-                    badge_renderer = badge.get('liveChatAuthorBadgeRenderer', {})
-                    badge_type = badge_renderer.get('icon', {}).get('iconType', '')
-                    if badge_type in ['OWNER', 'MODERATOR']:
-                        role = badge_type.lower()
-                        break
-
                 return {
-                    'timestamp': timestamp,
-                    'author': author,
-                    'message': message,
+                    'timestamp': _format_ts(ts_usec, offset_msec),
+                    'author': renderer.get('authorName', {}).get('simpleText', ''),
+                    'message': _extract_runs_text(renderer),
                     'type': 'superchat',
-                    'amount': amount,
+                    'amount': renderer.get('purchaseAmountText', {}).get('simpleText', ''),
                     'currency': '',
                     'extra': '',
-                    'role': role
+                    'role': _extract_role(renderer),
                 }
 
             # Memberships
             renderer = item.get('liveChatMembershipItemRenderer')
             if renderer:
                 ts_usec = renderer.get('timestampUsec')
-                _update_base_timestamp(ts_usec, offset_msec)
-                timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = renderer.get('authorName', {}).get('simpleText', '')
                 header = renderer.get('headerSubtext', {}).get('runs', [])
-                message = ''.join([run.get('text', '') for run in header])
-                extra = renderer.get('authorBadges', [{}])[0].get('tooltip', '')
                 return {
-                    'timestamp': timestamp,
-                    'author': author,
-                    'message': message,
+                    'timestamp': _format_ts(ts_usec, offset_msec),
+                    'author': renderer.get('authorName', {}).get('simpleText', ''),
+                    'message': ''.join(run.get('text', '') for run in header),
                     'type': 'membership',
                     'amount': '',
                     'currency': '',
-                    'extra': extra
+                    'extra': renderer.get('authorBadges', [{}])[0].get('tooltip', ''),
+                    'role': '',
                 }
 
             # System/moderator messages
             renderer = item.get('liveChatViewerEngagementMessageRenderer')
             if renderer:
                 ts_usec = renderer.get('timestampUsec')
-                _update_base_timestamp(ts_usec, offset_msec)
-                timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = '[SYSTEM]'
                 runs = renderer.get('message', {}).get('runs', [])
-                message = ''.join([run.get('text', '') for run in runs])
                 return {
-                    'timestamp': timestamp,
-                    'author': author,
-                    'message': message,
+                    'timestamp': _format_ts(ts_usec, offset_msec),
+                    'author': '[SYSTEM]',
+                    'message': ''.join(run.get('text', '') for run in runs),
                     'type': 'system',
                     'amount': '',
                     'currency': '',
-                    'extra': ''
+                    'extra': '',
+                    'role': '',
                 }
 
             # Stickers (Super Stickers)
             renderer = item.get('liveChatPaidStickerRenderer')
             if renderer:
                 ts_usec = renderer.get('timestampUsec')
-                _update_base_timestamp(ts_usec, offset_msec)
-                timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = renderer.get('authorName', {}).get('simpleText', '')
-                amount = renderer.get('purchaseAmountText', {}).get('simpleText', '')
                 sticker = renderer.get('sticker', {}).get('accessibility', {}).get('accessibilityData', {}).get('label', '')
                 return {
-                    'timestamp': timestamp,
-                    'author': author,
+                    'timestamp': _format_ts(ts_usec, offset_msec),
+                    'author': renderer.get('authorName', {}).get('simpleText', ''),
                     'message': '[STICKER] ' + sticker,
                     'type': 'supersticker',
-                    'amount': amount,
+                    'amount': renderer.get('purchaseAmountText', {}).get('simpleText', ''),
                     'currency': '',
-                    'extra': ''
-                }
-
-            # Moderation messages (e.g., deleted messages)
-            renderer = item.get('liveChatTextMessageRenderer')
-            if renderer and renderer.get('deletedState'):
-                ts_usec = renderer.get('timestampUsec')
-                _update_base_timestamp(ts_usec, offset_msec)
-                timestamp = datetime.fromtimestamp(int(ts_usec)//1000000).strftime('%Y-%m-%d %H:%M:%S') if ts_usec else ''
-                author = renderer.get('authorName', {}).get('simpleText', '')
-                return {
-                    'timestamp': timestamp,
-                    'author': author,
-                    'message': '[DELETED]',
-                    'type': 'deleted',
-                    'amount': '',
-                    'currency': '',
-                    'extra': ''
+                    'extra': '',
+                    'role': '',
                 }
 
     except Exception as e:
         print(f"Error processing message: {e}")
-        pass
     return None
 
 def livechat_json_to_csv(json_file_path, csv_file_path):
