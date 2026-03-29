@@ -23,7 +23,8 @@ CLI tools for downloading YouTube and Kick.com videos, metadata, transcripts, an
 | `src/extract_comments.py` | Extract comments from yt-dlp `.info.json` to CSV |
 | `src/firefox_cookie_export.py` | Export Firefox cookies for yt-dlp authenticated downloads |
 | `src/timestamp_converter.py` | EST ↔ epoch timestamp converter utility (interactive) |
-| `src/comments.py`, `src/utils.py`, `src/extract_functions.py` | Supporting utilities |
+| `src/add_vod_offset.py` | Backfill `vod_offset` column in existing Kick VOD chat CSVs |
+| `src/comments.py` | Legacy comment helpers (unused by main.py) |
 
 ## Dependencies
 
@@ -56,6 +57,13 @@ python src/kick_vod_downloader.py "https://kick.com/username/videos/UUID"
 python src/kick_vod_downloader.py --chat-only "https://kick.com/username/videos/UUID"
 ```
 
+## Notes
+
+| File | Purpose |
+| --- | --- |
+| `_doc/programming_notes.md` | Troubleshooting log — dated problem/cause/fix entries |
+| `_doc/programming_reference.md` | Thematic reference — API links, how-to notes, reference tables |
+
 ## Important Context
 
 - **Always quote YouTube URLs** in zsh — `?` in `?v=...` is a glob wildcard and causes `no matches found` before Python runs.
@@ -66,3 +74,7 @@ python src/kick_vod_downloader.py --chat-only "https://kick.com/username/videos/
 - **`vod_offset` column:** First column of `<title>_chat.csv`. Formatted `H:MM:SS`. Gives the playback position in the video for each chat message: `message_timestamp − vod_start_time`. Use it to seek directly in VLC/mpv/video editors.
 - **Comments and channels:** `--comments` only processes the most recently created `.info.json`. Do not use `--comments` when downloading a channel (multiple videos).
 - **Kick live stream fallback:** `main.py` detects `kick.com/<username>` URLs (not VOD/clip paths), tries yt-dlp, then calls `download_kick_live()` from `kick_live_downloader.py`. If both fail, run `kick_live_downloader.py --headful` directly to bypass Cloudflare.
+
+## Session Summaries
+
+At the end of each session, add a summary of what was done to `_doc/claude_summaries/chat-summary_YYYY-MM-DD.md` using today's date. If a file for today already exists, append a new numbered section to it. If not, create it. Only include what is unique to the session — do not duplicate content already covered in a summary for the same date.

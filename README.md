@@ -349,8 +349,6 @@ yt-dlp -f "bestvideo+bestaudio/best" "https://www.youtube.com/watch?v=VIDEO_ID"
 
 ## Additional documentation
 
-- [chatGPT_documentation.md](_doc/chatGPT_documentation.md)
-- [Claude_debugging.md](_doc/Claude_debugging.md)
-- [mistral20240725.md](_doc/mistral20240725.md)
-- [Programming_notes.md](_doc/Programming_notes.md)
-- [Using_yt-dlp_cookies.md](_doc/Using_yt-dlp_cookies.md)
+- [programming_notes.md](_doc/programming_notes.md) — troubleshooting log
+- [programming_reference.md](_doc/programming_reference.md) — reference notes and API links
+- [_doc/README.md](_doc/README.md) — see for a full index of documentation files and session summaries.

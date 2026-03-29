@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `kick_vod_downloader.py`: chat CSV now includes a `vod_offset` column (first column, formatted `H:MM:SS`) giving the playback position in the downloaded video for each message, computed as `message_timestamp − vod_start_time`.
+- `add_vod_offset.py`: standalone backfill script to retroactively add the `vod_offset` column to existing Kick VOD chat CSVs downloaded before this feature was added. Reads `start_time` from `metadata.json`, computes `H:MM:SS` offset per row, writes to `<name>_with_offset.csv` (original untouched). Handles missing metadata, already-present `vod_offset`, unparseable timestamps, and logs progress every 50,000 rows.
 
 ## [2.1.0] - 2026-03-26
 

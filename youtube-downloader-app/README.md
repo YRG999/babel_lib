@@ -29,6 +29,7 @@ youtube-downloader-app
 │   ├── kick_live_downloader.py # Kick.com live stream downloader (Playwright + ffmpeg)
 │   ├── kick_vod_downloader.py  # Kick.com VOD + chat downloader
 │   ├── timestamp_converter.py  # EST/epoch timestamp converter utility
+│   ├── add_vod_offset.py       # Backfill vod_offset column in existing Kick VOD chat CSVs
 │   └── comments.py             # Legacy comment helpers (unused by main.py)
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This file
@@ -192,6 +193,20 @@ Output is written to a new `kick_outputN/` folder:
 | `<title>.mp4` | Downloaded video (unless `--chat-only`) |
 
 The `vod_offset` column is formatted as `H:MM:SS` and gives the playback position in the downloaded video where each message appears — computed as `message_timestamp − vod_start_time`. Chat messages include emotes as `[emote:ID:name]` tokens. The `duration` field unit (seconds vs. milliseconds) is auto-detected. Increase `--chat-delay` if you encounter `429` rate-limit responses.
+
+### Backfill: vod_offset for existing CSVs
+
+If you have a `_chat.csv` downloaded before `vod_offset` was added, use `add_vod_offset.py` to retroactively add the column without re-downloading:
+
+```zsh
+# metadata.json auto-detected from the same folder as the CSV
+python src/add_vod_offset.py kick_output1/title_chat.csv
+
+# metadata.json in a different location
+python src/add_vod_offset.py path/to/chat.csv path/to/metadata.json
+```
+
+Output is written to `<original_name>_with_offset.csv`. The original is not modified. If `vod_offset` already exists in the CSV it is dropped and recomputed, so the script is safe to run more than once.
 
 ## Dependencies
 
