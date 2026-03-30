@@ -24,6 +24,7 @@ CLI tools for downloading YouTube and Kick.com videos, metadata, transcripts, an
 | `src/firefox_cookie_export.py` | Export Firefox cookies for yt-dlp authenticated downloads |
 | `src/timestamp_converter.py` | EST ↔ epoch timestamp converter utility (interactive) |
 | `src/add_vod_offset.py` | Backfill `vod_offset` column in existing Kick VOD chat CSVs |
+| `src/filter_chat.py` | Filter emote-only, repetitive, and reaction-flood messages from Kick chat CSVs |
 | `src/comments.py` | Legacy comment helpers (unused by main.py) |
 
 ## Dependencies

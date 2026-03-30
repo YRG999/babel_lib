@@ -63,3 +63,20 @@ A `## Notes` section pointing to both files was added to `youtube-downloader-app
 | `ytdownload/CLAUDE.md` | Added `## Notes` section (see note below) |
 
 **Note: `CLAUDE.md` must be uppercase.** Claude Code auto-loads context files named `CLAUDE.md` at the start of each session. Lowercase `claude.md` is not recognized and will be silently ignored. On macOS (case-insensitive filesystem) `CLAUDE.md` and `claude.md` refer to the same file, so edits to either name go to the same place — there is only ever one file.
+
+---
+
+## 4. Debugging `kick_live_downloader.py` — `--use-profile` errors
+
+A series of 6 sequential errors were debugged while getting `--use-profile` working. All fixes applied to `src/kick_live_downloader.py`. Progress tracked in `_notes/txt/error.txt`.
+
+| Error | Root Cause | Fix |
+| --- | --- | --- |
+| 1 | `ModuleNotFoundError: playwright` | Install: `pip install playwright && python -m playwright install` |
+| 2 | `launch_persistent_context` timeout — headless renderer fails with real Firefox profile (`RenderCompositorSWGL`) | Force headful mode when `--use-profile` is set |
+| 3 | Same GPU Helper / XPC timeout even with headful + copied temp profile | Dropped `launch_persistent_context` entirely; switched to extracting cookies via `browser_cookie3` and injecting into a regular context with `add_cookies` |
+| 4 | `add_cookies` rejected all cookies — session cookies with `expires=0` were passed without an `expires` field, Playwright defaulted to `0` internally which it rejects | Always set `expires` explicitly: positive int for persistent cookies, `-1` for session cookies |
+| 5 | Same error persisted — bulk `add_cookies` call gave no info on which cookie failed | Add cookies one at a time with per-cookie `try/except`; print name + expires on failure; tightened validation (skip missing name/domain, coerce to `int`) |
+| 6 | All 14 cookies skipped — `expires` values like `1765827144841` are milliseconds, Playwright expects seconds | Detect ms timestamps (`> 32503680000`) and divide by 1000 before passing to Playwright |
+
+Error 6 fix was applied but not yet tested at end of session. See `_notes/txt/error.txt` for full error output and next-steps context.

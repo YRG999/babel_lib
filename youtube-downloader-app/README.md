@@ -30,6 +30,7 @@ youtube-downloader-app
 │   ├── kick_vod_downloader.py  # Kick.com VOD + chat downloader
 │   ├── timestamp_converter.py  # EST/epoch timestamp converter utility
 │   ├── add_vod_offset.py       # Backfill vod_offset column in existing Kick VOD chat CSVs
+│   ├── filter_chat.py          # Filter emote-only, repetitive, and reaction-flood messages from chat CSVs
 │   └── comments.py             # Legacy comment helpers (unused by main.py)
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This file
@@ -207,6 +208,33 @@ python src/add_vod_offset.py path/to/chat.csv path/to/metadata.json
 ```
 
 Output is written to `<original_name>_with_offset.csv`. The original is not modified. If `vod_offset` already exists in the CSV it is dropped and recomputed, so the script is safe to run more than once.
+
+### Filtering chat noise — `filter_chat.py`
+
+Reduces a Kick VOD chat CSV to its substantive messages by removing four categories of noise:
+
+| Filter | What it removes |
+| --- | --- |
+| Emote-only | Messages whose entire content is `[emote:ID:name]` tokens |
+| Internal repetition | Messages where the same 5-word sequence appears 3+ times (copy-paste spam) |
+| Per-user dedup | Identical messages from the same user within a rolling time window |
+| Reaction flood | Short reaction messages (e.g. "L", "W", "lol") seen too many times in a short window |
+
+```zsh
+python src/filter_chat.py path/to/chat.csv
+```
+
+Output is written to `<input>_filtered.csv`. The original is not modified.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `-o / --output` | `<input>_filtered.csv` | Output file path |
+| `--user-dedup-window` | `120` | Seconds before a user can repeat the same message |
+| `--reaction-window` | `30` | Sliding window (seconds) for reaction flood detection |
+| `--reaction-max` | `5` | Max occurrences of a short reaction per window |
+| `--reaction-len` | `15` | Messages at or under this character count are treated as reactions |
+| `--no-emote-filter` | — | Keep emote-only messages |
+| `--no-repeat-filter` | — | Keep internally repetitive messages |
 
 ## Dependencies
 

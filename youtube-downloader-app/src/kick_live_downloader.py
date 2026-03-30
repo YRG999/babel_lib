@@ -66,24 +66,61 @@ def download_kick_live(
     Returns True on success, False on failure.
     """
     with sync_playwright() as p:
-        used_persistent = False
         context = None
         browser = None
 
         if use_profile:
-            profile_dir = profile_path or find_default_firefox_profile()
-            if not profile_dir or not os.path.exists(profile_dir):
+            try:
+                import browser_cookie3
+            except ImportError:
                 print(
-                    "Firefox profile not found. Pass profile_path or ensure Firefox has a profile.",
+                    "browser-cookie3 is required for --use-profile. Install with: pip install browser-cookie3",
                     file=sys.stderr,
                 )
                 return False
-            exec_path = firefox_exec or find_firefox_exec()
-            print(f"Launching persistent Firefox context using profile: {profile_dir}")
-            context = p.firefox.launch_persistent_context(
-                profile_dir, headless=not headful, executable_path=exec_path
-            )
-            used_persistent = True
+            cookie_file = None
+            if profile_path:
+                candidate = os.path.join(profile_path, "cookies.sqlite")
+                if os.path.exists(candidate):
+                    cookie_file = candidate
+            try:
+                ff_cookiejar = browser_cookie3.firefox(domain_name="kick.com", cookie_file=cookie_file)
+                ff_cookies = list(ff_cookiejar)
+            except Exception as e:
+                print(f"Failed to extract Firefox cookies: {e}", file=sys.stderr)
+                return False
+            print(f"Extracted {len(ff_cookies)} Firefox cookies for kick.com.")
+            browser = p.firefox.launch(headless=not headful, executable_path=(firefox_exec or None))
+            context = browser.new_context()
+            added = 0
+            skipped = 0
+            for c in ff_cookies:
+                if not c.name or not c.domain:
+                    continue
+                try:
+                    exp = int(c.expires) if c.expires else 0
+                except (TypeError, ValueError):
+                    exp = 0
+                # browser_cookie3 returns Firefox expiry in milliseconds for some cookies;
+                # Playwright expects seconds. Values > year 3000 in seconds are ms timestamps.
+                if exp > 32503680000:
+                    exp = exp // 1000
+                entry = {
+                    "name": c.name,
+                    "value": c.value or "",
+                    "domain": c.domain,
+                    "path": c.path or "/",
+                    "expires": exp if exp > 0 else -1,
+                }
+                if c.secure:
+                    entry["secure"] = True
+                try:
+                    context.add_cookies([entry])  # type: ignore[arg-type]
+                    added += 1
+                except Exception as e:
+                    print(f"Skipping cookie '{c.name}' (expires={exp}): {e}", file=sys.stderr)
+                    skipped += 1
+            print(f"Injected {added} Firefox cookies ({skipped} skipped).")
         else:
             browser = p.firefox.launch(
                 headless=not headful, executable_path=(firefox_exec or None)
@@ -91,9 +128,7 @@ def download_kick_live(
             context = browser.new_context()
 
         def _close():
-            if used_persistent:
-                context.close()
-            else:
+            if browser is not None:
                 browser.close()
 
         # Set up m3u8 interception before navigating so no requests are missed.
