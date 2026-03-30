@@ -2,7 +2,7 @@
 
 ## Overview
 
-Debugging session for `kick_live_downloader.py --use-profile`. Six sequential errors resolved, cookie injection confirmed working. End-to-end stream download not yet tested (stream was offline). Also: CHANGELOG and chat summary housekeeping.
+Debugging session for `kick_live_downloader.py --use-profile`. Six sequential errors resolved, cookie injection confirmed working. End-to-end download tested against a live stream — resolved three further ffmpeg issues (AAC bitstream, audio sync, interrupted output). Released as `[2.2.1]`. Also: CHANGELOG, README, and chat summary housekeeping.
 
 ---
 
@@ -57,3 +57,29 @@ Claude Code does not persist terminal output beyond the local session JSONL file
 
 - `_doc/claude_summaries/chat-summary_2026-03-29.md` moved from `youtube-downloader-app/_doc/claude_summaries/` to top-level `_doc/claude_summaries/`. The `youtube-downloader-app/_doc/` directory was deleted.
 - Section 4 (kick_live_downloader debugging) was briefly moved from `chat-summary_2026-03-28.md` to `chat-summary_2026-03-29.md`, then reverted — it remains in `chat-summary_2026-03-28.md`.
+
+---
+
+## 6. Live stream download — ffmpeg fixes
+
+After cookie injection was confirmed working (14/14), a full end-to-end test was run against a live stream. Three further ffmpeg issues were found and fixed:
+
+| Issue | Fix |
+| --- | --- |
+| Output file unplayable after Ctrl+C — MP4 moov atom never written | Added `-movflags +frag_keyframe+empty_moov` to write index incrementally |
+| `Malformed AAC bitstream` error — ADTS framing incompatible with MP4 container | Added `-bsf:a aac_adtstoasc` (later removed when audio re-encode was adopted) |
+| Audio out of sync — HLS segment timestamp discontinuities cause drift when stream-copying audio | Switched to `-c:a aac` (re-encode audio); video remains `-c:v copy`. `-avoid_negative_ts make_zero` also added |
+
+Download confirmed working after these fixes.
+
+---
+
+## 7. Output folder
+
+Output is now saved to `kick_outputN/` (same pattern as `kick_vod_downloader.py`). Folder is created automatically inside `download_kick_live()` when `--out` has no directory component. Explicit paths (e.g. `--out /tmp/stream.mp4`) bypass folder creation.
+
+---
+
+## 8. Release `[2.2.1] - 2026-03-30`
+
+All `kick_live_downloader.py` fixes moved from `[Unreleased]` to `[2.2.1]`. README updated with recommended workflow: supply m3u8 manually via devtools (quickest), with `--headful` as fallback for auto-detection.

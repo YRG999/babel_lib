@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-03-30
+
 ### Fixed
 
 - `kick_live_downloader.py`: `--use-profile` now extracts Firefox cookies via `browser_cookie3` instead of `launch_persistent_context`, which fails on macOS due to GPU Helper / XPC entitlement restrictions. Cookies are injected into a regular headless context via `add_cookies`.
 - `kick_live_downloader.py`: Firefox cookie `expires` values returned by `browser_cookie3` in milliseconds (values `> 32503680000`) are now divided by 1000 before passing to Playwright, which expects seconds.
+- `kick_live_downloader.py`: added `-movflags +frag_keyframe+empty_moov` to the ffmpeg command so the output MP4 is playable even if the download is interrupted mid-stream (previously the moov atom was never written on Ctrl+C).
+- `kick_live_downloader.py`: switched ffmpeg audio from `-c copy` to `-c:a aac` (re-encode) to fix audio/video sync. HLS segment timestamp discontinuities cause drift when audio is stream-copied; re-encoding forces ffmpeg to resync presentation timestamps. Video is still copied (`-c:v copy`). `-bsf:a aac_adtstoasc` removed (only needed for stream copy). `-avoid_negative_ts make_zero` retained.
+- `kick_live_downloader.py`: output is now saved to a new `kick_outputN/` folder (matching `kick_vod_downloader.py` behaviour). If `--out` includes a directory path the folder creation is skipped.
 
 ## [2.2.0] - 2026-03-30
 

@@ -145,7 +145,20 @@ Pass a Kick channel URL to `main.py`. yt-dlp is tried first; if it fails, the do
 python src/main.py "https://kick.com/username"
 ```
 
-If the automated fallback also fails (e.g. Cloudflare blocks the headless browser), run `kick_live_downloader.py` directly with `--headful`:
+If the automated fallback also fails (e.g. Cloudflare blocks the headless browser), run `kick_live_downloader.py` directly. The recommended approach is to supply the m3u8 URL manually — this is the most reliable method as it bypasses Cloudflare entirely:
+
+```zsh
+python src/kick_live_downloader.py --page "https://kick.com/username" --m3u8 "https://..."
+```
+
+**Getting the m3u8 URL** (quickest way):
+
+1. Open the Kick channel in your browser with the stream playing
+2. Open DevTools → **Network** tab → filter by `m3u8`
+3. Reload the page — a `master.m3u8` request will appear
+4. Right-click it → **Copy** → **Copy URL**
+
+If you don't want to grab it manually, `--headful` opens a visible browser to let you complete any Cloudflare verification, then auto-detects the m3u8:
 
 ```zsh
 python src/kick_live_downloader.py --page "https://kick.com/username" --headful

@@ -9,6 +9,16 @@ import configparser
 PAGE_URL = "https://kick.com/PAGE"
 OUTPUT = "output.mp4"
 
+
+def get_new_output_folder(base_name="kick_output"):
+    i = 1
+    while True:
+        folder = f"{base_name}{i}"
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+            return folder
+        i += 1
+
 M3U8_INTERCEPT_TIMEOUT_MS = 15000  # max wait for m3u8 to appear in network traffic
 
 
@@ -219,14 +229,25 @@ def download_kick_live(
         # build ffmpeg headers - lines must end with CRLF
         headers = f"User-Agent: {user_agent}\\r\\nReferer: {page_url}\\r\\nCookie: {cookie_str}\\r\\n"
 
+        # place output in a new kick_outputN folder unless a path was explicitly given
+        if not os.path.dirname(out):
+            folder = get_new_output_folder()
+            out = os.path.join(folder, out)
+            print(f"Output folder: {folder}/")
+
         # run ffmpeg to download segments and mux to mp4 (copy streams)
+        # frag_keyframe+empty_moov writes the index incrementally so the file is
+        # playable even if the download is interrupted with Ctrl+C mid-stream.
         ffmpeg_cmd = [
             "ffmpeg",
             "-hide_banner",
             "-loglevel", "info",
             "-headers", headers,
             "-i", resolved_m3u8,
-            "-c", "copy",
+            "-c:v", "copy",
+            "-c:a", "aac",
+            "-avoid_negative_ts", "make_zero",
+            "-movflags", "+frag_keyframe+empty_moov",
             out,
         ]
         print("Running ffmpeg to download. Command:")
