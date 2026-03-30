@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `kick_live_downloader.py`: `--use-profile` now extracts Firefox cookies via `browser_cookie3` instead of `launch_persistent_context`, which fails on macOS due to GPU Helper / XPC entitlement restrictions. Cookies are injected into a regular headless context via `add_cookies`.
+- `kick_live_downloader.py`: Firefox cookie `expires` values returned by `browser_cookie3` in milliseconds (values `> 32503680000`) are now divided by 1000 before passing to Playwright, which expects seconds.
+
+## [2.2.0] - 2026-03-30
+
 ### Added
 
 - `filter_chat.py`: standalone CLI to filter noise from Kick VOD chat CSVs. Applies four passes in order: (1) emote-only removal — messages whose entire content is `[emote:ID:name]` tokens; (2) internal repetition removal — messages where the same 5-word sequence appears 3+ times (copy-paste spam); (3) per-user dedup — suppresses identical messages from the same user within a rolling time window (default: 120 s); (4) reaction flood suppression — short messages (default: ≤ 15 chars) seen more than N times (default: 5) within a sliding window (default: 30 s) are dropped. All thresholds are configurable via flags. Prints a per-filter breakdown on completion. Output written to `<input>_filtered.csv`; original is not modified.
