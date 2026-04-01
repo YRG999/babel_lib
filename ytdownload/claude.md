@@ -17,12 +17,14 @@ This module provides tools for:
 | --- | --- |
 | `livechat.py` | Main live chat fetcher with API quota management |
 | `captions.py` | Real-time transcription using mlx-whisper (Apple Silicon optimized) — independent of `livechat.py` |
-| `csv_to_livechat.py` | Convert `livechat.py` CSV to yt-dlp `.live_chat.json` for mpv replay (untested) |
 | `download.py` | Video/transcript/chat downloader |
 | `analyze.py` | Chat statistics and superchat analysis |
 | `comments.py` | Download video comments to CSV |
 | `infojson2csv.py` | Convert yt-dlp `.info.json` files to CSV |
 | `extract_functions.py` | Shared helpers for emoji/text extraction |
+| `convertcsv/convertcsv.py` | Manual conversion of YouTube chat text dumps to CSV |
+| `merge_parts.py` | Generate ffmpeg filelist.txt to merge .mp4.part files |
+| `report_formats.py` | List available video formats for a URL |
 
 ## Dependencies
 
@@ -72,7 +74,6 @@ This module provides tools for:
 - All tools accept either full YouTube URLs or video IDs
 - `livechat.py` auto-opens a terminal to download the video via yt-dlp simultaneously
 - Output filenames include video ID and termination reason
-- `csv_to_livechat.py` has not been tested — header comment and `[Unreleased]` changelog section mark it as such
 
 ## Running
 
