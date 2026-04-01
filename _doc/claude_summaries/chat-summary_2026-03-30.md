@@ -83,3 +83,48 @@ Output is now saved to `kick_outputN/` (same pattern as `kick_vod_downloader.py`
 ## 8. Release `[2.2.1] - 2026-03-30`
 
 All `kick_live_downloader.py` fixes moved from `[Unreleased]` to `[2.2.1]`. README updated with recommended workflow: supply m3u8 manually via devtools (quickest), with `--headful` as fallback for auto-detection.
+
+---
+
+## 9. Downloading from the beginning of a live stream
+
+Two approaches to start from the beginning of a Kick live stream (equivalent to yt-dlp's `--live-from-start` for YouTube):
+
+**yt-dlp `--live-from-start`** — try first, requires no extra work:
+
+```bash
+yt-dlp --live-from-start "https://kick.com/channelname"
+```
+
+**IVS DVR via `?dvr` on the m3u8 URL** — Kick uses Amazon IVS which supports DVR mode. Appending `?dvr` to the m3u8 URL returns the full DVR playlist from the start:
+
+```bash
+python src/kick_live_downloader.py --page "https://kick.com/channelname" --m3u8 "https://....m3u8?dvr"
+```
+
+Both options require DVR to be enabled on the channel (controlled by Kick/IVS). Not yet tested.
+
+---
+
+## 10. Claude Code version management
+
+Q&A session covering how Claude Code versioning and updates work. Key points documented in `_doc/programming_reference.md` under **Claude Code → Checking and updating Claude Code version**.
+
+**How to check versions:**
+
+- Current CLI version: `claude --version`
+- Latest npm version: `npm view @anthropic-ai/claude-code version`
+- Latest releases/changelog: <https://github.com/anthropics/claude-code/releases>
+
+**Auto-update behavior varies by install method:** Native install and desktop app auto-update; VS Code extension updates via marketplace; Homebrew and WinGet require manual updates (`brew upgrade claude-code` / `winget upgrade Anthropic.ClaudeCode`).
+
+**VS Code extension vs. terminal CLI are independent:** Each has its own version and must be updated separately. If only using the VS Code extension, the CLI is unnecessary and can be removed.
+
+**Finding and removing extra CLI installs:**
+
+```zsh
+which -a claude          # find all instances
+rm ~/.local/bin/claude   # remove native install binary
+```
+
+Two entries at the same path from `which -a` just means PATH has that directory listed twice — only one file exists.

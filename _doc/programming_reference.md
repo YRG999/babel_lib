@@ -235,6 +235,67 @@ claude -p "your prompt" --output-format stream-json > output.jsonl
 cat file.txt | claude -p "summarize this" > summary.txt
 ```
 
+### Checking and updating Claude Code version
+
+Check your current version:
+
+```zsh
+claude --version
+```
+
+Check the latest version available on npm:
+
+```zsh
+npm view @anthropic-ai/claude-code version
+```
+
+Compare both at once:
+
+```zsh
+claude --version && npm view @anthropic-ai/claude-code version
+```
+
+Latest releases and changelog: <https://github.com/anthropics/claude-code/releases>
+
+**Update behavior by installation method:**
+
+| Method | Auto-updates? | Update command |
+| --- | --- | --- |
+| Native install (curl script) | Yes, background | `claude update` |
+| Desktop app | Yes, automatic | — |
+| VS Code extension | Yes, via marketplace | Extensions view → Update |
+| Homebrew | No | `brew upgrade claude-code` |
+| WinGet | No | `winget upgrade Anthropic.ClaudeCode` |
+
+**Note:** The VS Code extension and the terminal CLI are separate installations with independent versions. If both are installed, update them separately.
+
+**Find all CLI installations:**
+
+```zsh
+which -a claude
+```
+
+**Uninstall CLI (if using VS Code extension only):**
+
+```zsh
+# npm install
+npm uninstall -g @anthropic-ai/claude-code
+
+# Homebrew install
+brew uninstall claude-code
+
+# Native install (curl script) — binary is at ~/.local/bin/claude
+rm ~/.local/bin/claude
+```
+
+**Update channel (native install only):** Controls whether you get updates immediately or ~1 week delayed. Configure in `~/.claude/settings.json` or via `/config`:
+
+```json
+{ "autoUpdatesChannel": "stable" }
+```
+
+Options: `"latest"` (default, immediate) or `"stable"` (~1 week delayed, skips bad releases).
+
 ### Session log files
 
 Session logs are stored as `.jsonl` files (newline-delimited JSON, one event per line):
