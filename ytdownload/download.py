@@ -137,7 +137,7 @@ class TranscriptProcessor:
                 if line.strip() and line not in lines_seen and not lines_seen.add(line)]
 
 def convert_to_eastern(timestamp: float) -> datetime:
-    utc_time = datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
+    utc_time = datetime.fromtimestamp(timestamp, tz=pytz.utc)
     return utc_time.astimezone(pytz.timezone('US/Eastern'))
 
 def main():

@@ -43,7 +43,7 @@ class ProgressLogger:
 
 def convert_to_eastern(timestamp):
     """Convert UTC timestamp to Eastern Time"""
-    utc_time = datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
+    utc_time = datetime.fromtimestamp(timestamp, tz=pytz.utc)
     return utc_time.astimezone(pytz.timezone('US/Eastern'))
 
 def download_comments(url: str) -> str:
