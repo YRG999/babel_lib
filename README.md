@@ -118,7 +118,7 @@ To run experiments, type `python` and the file name. For example, try this one:
 
 ```zsh
 cd ytdownload
-python youtube_downloader.py
+python download.py
 ```
 
 ## encodeDecodeImage
@@ -202,9 +202,9 @@ See [youtube-downloader-app README](/youtube-downloader-app/README.md) for more 
 
 ### ytdownload
 
-- `ytdownload/analyze_chat.py` - Analyze a youtube live chat CSV output by `youtube_downloader.py`.
-- `ytdownload/extract_functions.py` - Extract functions used by `youtube_downloader.py`.
-- `ytdownload/youtube_downloader.py` - Updated downloader using classes to download video, description, transcript, comments, and live chat and convert comments & live chat to CSV.
+- `ytdownload/analyze.py` - Analyze a YouTube live chat CSV (message counts, superchats, stream duration).
+- `ytdownload/extract_functions.py` - Shared helpers for emoji/text extraction used by `download.py`.
+- `ytdownload/download.py` - Download video, description, transcript, comments, and live chat; converts comments & live chat to CSV.
 
 ### livechat downloader
 
@@ -215,7 +215,7 @@ To save live video and chat:
 2. Run the following to download the live chat:
 
     ```zsh
-    python youtube-live-chat-fetcher.py
+    python livechat.py
     ```
 
 3. Enter the VIDEO_ID in the input field.
@@ -246,7 +246,7 @@ yt-dlp --cookies-from-browser firefox --live-from-start -- URL
 
 The following will start the program and begin downloading the `VIDEO_ID` provided in the link.
 
-`printf '%s\n' "https://www.youtube.com/watch?v=VIDEO_ID" | python youtube_downloader.py`
+`printf '%s\n' "https://www.youtube.com/watch?v=VIDEO_ID" | python download.py`
 
 ### Twitter/x.com videos
 
@@ -343,7 +343,7 @@ yt-dlp -f "bestvideo+bestaudio/best" "https://www.youtube.com/watch?v=VIDEO_ID"
 
 ### Youtube live chat fetcher
 
-- `ytdownload/youtube-live-chat-fetcher.py` - Fetch live chat during a live stream. Requires API key.
+- `ytdownload/livechat.py` - Fetch live chat during a live stream. Requires API key.
 - Sign up to develop with the [Google Cloud Platform](https://console.cloud.google.com/), create a project, and activate the YouTube Data API v3.
 - Create an `.env` file with `YOUTUBE_API_KEY=yourapikey` and `MAPS_API_KEY=yourmapsapikey`.
 

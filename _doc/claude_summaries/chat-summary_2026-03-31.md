@@ -19,3 +19,13 @@ Reviewed all files in `ytdownload/` for usefulness and performed a full cleanup 
 ### Documentation
 
 - `CLAUDE.md` — removed `csv_to_livechat.py` entry and its associated stale note; added `convertcsv/convertcsv.py`, `merge_parts.py`, and `report_formats.py` to the Key Files table
+
+## Session 2: README.md accuracy fixes
+
+Corrected four stale file references in the root `README.md`:
+
+- **Run section** — `youtube_downloader.py` → `download.py`
+- **ytdownload section** — `analyze_chat.py` → `analyze.py`; `youtube_downloader.py` → `download.py`; updated descriptions to match current files
+- **livechat downloader section** — `youtube-live-chat-fetcher.py` → `livechat.py`
+- **Youtube live chat fetcher section** — same filename fix (`youtube-live-chat-fetcher.py` → `livechat.py`)
+- **Pass input from terminal snippet** — `youtube_downloader.py` → `download.py`

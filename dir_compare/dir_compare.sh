@@ -5,22 +5,26 @@
 set -euo pipefail
 
 if [[ $# -lt 2 ]]; then
-    echo "Usage: $0 <source_dir> <dest_dir> [--dry-run]"
+    echo "Usage: $0 <source_dir> <dest_dir> [--dry-run | --compare]"
     echo ""
     echo "Compares folders in source_dir vs dest_dir and copies over"
     echo "any files/folders that don't exist in dest_dir."
     echo ""
     echo "Options:"
     echo "  --dry-run   Show what would be copied without actually copying"
+    echo "  --compare   Show files missing from either directory and write results to a file"
     exit 1
 fi
 
 DIR1="${1%/}"
 DIR2="${2%/}"
 DRY_RUN=false
+COMPARE=false
 
 if [[ "${3:-}" == "--dry-run" ]]; then
     DRY_RUN=true
+elif [[ "${3:-}" == "--compare" ]]; then
+    COMPARE=true
 fi
 
 if [[ ! -d "$DIR1" ]]; then
@@ -35,8 +39,57 @@ fi
 
 echo "Source:      $DIR1"
 echo "Destination: $DIR2"
-echo "Mode:        $( $DRY_RUN && echo 'DRY RUN' || echo 'COPY' )"
+echo "Mode:        $( $COMPARE && echo 'COMPARE' || ( $DRY_RUN && echo 'DRY RUN' || echo 'COPY' ) )"
 echo "-------------------------------------------"
+
+# Collect relative file paths from a directory (null-delimited, sorted)
+list_files() {
+    cd "$1" && find . -type f -print0 \
+        | while IFS= read -r -d '' f; do printf '%s\0' "${f#./}"; done \
+        | sort -z
+}
+
+compare_dirs() {
+    local outfile="dir_compare_$(date +%Y%m%d_%H%M%S).txt"
+    # Initialize output file
+    > "$outfile"
+
+    log() { echo "$*" | tee -a "$outfile"; }
+
+    log "Directory comparison: $(date)"
+    log "Dir1: $DIR1"
+    log "Dir2: $DIR2"
+    log "==========================================="
+
+    local only_in_dir1=()
+    while IFS= read -r -d '' rel_path; do
+        [[ ! -e "$DIR2/$rel_path" ]] && only_in_dir1+=("$rel_path")
+    done < <(list_files "$DIR1")
+
+    local only_in_dir2=()
+    while IFS= read -r -d '' rel_path; do
+        [[ ! -e "$DIR1/$rel_path" ]] && only_in_dir2+=("$rel_path")
+    done < <(list_files "$DIR2")
+
+    log ""
+    log "Files only in $DIR1 (${#only_in_dir1[@]}):"
+    for f in "${only_in_dir1[@]+"${only_in_dir1[@]}"}"; do log "  $f"; done
+
+    log ""
+    log "Files only in $DIR2 (${#only_in_dir2[@]}):"
+    for f in "${only_in_dir2[@]+"${only_in_dir2[@]}"}"; do log "  $f"; done
+
+    log ""
+    log "==========================================="
+    log "Total missing from Dir2: ${#only_in_dir1[@]}  |  missing from Dir1: ${#only_in_dir2[@]}"
+    echo ""
+    echo "Results written to: $outfile"
+}
+
+if $COMPARE; then
+    compare_dirs
+    exit 0
+fi
 
 count=0
 
@@ -53,7 +106,7 @@ while IFS= read -r -d '' rel_path; do
             echo "[copied] $rel_path"
         fi
     fi
-done < <(cd "$DIR1" && find . -type f -print0 | while IFS= read -r -d '' f; do printf '%s\0' "${f#./}"; done | sort -z)
+done < <(list_files "$DIR1")
 
 echo "-------------------------------------------"
 if $DRY_RUN; then
