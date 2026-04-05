@@ -84,7 +84,3 @@ python livechat.py   # Prompts for video URL/ID
 python captions.py   # Prompts for video URL/ID (Apple Silicon only)
 python analyze.py    # Prompts for CSV file path
 ```
-
-## Session Summaries
-
-At the end of each session, add a summary of what was done to `_doc/claude_summaries/chat-summary_YYYY-MM-DD.md` using today's date. If a file for today already exists, append a new numbered section to it. If not, create it. Only include what is unique to the session — do not duplicate content already covered in a summary for the same date.

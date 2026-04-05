@@ -2,6 +2,7 @@
 
 *Troubleshooting log — add new entries here when you encounter and solve a specific problem. Include: date, problem, cause, fix, and references. For reference tables, API links, and conceptual notes organized by topic, use [programming_reference.md](programming_reference.md).*
 
+- [Claude Code custom skills: project vs user level](#claude-code-custom-skills-project-vs-user-level)
 - [Claude Code skills: simplify, loop, schedule, and more](#claude-code-skills-simplify-loop-schedule-and-more)
 - [kick_vod_downloader.py: FixupM3u8 failure and missing chat](#kick_vod_downloaderpy-fixupm3u8-failure-and-missing-chat)
 - [ytdownload docs reorganization and changelog reconstruction](#ytdownload-docs-reorganization-and-changelog-reconstruction)
@@ -14,6 +15,66 @@
 - [VS Code black screen UI](#vs-code-black-screen-ui)
 - [Update GitHub CLI passphrase & add once](#update-github-cli-passphrase--add-once)
 - [yt-dlp downloading audio-only webm](#yt-dlp-downloading-audio-only-webm)
+
+## Claude Code custom skills: project vs user level
+
+- *Sat, Apr 4, 2026*
+
+Custom skills are slash commands you define yourself. Each skill is a directory containing a `SKILL.md` file with YAML frontmatter and markdown instructions.
+
+### Project vs user level
+
+| Level | Path | Applies to |
+| --- | --- | --- |
+| User | `~/.claude/skills/<name>/SKILL.md` | All your projects |
+| Project | `.claude/skills/<name>/SKILL.md` | This project only |
+
+**Use user-level** for skills that apply everywhere — session summaries, personal workflows, general-purpose helpers.
+
+**Use project-level** for skills tied to a specific repo — deploy scripts, project-specific conventions, team workflows (commit to version control so the whole team gets them).
+
+### SKILL.md format
+
+```yaml
+---
+name: skill-name
+description: What it does and when Claude should use it
+---
+
+Instructions here...
+```
+
+All frontmatter fields are optional, but `description` is recommended — Claude uses it to decide when to invoke the skill automatically. Without `disable-model-invocation: true`, Claude can also trigger it on its own when relevant.
+
+### Creating a skill (VS Code)
+
+```zsh
+mkdir -p ~/.claude/skills/my-skill
+# create ~/.claude/skills/my-skill/SKILL.md with frontmatter + instructions
+```
+
+Quit and restart VS Code after creating a new skill — the VS Code extension does not pick up new skills via live reload.
+
+### Documentation
+
+Full reference: <https://code.claude.com/docs/en/slash-commands>
+
+### Asking Claude to suggest skills for a project
+
+```txt
+Analyze this project and suggest custom skills that would be useful. Consider what tasks I do repeatedly, what conventions are specific to this repo, and what workflows could be automated.
+```
+
+Or to run the interactive setup flow (requires `CLAUDE_CODE_NEW_INIT=1` in environment):
+
+```zsh
+CLAUDE_CODE_NEW_INIT=1 claude
+# then run /init
+```
+
+This walks through skills and hooks interactively before writing anything.
+
+---
 
 ## Claude Code skills: simplify, loop, schedule, and more
 
