@@ -68,6 +68,7 @@ python src/kick_vod_downloader.py --chat-only "https://kick.com/username/videos/
 ## Important Context
 
 - **Always quote YouTube URLs** in zsh — `?` in `?v=...` is a glob wildcard and causes `no matches found` before Python runs.
+- **English subtitles:** YouTube returns subtitles with locale codes like `en-US`, `en-GB`, `en-AU`. The downloader tries all variants (`en`, `en-US`, `en-GB`, `en-AU`) to maximize compatibility.
 - **Output folders:** YouTube → `outputN/`; Kick VOD → `kick_outputN/`. A new folder is created per run.
 - **Kick VOD chat API:** `GET web.kick.com/api/v1/chat/{channel_id}/history?start_time=ISO8601`. Time-windowed polling in 5-second windows from `start_time` to `start_time + duration`. 300 ms delay between requests is safe; increase with `--chat-delay` if 429s appear.
 - **Kick VOD metadata structure:** All stream fields (`channel_id`, `start_time`, `duration`, `channel`) are nested under `"livestream"` in the `/api/v1/video/{uuid}` response, not at the top level.

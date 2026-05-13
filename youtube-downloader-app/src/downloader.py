@@ -50,7 +50,7 @@ class YouTubeDownloader:
                 'skip_download': True,
                 'writesubtitles': True,
                 'writeautomaticsub': True,
-                'subtitleslangs': ['en'],
+                'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU'],
             })
         elif self.metadata_only:
             ydl_opts.update({
@@ -58,7 +58,7 @@ class YouTubeDownloader:
                 'skip_download': True,
                 'writesubtitles': True,
                 'writeautomaticsub': True,
-                'subtitleslangs': ['en', 'live_chat'],
+                'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU', 'live_chat'],
                 'writedescription': True,
                 'writeinfojson': True,
             })
@@ -72,7 +72,7 @@ class YouTubeDownloader:
                 'merge_output_format': 'mp4',
                 'writesubtitles': True,
                 'writeautomaticsub': True,
-                'subtitleslangs': ['en', 'live_chat'],
+                'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU', 'live_chat'],
                 'writedescription': True,
                 'writeinfojson': True,
             })

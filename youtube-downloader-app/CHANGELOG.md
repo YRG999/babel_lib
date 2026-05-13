@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `downloader.py`: support English subtitle variants (`en-US`, `en-GB`, `en-AU`) in addition to `en`. YouTube returns locale-specific subtitle codes, so the downloader now tries multiple variants to improve transcript compatibility across videos.
+
 ## [2.2.1] - 2026-03-30
 
 ### Fixed
