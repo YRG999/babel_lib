@@ -21,6 +21,7 @@ pip install -r requirements.txt
 After initial setup, only `. venv/bin/activate` is needed to reactivate.
 
 External tools required by various scripts:
+
 - `yt-dlp` — included in `requirements.txt`
 - `ffmpeg` — `brew install ffmpeg` (required for video merging and `captions.py`)
 - `playwright` — Kick live stream fallback in `youtube-downloader-app`
@@ -48,23 +49,28 @@ bash dir_compare/dir_compare.sh <source> <dest> [--dry-run | --compare]
 ## Key Submodules
 
 ### `youtube-downloader-app/` — Primary downloader (see its own CLAUDE.md)
+
 - Entry point: `src/main.py` (click CLI)
 - Downloads YouTube video/metadata/transcripts/live chat and Kick VODs/live streams
 - Output folders: `outputN/` for YouTube, `kick_outputN/` for Kick
 
 ### `ytdownload/` — Live-stream-focused tools (see its own CLAUDE.md)
+
 - Entry point: `livechat.py` — real-time YouTube live chat via YouTube Data API v3
 - `captions.py` — real-time transcription (mlx-whisper, Apple Silicon GPU only); run simultaneously with `livechat.py` in a separate terminal
 - API key in `.env` as `YOUTUBE_API_KEY`; quota tracked in `.youtube_quota.json` (10,000 units/day)
 
 ### `dir_compare/dir_compare.sh` — Directory sync utility
+
 - Copies files from source that are missing in destination
 - `--dry-run`: preview only; `--compare`: show missing files in both directions, writes timestamped report
 
 ### `browser_history/` — Chrome history SQLite tools
+
 - Scripts to extract and export Chrome browsing history from the `History` SQLite DB to CSV
 
 ### Standalone scripts
+
 - `encodeDecodeImage/` — LSB steganography (Pillow)
 - `games/` — Dice/probability games
 - `wordplay/` — Word/sentence generation using `random-word-api.herokuapp.com`
