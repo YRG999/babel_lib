@@ -25,3 +25,28 @@ yt-dlp --write-subs --write-auto-subs --sub-langs en --skip-download "URL"
 yt-dlp --list-subs "URL"
 ```
 
+## Smart Git Commit Skill Creation
+
+Created a new `/commit` skill (`~/.claude/skills/commit/SKILL.md`) that automates intelligent commit workflow:
+
+**Features:**
+
+- Analyzes git diff and recent commit history to understand project conventions
+- Displays all modified/untracked files and lets user select which to include
+- Shows change summary (file count, insertions/deletions)
+- Generates conventional commit message (feat/fix/docs/etc.) automatically
+- Suggests co-authorship attribution with Claude model used
+- Allows user to edit message before committing
+- Stages selected files and creates commit
+
+**User Preferences:**
+
+- Commit-only mode (no auto-push)
+- Asks user to select which files to include before staging
+
+## Release Version [2.2.2]
+
+Updated `youtube-downloader-app/CHANGELOG.md` to create a formal release:
+- Moved the English subtitle fix from [Unreleased] to [2.2.2] - 2026-05-13
+- Follows semantic versioning (patch bump for bug fix)
+- Created a commit with all changes and model attribution
