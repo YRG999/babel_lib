@@ -58,6 +58,10 @@ def _is_kick_live_url(url: str) -> bool:
     # Kick clip:  kick.com/username/clips/ID  or  kick.com/username?clip=...
     return bool(re.match(r"https?://(?:www\.)?kick\.com/[^/?#]+/?$", url))
 
+def _is_kick_vod_url(url: str) -> bool:
+    """Return True if url looks like a Kick VOD (contains /videos/UUID)."""
+    return bool(re.search(r"kick\.com/[^/?#]+/videos/[0-9a-f-]{36}", url, re.IGNORECASE))
+
 def _try_ytdlp(url: str, out_pattern: str) -> bool:
     """Run yt-dlp as a subprocess. Returns True if it exits cleanly."""
     result = subprocess.run(["yt-dlp", "-o", out_pattern, url])
@@ -81,13 +85,23 @@ def _fallback_kick_live(url: str, out: str) -> bool:
                    'then convert transcripts and live chat.')
 @click.option('--transcript-only', is_flag=True, default=False,
               help='Download subtitles only and convert to deduplicated text.')
-def main(url, cookies, comments, metadata_only, transcript_only):
+@click.option('--video-only', is_flag=True, default=False,
+              help='(Kick VOD only) Download video only, skip chat.')
+@click.option('--chat-only', is_flag=True, default=False,
+              help='(Kick VOD only) Download chat only, skip video.')
+@click.option('--chat-delay', default=300, show_default=True,
+              help='(Kick VOD only) Delay between chat API requests in milliseconds (min 100).')
+def main(url, cookies, comments, metadata_only, transcript_only, video_only, chat_only, chat_delay):
     """Download a YouTube video (or just its metadata/transcript) and convert outputs.
 
     URL is the full video URL. Always quote it in zsh/bash to prevent
     the shell from interpreting '?' as a glob wildcard:
 
         python src/main.py "https://www.youtube.com/watch?v=VIDEO_ID"
+
+    For Kick VODs, downloads video and full chat history:
+
+        python src/main.py "https://kick.com/username/videos/UUID"
 
     For Kick live streams, yt-dlp is tried first. If it fails, the download
     automatically falls back to kick_live_downloader (Playwright + ffmpeg):
@@ -100,6 +114,18 @@ def main(url, cookies, comments, metadata_only, transcript_only):
     """
     if metadata_only and transcript_only:
         raise click.UsageError("--metadata-only and --transcript-only are mutually exclusive.")
+
+    if _is_kick_vod_url(url):
+        click.echo(f"Detected Kick VOD URL: {url}")
+        from kick_vod_downloader import main as kick_vod_main
+        args = [url]
+        if video_only:
+            args.append("--video-only")
+        if chat_only:
+            args.append("--chat-only")
+        args += ["--chat-delay", str(chat_delay)]
+        kick_vod_main(args, standalone_mode=False)
+        return
 
     output_folder = get_new_output_folder()
     original_cwd = os.getcwd()
