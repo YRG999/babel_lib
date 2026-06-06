@@ -69,6 +69,9 @@ python src/main.py [OPTIONS] "URL"
 | `--comments` | Download and extract comments to CSV |
 | `--metadata-only` | Skip video; fetch subtitles, live chat, description, info JSON, and convert |
 | `--transcript-only` | Download subtitles only and convert to deduplicated text |
+| `--video-only` | (Kick VOD only) Download video only, skip chat |
+| `--chat-only` | (Kick VOD only) Download chat only, skip video |
+| `--chat-delay N` | (Kick VOD only) Milliseconds between chat API requests (default: 300, min: 100) |
 | `--help` | Show help message and exit |
 
 ### Examples
@@ -107,6 +110,18 @@ Download a Kick live stream (tries yt-dlp, falls back to Playwright + ffmpeg aut
 
 ```zsh
 python src/main.py "https://kick.com/username"
+```
+
+Download a Kick VOD with full chat history:
+
+```zsh
+python src/main.py "https://kick.com/username/videos/UUID"
+```
+
+Download a Kick VOD video only (skip chat):
+
+```zsh
+python src/main.py --video-only "https://kick.com/username/videos/UUID"
 ```
 
 ## Downloading a channel
@@ -164,11 +179,17 @@ If you don't want to grab it manually, `--headful` opens a visible browser to le
 python src/kick_live_downloader.py --page "https://kick.com/username" --headful
 ```
 
-### VOD replays — `kick_vod_downloader.py`
+### VOD replays
 
 Downloads a VOD and its full chat history. Requires only the VOD URL — metadata, `channel_id`, and stream timestamps are resolved automatically.
 
+You can use either `main.py` (unified entry point) or `kick_vod_downloader.py` directly:
+
 ```zsh
+# Via main.py (recommended)
+python src/main.py [OPTIONS] "URL"
+
+# Or directly
 python src/kick_vod_downloader.py [OPTIONS] "URL"
 ```
 
@@ -184,17 +205,24 @@ https://kick.com/username/videos/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 | `--chat-only` | Download chat only, skip video |
 | `--chat-delay N` | Milliseconds between chat API requests (default: 300, min: 100) |
 
-Examples:
+#### Examples via main.py (recommended)
 
 ```zsh
 # Video + full chat (default)
-python src/kick_vod_downloader.py "https://kick.com/username/videos/UUID"
+python src/main.py "https://kick.com/username/videos/UUID"
 
 # Chat only
-python src/kick_vod_downloader.py --chat-only "https://kick.com/username/videos/UUID"
+python src/main.py --chat-only "https://kick.com/username/videos/UUID"
 
 # Video only
-python src/kick_vod_downloader.py --video-only "https://kick.com/username/videos/UUID"
+python src/main.py --video-only "https://kick.com/username/videos/UUID"
+```
+
+#### Examples via kick_vod_downloader.py (direct)
+
+```zsh
+# Same options and behaviour
+python src/kick_vod_downloader.py "https://kick.com/username/videos/UUID"
 ```
 
 Output is written to a new `kick_outputN/` folder:

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `main.py`: auto-detect Kick VOD URLs (`kick.com/username/videos/UUID`) and route them transparently to `kick_vod_downloader.py`. VOD options (`--video-only`, `--chat-only`, `--chat-delay`) are now available in `main.py` for Kick VODs alongside existing YouTube and Kick live stream support.
+
 ## [2.2.2] - 2026-05-13
 
 ### Fixed
