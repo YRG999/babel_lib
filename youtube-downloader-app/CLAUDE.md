@@ -25,7 +25,6 @@ CLI tools for downloading YouTube and Kick.com videos, metadata, transcripts, an
 | `src/timestamp_converter.py` | EST ↔ epoch timestamp converter utility (interactive) |
 | `src/add_vod_offset.py` | Backfill `vod_offset` column in existing Kick VOD chat CSVs |
 | `src/filter_chat.py` | Filter emote-only, repetitive, and reaction-flood messages from Kick chat CSVs |
-| `src/comments.py` | Legacy comment helpers (unused by main.py) |
 
 ## Dependencies
 
@@ -41,6 +40,7 @@ CLI tools for downloading YouTube and Kick.com videos, metadata, transcripts, an
 - `requests` — Kick API calls
 - `pytz` — timezone handling
 - `browser-cookie3` — Firefox cookie support
+- `playwright` — headless Firefox for Kick live fallback (`playwright install firefox` after pip install)
 
 ## Running
 
@@ -76,3 +76,4 @@ python src/kick_vod_downloader.py --chat-only "https://kick.com/username/videos/
 - **`vod_offset` column:** First column of `<title>_chat.csv`. Formatted `H:MM:SS`. Gives the playback position in the video for each chat message: `message_timestamp − vod_start_time`. Use it to seek directly in VLC/mpv/video editors.
 - **Comments and channels:** `--comments` only processes the most recently created `.info.json`. Do not use `--comments` when downloading a channel (multiple videos).
 - **Kick live stream fallback:** `main.py` detects `kick.com/<username>` URLs (not VOD/clip paths), tries yt-dlp, then calls `download_kick_live()` from `kick_live_downloader.py`. If both fail, run `kick_live_downloader.py --headful` directly to bypass Cloudflare.
+- **CSV safety:** chat messages/usernames are written to CSVs verbatim (no formula-prefix escaping, by design — data is used for analysis). Don't open chat CSVs directly in Excel; see the README "Opening chat CSVs safely" section.

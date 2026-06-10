@@ -1,5 +1,7 @@
-yt-dlp
-pytz
-requests
-browser-cookie3
-click
+yt-dlp>=2024.5.7
+pytz>=2024.1
+requests>=2.31.0
+browser-cookie3>=0.20.1
+click>=8.1.0
+# Kick live stream fallback. After installing, also run: playwright install firefox
+playwright>=1.40.0

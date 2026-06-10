@@ -5,11 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.3.0] - 2026-06-10
 
 ### Added
 
 - `main.py`: auto-detect Kick VOD URLs (`kick.com/username/videos/UUID`) and route them transparently to `kick_vod_downloader.py`. VOD options (`--video-only`, `--chat-only`, `--chat-delay`) are now available in `main.py` for Kick VODs alongside existing YouTube and Kick live stream support.
+
+### Security
+
+- `downloader.py`: removed `nocheckcertificate: True` — TLS certificate verification is now enabled for all yt-dlp traffic. No documented reason existed for disabling it.
+- `downloader.py`: switched `remote_components` from `ejs:npm` to `ejs:github`, the source yt-dlp itself recommends, reducing supply-chain exposure of the remotely fetched JS challenge solver.
+- `kick_live_downloader.py`: the printed ffmpeg command no longer includes the `-headers` value, which contained live Kick session cookies; it is shown as `<redacted>`.
+- `firefox_cookie_export.py`: `cookies.txt` is now created with `0600` permissions since it contains plaintext session cookies.
+- `main.py`, `kick_vod_downloader.py`: yt-dlp subprocess calls now pass `--` before the URL so a URL-shaped argument starting with `-` cannot be parsed as a yt-dlp option (e.g. `--exec`).
+- `requirements.txt` (app and repo root): added minimum-version pins and the missing `playwright` dependency (with a note that `playwright install firefox` is also required).
+
+### Fixed
+
+- `kick_live_downloader.py`: the ffmpeg `-headers` value used literal `\r\n` text (escaped backslashes) instead of real CRLF characters, so the User-Agent/Referer/Cookie headers were sent mangled.
+- `add_vod_offset.py`: no longer crashes with `NameError` on a header-only (empty) CSV.
+- `filter_chat.py`: no longer crashes on rows with a blank `vod_offset` (which `kick_vod_downloader.py` writes when a timestamp is unparseable). Such rows keep the emote-only and internal-repetition filters but skip the time-window filters.
+- `kick_vod_downloader.py`: `fetch_with_retry` now raises an error after exhausting retries on repeated 429 responses instead of silently returning an empty result.
+- `livechat_to_csv.py`: timestamps are now rendered in UTC (matching the Kick chat CSV) instead of local time.
+
+### Removed
+
+- `comments.py`: legacy module, unused by `main.py` and broken (called `.strftime()` on a string, returned `None` where a filename was expected).
 
 ## [2.2.2] - 2026-05-13
 

@@ -38,10 +38,9 @@ class YouTubeDownloader:
 
         ydl_opts = {
             'progress_hooks': [self._progress_hook],
-            'nocheckcertificate': True,
             'ignoreerrors': True,
             'no_warnings': True,
-            'remote_components': 'ejs:npm',
+            'remote_components': 'ejs:github',
         }
 
         if self.transcript_only:

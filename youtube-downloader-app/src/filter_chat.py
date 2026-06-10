@@ -120,7 +120,12 @@ def main():
             total += 1
             message = row['message']
             user_id = row['user_id']
-            offset_s = parse_vod_offset(row['vod_offset'])
+            # vod_offset can be blank when the source timestamp was unparseable;
+            # such rows skip the time-window filters (3 and 4) but keep 1 and 2.
+            try:
+                offset_s = parse_vod_offset(row.get('vod_offset', ''))
+            except (ValueError, IndexError):
+                offset_s = None
 
             # 1. Strip emotes and check if anything remains
             text = strip_emotes(message)
@@ -134,16 +139,17 @@ def main():
                 continue
 
             # 3. Per-user dedup: same user, same normalized message within window
-            norm = normalize(text) if text else normalize(message)
-            user_key = (user_id, norm)
-            last_offset = user_last_seen.get(user_key)
-            if last_offset is not None and (offset_s - last_offset) < args.user_dedup_window:
-                dropped_user_dedup += 1
-                continue
-            user_last_seen[user_key] = offset_s
+            if offset_s is not None:
+                norm = normalize(text) if text else normalize(message)
+                user_key = (user_id, norm)
+                last_offset = user_last_seen.get(user_key)
+                if last_offset is not None and (offset_s - last_offset) < args.user_dedup_window:
+                    dropped_user_dedup += 1
+                    continue
+                user_last_seen[user_key] = offset_s
 
             # 4. Reaction flood: short messages seen too many times recently
-            if len(text) <= args.reaction_len:
+            if offset_s is not None and len(text) <= args.reaction_len:
                 norm_react = normalize(text) if text else normalize(message)
                 q = reaction_times[norm_react]
                 # Evict entries outside the window

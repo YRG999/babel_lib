@@ -34,3 +34,6 @@ websockets>=12.0
 yt-dlp>=2024.5.7
 googlemaps>=4.10.0
 browser-cookie3>=0.20.1
+click>=8.1.0
+# Kick live stream fallback. After installing, also run: playwright install firefox
+playwright>=1.40.0

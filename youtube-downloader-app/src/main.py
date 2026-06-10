@@ -64,7 +64,7 @@ def _is_kick_vod_url(url: str) -> bool:
 
 def _try_ytdlp(url: str, out_pattern: str) -> bool:
     """Run yt-dlp as a subprocess. Returns True if it exits cleanly."""
-    result = subprocess.run(["yt-dlp", "-o", out_pattern, url])
+    result = subprocess.run(["yt-dlp", "-o", out_pattern, "--", url])
     return result.returncode == 0
 
 def _fallback_kick_live(url: str, out: str) -> bool:

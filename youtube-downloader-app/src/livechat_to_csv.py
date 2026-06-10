@@ -1,6 +1,6 @@
 import json
 import csv
-from datetime import datetime
+from datetime import datetime, timezone
 
 BASE_STREAM_TS_USEC = None
 
@@ -24,7 +24,7 @@ def _format_ts(ts_usec, offset_msec):
     _update_base_timestamp(ts_usec, offset_msec)
     if not ts_usec:
         return ''
-    return datetime.fromtimestamp(int(ts_usec) // 1000000).strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.fromtimestamp(int(ts_usec) // 1000000, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def _extract_runs_text(renderer):
@@ -71,7 +71,7 @@ def extract_message_info(obj):
                 if offset_msec is not None and BASE_STREAM_TS_USEC is not None:
                     try:
                         absolute_usec = BASE_STREAM_TS_USEC + int(offset_msec) * 1000
-                        timestamp = datetime.fromtimestamp(absolute_usec / 1000000).strftime('%Y-%m-%d %H:%M:%S')
+                        timestamp = datetime.fromtimestamp(absolute_usec / 1000000, tz=timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
                     except (ValueError, TypeError, OSError):
                         timestamp = ''
 

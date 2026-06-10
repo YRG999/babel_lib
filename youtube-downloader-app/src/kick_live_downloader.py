@@ -227,7 +227,7 @@ def download_kick_live(
             print(f"m3u8 fetch returned status {resp.status}. Proceeding to run ffmpeg may still fail.", file=sys.stderr)
 
         # build ffmpeg headers - lines must end with CRLF
-        headers = f"User-Agent: {user_agent}\\r\\nReferer: {page_url}\\r\\nCookie: {cookie_str}\\r\\n"
+        headers = f"User-Agent: {user_agent}\r\nReferer: {page_url}\r\nCookie: {cookie_str}\r\n"
 
         # place output in a new kick_outputN folder unless a path was explicitly given
         if not os.path.dirname(out):
@@ -250,8 +250,10 @@ def download_kick_live(
             "-movflags", "+frag_keyframe+empty_moov",
             out,
         ]
+        # Redact the headers value when printing — it contains session cookies.
         print("Running ffmpeg to download. Command:")
-        print(" ".join(shlex.quote(x) for x in ffmpeg_cmd))
+        redacted_cmd = ["<redacted>" if x == headers else x for x in ffmpeg_cmd]
+        print(" ".join(shlex.quote(x) for x in redacted_cmd))
         try:
             subprocess.run(ffmpeg_cmd, check=True)
             print("Download complete:", out)

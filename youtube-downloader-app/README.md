@@ -30,8 +30,7 @@ youtube-downloader-app
 │   ├── kick_vod_downloader.py  # Kick.com VOD + chat downloader
 │   ├── timestamp_converter.py  # EST/epoch timestamp converter utility
 │   ├── add_vod_offset.py       # Backfill vod_offset column in existing Kick VOD chat CSVs
-│   ├── filter_chat.py          # Filter emote-only, repetitive, and reaction-flood messages from chat CSVs
-│   └── comments.py             # Legacy comment helpers (unused by main.py)
+│   └── filter_chat.py          # Filter emote-only, repetitive, and reaction-flood messages from chat CSVs
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This file
 ```
@@ -277,12 +276,18 @@ Output is written to `<input>_filtered.csv`. The original is not modified.
 | `--no-emote-filter` | — | Keep emote-only messages |
 | `--no-repeat-filter` | — | Keep internally repetitive messages |
 
+## Opening chat CSVs safely
+
+Chat messages and usernames are written to the CSVs verbatim. A message that starts with `=`, `+`, `-`, or `@` can be interpreted as a live formula if the file is opened directly in Excel or another spreadsheet app (CSV/formula injection). Open these files in a text editor or load them with pandas/Python instead — or, in a spreadsheet, import the columns as **text** rather than opening the file directly.
+
 ## Dependencies
 
 - `yt-dlp`: Download videos from YouTube and other sites.
 - `click`: CLI framework.
 - `pytz`: Timezone calculations.
 - `browser-cookie3`: Read cookies from the browser for authenticated downloads.
+- `playwright`: Headless Firefox for the Kick live stream fallback (`playwright install firefox` required after pip install).
+- `requests`: Kick API calls.
 
 ## Contributing
 

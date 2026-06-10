@@ -51,7 +51,7 @@ def fetch_with_retry(url: str, params: dict | None = None) -> dict:
             if attempt == MAX_RETRIES - 1:
                 raise click.ClickException(f"Request failed after {MAX_RETRIES} attempts: {e}")
             time.sleep(min(2 ** attempt, 8))
-    return {}
+    raise click.ClickException(f"Still rate-limited after {MAX_RETRIES} attempts: {url}")
 
 
 def parse_kick_datetime(s: str) -> datetime:
@@ -250,7 +250,7 @@ def main(url, video_only, chat_only, chat_delay):
 
         if not chat_only:
             click.echo("\nDownloading video via yt-dlp...")
-            result = subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", url])
+            result = subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", "--", url])
             if result.returncode != 0:
                 raise click.ClickException("yt-dlp failed (see output above).")
 

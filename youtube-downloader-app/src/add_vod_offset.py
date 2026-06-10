@@ -83,6 +83,7 @@ def main():
         writer.writeheader()
 
         skipped = 0
+        i = 0
         for i, row in enumerate(reader, 1):
             ts = row.get("timestamp", "")
             try:
