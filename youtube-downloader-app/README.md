@@ -10,6 +10,7 @@ A CLI tool for downloading YouTube videos, metadata, and transcripts using yt-dl
 - Extract comments to CSV (opt-in).
 - `--metadata-only`: skip the video download and fetch subtitles, live chat, description, info JSON, and optionally comments.
 - `--transcript-only`: download and convert subtitles only.
+- `--comments-only`: download comments only, extracted straight to CSV.
 - Optional Firefox cookie support for authenticated downloads.
 - FFmpeg availability warning when merging streams.
 - All output saved to a timestamped `outputN/` folder.
@@ -68,6 +69,7 @@ python src/main.py [OPTIONS] "URL"
 | `--comments` | Download and extract comments to CSV |
 | `--metadata-only` | Skip video; fetch subtitles, live chat, description, info JSON, and convert |
 | `--transcript-only` | Download subtitles only and convert to deduplicated text |
+| `--comments-only` | Download comments only (no video/subtitles/live chat); extract to CSV (info JSON kept) |
 | `--video-only` | (Kick VOD only) Download video only, skip chat |
 | `--chat-only` | (Kick VOD only) Download chat only, skip video |
 | `--chat-delay N` | (Kick VOD only) Milliseconds between chat API requests (default: 300, min: 100) |
@@ -98,6 +100,16 @@ Download and convert transcript only:
 ```zsh
 python src/main.py --transcript-only "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
+
+Download comments only (output folder will contain `<title>_comments.csv` plus the raw `.info.json`, kept for debugging or re-extracting the CSV later):
+
+```zsh
+python src/main.py --comments-only "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+`--metadata-only`, `--transcript-only`, and `--comments-only` are mutually exclusive.
+
+> **Live chat vs. comments:** there is no conflict between the two — live chat is saved to its own `.live_chat.json` file while comments live inside `.info.json`, so downloading a video with `--comments` fetches both (for videos that have both, e.g. finished live streams). In practice most videos only *have* one or the other: live chat exists only for live streams/premieres, and comments are unavailable while a stream is still live.
 
 Use Firefox cookies for a members-only or age-restricted video:
 

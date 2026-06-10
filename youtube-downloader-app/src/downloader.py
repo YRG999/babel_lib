@@ -9,12 +9,14 @@ class YouTubeDownloader:
         download_comments: bool = False,
         metadata_only: bool = False,
         transcript_only: bool = False,
+        comments_only: bool = False,
     ):
         self.filenames = []
         self.use_cookies = use_cookies
         self.download_comments = download_comments
         self.metadata_only = metadata_only
         self.transcript_only = transcript_only
+        self.comments_only = comments_only
 
     def _progress_hook(self, d):
         if d['status'] == 'finished':
@@ -32,7 +34,7 @@ class YouTubeDownloader:
             )
 
     def download_video_info_comments(self, urls: List[str]) -> List[str]:
-        skip_video = self.metadata_only or self.transcript_only
+        skip_video = self.metadata_only or self.transcript_only or self.comments_only
         if not skip_video:
             self._warn_if_missing_ffmpeg()
 
@@ -43,7 +45,14 @@ class YouTubeDownloader:
             'remote_components': 'ejs:github',
         }
 
-        if self.transcript_only:
+        if self.comments_only:
+            ydl_opts.update({
+                'format': 'best',
+                'skip_download': True,
+                'writeinfojson': True,
+                'getcomments': True,
+            })
+        elif self.transcript_only:
             ydl_opts.update({
                 'format': 'best',
                 'skip_download': True,

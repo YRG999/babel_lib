@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-06-10
+
+### Added
+
+- `main.py` / `downloader.py`: new `--comments-only` flag — downloads only a video's comments (no video, subtitles, or live chat) and extracts them to `<title>_comments.csv`. The raw `.info.json` is kept alongside the CSV for debugging or re-extracting later. Mutually exclusive with `--metadata-only` and `--transcript-only`. Replaces the comments-only capability of the legacy `comments.py` (removed in 2.3.0, broken; the standalone original remains at `ytdownload/comments.py`).
+
 ## [2.3.0] - 2026-06-10
 
 ### Added

@@ -42,14 +42,15 @@ def convert_livechat():
         livechat_json_to_csv(livechat_file, csv_file)
 
 def extract_comments():
-    """Extract comments from info.json to CSV."""
+    """Extract comments from info.json to CSV. Returns the info.json path, or None."""
     info_json_files = glob.glob("*.info.json")
     if info_json_files:
         latest_info_json = max(info_json_files, key=os.path.getctime)
         comments_csv = latest_info_json.replace('.info.json', '_comments.csv')
         extract_comments_to_csv(latest_info_json, comments_csv)
-    else:
-        click.echo("No .info.json file found for comment extraction.", err=True)
+        return latest_info_json
+    click.echo("No .info.json file found for comment extraction.", err=True)
+    return None
 
 def _is_kick_live_url(url: str) -> bool:
     """Return True if url looks like a Kick channel page (live stream), not a VOD or clip."""
@@ -85,13 +86,16 @@ def _fallback_kick_live(url: str, out: str) -> bool:
                    'then convert transcripts and live chat.')
 @click.option('--transcript-only', is_flag=True, default=False,
               help='Download subtitles only and convert to deduplicated text.')
+@click.option('--comments-only', is_flag=True, default=False,
+              help='Download comments only (no video, subtitles, or live chat) '
+                   'and extract to CSV. The info JSON is kept.')
 @click.option('--video-only', is_flag=True, default=False,
               help='(Kick VOD only) Download video only, skip chat.')
 @click.option('--chat-only', is_flag=True, default=False,
               help='(Kick VOD only) Download chat only, skip video.')
 @click.option('--chat-delay', default=300, show_default=True,
               help='(Kick VOD only) Delay between chat API requests in milliseconds (min 100).')
-def main(url, cookies, comments, metadata_only, transcript_only, video_only, chat_only, chat_delay):
+def main(url, cookies, comments, metadata_only, transcript_only, comments_only, video_only, chat_only, chat_delay):
     """Download a YouTube video (or just its metadata/transcript) and convert outputs.
 
     URL is the full video URL. Always quote it in zsh/bash to prevent
@@ -111,9 +115,15 @@ def main(url, cookies, comments, metadata_only, transcript_only, video_only, cha
     By default, downloads the video, subtitles, description, and info JSON,
     then converts subtitles to text (deduped) and live chat to CSV.
     Comments are not downloaded unless --comments is specified.
+
+    --comments-only skips everything except comments: they are extracted to
+    <title>_comments.csv. The .info.json is kept for debugging or
+    re-extracting the CSV later.
     """
-    if metadata_only and transcript_only:
-        raise click.UsageError("--metadata-only and --transcript-only are mutually exclusive.")
+    if sum([metadata_only, transcript_only, comments_only]) > 1:
+        raise click.UsageError(
+            "--metadata-only, --transcript-only, and --comments-only are mutually exclusive."
+        )
 
     if _is_kick_vod_url(url):
         click.echo(f"Detected Kick VOD URL: {url}")
@@ -150,14 +160,19 @@ def main(url, cookies, comments, metadata_only, transcript_only, video_only, cha
                 download_comments=comments,
                 metadata_only=metadata_only,
                 transcript_only=transcript_only,
+                comments_only=comments_only,
             )
             downloader.download_video_info_comments([url])
 
-            convert_transcripts()
-            if not transcript_only:
-                convert_livechat()
-                if comments:
-                    extract_comments()
+            if comments_only:
+                # Keep the .info.json — useful for debugging and re-extracting the CSV.
+                extract_comments()
+            else:
+                convert_transcripts()
+                if not transcript_only:
+                    convert_livechat()
+                    if comments:
+                        extract_comments()
 
     finally:
         os.chdir(original_cwd)

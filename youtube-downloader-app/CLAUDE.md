@@ -49,6 +49,7 @@ CLI tools for downloading YouTube and Kick.com videos, metadata, transcripts, an
 python src/main.py "https://www.youtube.com/watch?v=VIDEO_ID"
 python src/main.py --metadata-only --comments "https://www.youtube.com/watch?v=VIDEO_ID"
 python src/main.py --transcript-only "https://www.youtube.com/watch?v=VIDEO_ID"
+python src/main.py --comments-only "https://www.youtube.com/watch?v=VIDEO_ID"
 
 # Kick live stream (yt-dlp first, Playwright fallback auto)
 python src/main.py "https://kick.com/username"
