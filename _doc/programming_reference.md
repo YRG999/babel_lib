@@ -212,6 +212,78 @@ Source: *Google search*
 - [rapidapi.com](https://rapidapi.com/hub)
 - [api-ninjas.com](https://api-ninjas.com/)
 
+## Security concepts (from the 2026-06-10 youtube-downloader-app fixes)
+
+Plain-language explanations of the security issues fixed in `youtube-downloader-app` on 2026-06-10 (CHANGELOG version 2.3.0). Each entry explains the underlying concept, why it matters, and what the fix was.
+
+### TLS certificate verification (`nocheckcertificate`)
+
+When a program connects to a website over HTTPS, two things happen: the traffic is **encrypted**, and the server proves its identity with a **certificate** — a digital document, signed by a trusted authority, that says "this server really is youtube.com." Your program checks that signature before sending anything.
+
+`downloader.py` had the option `'nocheckcertificate': True`, which tells yt-dlp to skip that identity check. The connection is still encrypted, but you no longer know *who* you're encrypting to. Anyone positioned between you and YouTube — say, the operator of a coffee-shop Wi-Fi network — could present their own fake certificate, and the program would happily talk to them instead. This is called a **man-in-the-middle (MITM) attack**: the attacker relays traffic in both directions, reading or modifying it as it passes through. For a downloader, that means the video, subtitles, or even yt-dlp's responses could be tampered with in transit.
+
+People usually add this option to silence a one-time certificate error and then forget about it. There was no documented reason for it here, so the fix was simply to delete the line — verification is on by default.
+
+### Remote code components (`ejs:npm` → `ejs:github`)
+
+YouTube makes scrapers solve small JavaScript puzzles before serving videos. yt-dlp handles this by downloading a solver component from the internet and **executing it** — which means you are running code written by someone else, fetched at runtime. That's inherently a matter of trust: if the place you fetch it from is compromised, you run the attacker's code.
+
+This is an example of **supply-chain risk** — being attacked not directly, but through something you depend on. The option was set to fetch the solver from `npm` (the JavaScript package registry, where anyone can publish and account takeovers have happened repeatedly). yt-dlp's own warning message recommends `ejs:github`, which fetches from yt-dlp's own GitHub releases — the same people whose code you're already trusting by running yt-dlp at all. The fix doesn't eliminate the risk (remote code is still fetched and run); it narrows who you have to trust to a party you already trust.
+
+### Don't print secrets to the terminal (cookie redaction)
+
+`kick_live_downloader.py` printed the full ffmpeg command before running it — useful for debugging. The problem: that command included a `Cookie:` header containing your live Kick **session cookies**.
+
+A session cookie is the small token a website gives your browser after you log in; presenting it *is* being logged in. Anyone who copies that string can act as you on that site without knowing your password. Terminal output isn't private: it lingers in scrollback, gets saved when you copy output into notes or a bug report, and may be written to log files. The classic mistake is pasting a "harmless" debug log somewhere public with a token buried in the middle of it.
+
+The fix keeps the helpful debug printout but replaces the headers value with `<redacted>`. Rule of thumb: log *that* you sent credentials, never *what* they were.
+
+### File permissions (`0600` on cookies.txt)
+
+Unix-family systems (macOS included) attach three sets of permissions to every file: what the **owner** can do, what the file's **group** can do, and what **everyone else** can do. Each set is read/write/execute, written as an octal number. `0600` means: owner can read and write (`6`), group gets nothing (`0`), others get nothing (`0`). In `ls -l` that shows as `-rw-------`.
+
+By default, files you create are often readable by other accounts on the machine (`0644`, `-rw-r--r--`). For most files that's fine. But `firefox_cookie_export.py` writes your browser session cookies — credentials, per the section above — into a plain text file. Any other process or user account that can read the file can hijack your sessions.
+
+The fix creates the file with restrictive permissions from the start:
+
+```python
+fd = os.open(out_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+with open(fd, "w", encoding="utf-8") as f:
+    ...
+```
+
+The lower-level `os.open` is used instead of plain `open()` because it accepts a permission mode at creation time. That matters: setting permissions *after* writing (e.g., with `os.chmod`) leaves a brief window where the file exists with loose permissions and sensitive content already in it.
+
+### Argument injection (`--` before the URL)
+
+The downloader runs yt-dlp as a subprocess, passing the URL as a command-line argument:
+
+```python
+subprocess.run(["yt-dlp", "-o", out_pattern, url])
+```
+
+Command-line programs can't tell options from data by position alone — they just see a list of strings, and anything starting with `-` is treated as an option. So if the "URL" were the string `--exec=rm -rf ~`, yt-dlp would not say "that's not a URL"; it would recognize its own `--exec` option, which runs an arbitrary shell command after downloading. The data slot has been used to inject an instruction. (This is the command-line cousin of SQL injection from 6.0001-era lore: data crossing over into being interpreted as code.)
+
+The fix is the standard Unix convention `--`, a separator meaning "everything after this is data, even if it starts with a dash":
+
+```python
+subprocess.run(["yt-dlp", "-o", out_pattern, "--", url])
+```
+
+Note this is a *defense-in-depth* fix — today the URL comes from you typing it, not from an attacker. But scripts get reused, wrapped, and fed input from files or other programs, and the guard costs two characters.
+
+### Pinned dependencies and missing requirements
+
+`requirements.txt` listed bare package names (`yt-dlp`, `requests`, ...) with no versions. That means `pip install -r requirements.txt` grabs whatever the latest version is *on the day you run it* — so two installs months apart can behave differently, and if a package release is ever compromised (see supply-chain risk above), you'd pull it in automatically with no record of what you'd been running before.
+
+Minimum-version pins (`requests>=2.31.0`) are a light-touch middle ground: they document what the code was developed against and refuse anything older (older versions may contain known, since-fixed vulnerabilities), while still allowing updates. The file was also missing `playwright` entirely — the Kick live fallback imports it, so a fresh install of the requirements file would crash at runtime with `ModuleNotFoundError`. It's now listed, with a reminder that Playwright also needs a post-install step (`playwright install firefox`) to download the browser itself.
+
+### CSV / formula injection (documented, deliberately not fixed)
+
+Spreadsheet programs treat a cell that begins with `=` (and sometimes `+`, `-`, or `@`) as a **formula**, not text — and this applies even to plain `.csv` files. Old Excel formula families like `=DDE(...)` could launch external programs. Now consider that the chat CSVs in this project contain messages typed by *arbitrary strangers on the internet*. A malicious viewer only has to type a message starting with `=` and wait for someone to open the downloaded chat log in Excel. The file itself is harmless; the spreadsheet app is what executes it. This is the same lesson as argument injection: untrusted data ending up somewhere it gets *interpreted*.
+
+The standard fix is to prefix risky cells with `'` or a space, but that alters the message text, and these CSVs exist for chat analysis where exact text matters. So the decision (recorded in the README, "Opening chat CSVs safely") was to leave the data verbatim and handle the files safely instead: open them in a text editor or pandas, or use a spreadsheet's *import as text* path rather than double-clicking the file.
+
 ## Claude Code
 
 ### Saving chat output to a file
@@ -318,6 +390,13 @@ cat ~/.claude/projects/<encoded-project-path>/<session-id>.jsonl
 
 ### Links
 
+- MIT intro Python courses (good resources for learning Python, though the original pair dates from 2016 and may be out of date)
+  - <https://ocw.mit.edu/courses/6-0001-introduction-to-computer-science-and-programming-in-python-fall-2016/> - 6.0001: MIT's introduction to programming in Python — variables, functions, recursion, data structures, classes, and algorithmic thinking, with full lecture videos and assignments.
+  - <https://ocw.mit.edu/courses/6-0002-introduction-to-computational-thinking-and-data-science-fall-2016/> - 6.0002: the follow-on course covering optimization, simulation, randomness, statistics, and machine-learning basics in Python.
+  - Updated versions (as of 2026 — MIT renumbered these courses in 2022; 6.0001 became 6.100A/6.100L and 6.0002 became 6.100B):
+    - <https://ocw.mit.edu/courses/6-100l-introduction-to-cs-and-programming-using-python-fall-2022/> - 6.100L (Fall 2022): the modernized full-semester version of 6.0001 on OCW, with newer lectures by Ana Bell.
+    - <https://www.edx.org/learn/computer-science/massachusetts-institute-of-technology-introduction-to-computer-science-and-programming-using-python> - MITx 6.00.1x on edX: the actively maintained, instructor-paced online version of the intro course with graded exercises.
+    - <https://www.edx.org/learn/computer-science/massachusetts-institute-of-technology-introduction-to-computational-thinking-and-data-science> - MITx 6.00.2x on edX: the actively maintained online version of the computational thinking / data science follow-on.
 - Random word & dictionary APIs
   - <https://developer.wordnik.com/docs#!/words/getRandomWord>
   - <https://random-word-api.herokuapp.com/home>

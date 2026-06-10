@@ -24,7 +24,7 @@ External tools required by various scripts:
 
 - `yt-dlp` — included in `requirements.txt`
 - `ffmpeg` — `brew install ffmpeg` (required for video merging and `captions.py`)
-- `playwright` — Kick live stream fallback in `youtube-downloader-app`
+- `playwright` — in `requirements.txt`, but also needs a one-time `playwright install firefox` to download the browser (Kick live stream fallback in `youtube-downloader-app`)
 
 ## Running Scripts
 
@@ -81,6 +81,19 @@ bash dir_compare/dir_compare.sh <source> <dest> [--dry-run | --compare]
 
 - **`.env`** — `YOUTUBE_API_KEY`, `MAPS_API_KEY` (create at repo root or in `ytdownload/`)
 - **`requirements.txt`** — Shared across all submodules
+
+## Security Practices
+
+Established during the 2026-06-10 security review (rationale in `_doc/programming_reference.md` → "Security concepts"):
+
+- **Secrets stay out of code and git.** API keys live in `.env` (gitignored); never hardcode them in scripts, print them in output/logs, or commit them. Cookie export files (`cookies.txt`, `kickcomcookies.txt`) contain live session credentials — treat them like passwords: create with `0600` permissions, keep them gitignored, delete when no longer needed.
+- **Never disable TLS verification.** Do not add `nocheckcertificate` (yt-dlp) or `verify=False` (requests) to work around certificate errors — fix the underlying cause instead.
+- **yt-dlp remote components:** use `'remote_components': 'ejs:github'`, not `ejs:npm` (yt-dlp's recommended, lower-risk source for the remotely executed JS challenge solver).
+- **Subprocess calls:** always pass arguments as a list (never `shell=True`), and put `--` before any user-supplied URL/path so it can't be parsed as an option (e.g. yt-dlp's `--exec`).
+- **Redact credentials in debug output.** When printing a command or request for debugging, replace cookie/token values with `<redacted>`.
+- **Dependencies:** pin minimum versions (`>=`) in `requirements.txt`; when adding a dependency to a submodule, add it to both the submodule and root requirements files.
+- **Chat/comment CSVs contain untrusted user text.** Do not add formula-prefix escaping (data must stay verbatim for analysis), and do not open them directly in Excel — see "Opening chat CSVs safely" in the youtube-downloader-app README.
+- **No PII or private items in anything that could be pushed to GitHub.** Redact personally-identifiable information (names, email addresses, account IDs, personal URLs, etc.) and other private details from code, docs, session summaries, and commit messages. If something private must be recorded for the user, write it to a file in a folder already covered by `.gitignore` (e.g. `_notes/`) — or add the new file/folder to `.gitignore` first and verify with `git check-ignore <path>` before writing.
 
 ## Documentation
 
