@@ -441,3 +441,48 @@ Common rules and fixes when using `markdownlint` / `markdownlint-cli2`:
 | MD040 | Fenced code block missing language | Add language after opening fence: ` ```text `, ` ```zsh `, etc. |
 | MD047 | File must end with a single newline | Ensure one trailing newline at end of file |
 | MD051 | Link fragment does not match any heading | Verify anchor `#heading-slug` matches an actual heading |
+
+## TODO
+
+### youtube-study: Option 3 — shared library refactor
+
+**Background:** `youtube-study/` was created to hold stand-alone analysis tools for files produced by `youtube-downloader-app` and `ytdownload`. Option 2 (moving only provably standalone scripts) was applied first. Four post-processing scripts could not be moved because `youtube-downloader-app/src/main.py` imports them directly at runtime:
+
+- `livechat_to_csv.py` — converts NDJSON live chat to CSV
+- `vtt_to_text.py` — converts VTT subtitles to plain text
+- `remove_dupe_lines.py` — deduplicates transcript lines
+- `extract_comments.py` — extracts comments from `.info.json` to CSV
+
+These are both pipeline tools (called automatically during a download) and useful standalone analysis tools. The duplication problem: they live in `youtube-downloader-app/src/` and can't also live in `youtube-study/` without maintaining two copies.
+
+**Option 3 goal:** Create a `shared/` package at the repo root. Both `youtube-downloader-app` and `youtube-study` import from it. No script lives in two places.
+
+**Steps:**
+
+1. Create `shared/__init__.py` at the repo root.
+2. Move the four pipeline/analysis scripts into `shared/`:
+   - `shared/livechat_to_csv.py`
+   - `shared/vtt_to_text.py`
+   - `shared/remove_dupe_lines.py`
+   - `shared/extract_comments.py`
+3. Add a `pyproject.toml` at the repo root declaring `shared` as an installable package, then run `pip install -e .` once to register it in the virtualenv. After that, any script anywhere in the repo can do `from shared.livechat_to_csv import ...` without touching `sys.path`.
+4. Update `youtube-downloader-app/src/main.py` imports from `from livechat_to_csv import ...` to `from shared.livechat_to_csv import ...`.
+5. Update both CLAUDE.md files and `youtube-study/analysis/README.md` to reflect the new locations.
+
+**Why `pyproject.toml` over `sys.path`:** A `sys.path.insert()` workaround would also work, but it is path-sensitive — it assumes scripts are always called from a fixed relative location, and breaks silently if the working directory changes. The `pyproject.toml` + `pip install -e .` approach installs `shared` into the virtualenv as a proper package, so imports resolve the same way regardless of where a script is run from. It also makes the dependency explicit and discoverable, rather than hidden in a path manipulation at the top of each file.
+
+### youtube-study: test all scripts end-to-end
+
+Run each script in `youtube-study/` against real output files to confirm they work correctly after being moved from their original locations.
+
+**Scripts to test:**
+
+| Script | Input | How to test |
+| --- | --- | --- |
+| `analysis/analyze.py` | Live chat CSV from `ytdownload/livechat.py` | Run and verify superchat stats and author table are produced |
+| `analysis/infojson2csv.py` | Directory of `.info.json` files from a download | Run and verify all video rows appear in output CSV |
+| `analysis/filter_chat.py` | Kick VOD chat CSV | Run and verify filtered CSV has fewer rows; check dropped counts |
+| `analysis/add_vod_offset.py` | Kick VOD chat CSV + `metadata.json` | Run and verify `vod_offset` column is populated correctly |
+| `analysis/timestamp_converter.py` | *(interactive — no file input)* | Run and convert a known EST time; verify epoch output is correct |
+| `convertcsv/convertcsv.py` | Manually copied YouTube live chat text file | Run and verify CSV columns are populated correctly |
+| `word_frequency/word_freq.py` | Any `.txt` transcript file | Run and verify `_freq.txt` output lists expected words |

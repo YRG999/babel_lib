@@ -9,7 +9,6 @@ This module provides tools for:
 - **Live chat capture** - Real-time YouTube live chat collection via YouTube Data API v3
 - **Live transcription** - Speech-to-text of live streams using mlx-whisper (run separately from live chat)
 - **Video downloading** - Download videos, comments, and metadata via yt-dlp
-- **Data analysis** - Statistical analysis of captured chat data
 
 ## Key Files
 
@@ -18,13 +17,12 @@ This module provides tools for:
 | `livechat.py` | Main live chat fetcher with API quota management |
 | `captions.py` | Real-time transcription using mlx-whisper (Apple Silicon optimized) — independent of `livechat.py` |
 | `download.py` | Video/transcript/chat downloader |
-| `analyze.py` | Chat statistics and superchat analysis |
 | `comments.py` | Download video comments to CSV |
-| `infojson2csv.py` | Convert yt-dlp `.info.json` files to CSV |
 | `extract_functions.py` | Shared helpers for emoji/text extraction |
-| `convertcsv/convertcsv.py` | Manual conversion of YouTube chat text dumps to CSV |
 | `merge_parts.py` | Generate ffmpeg filelist.txt to merge .mp4.part files |
 | `report_formats.py` | List available video formats for a URL |
+
+> **Analysis tools** (`analyze.py`, `infojson2csv.py`) have moved to [`youtube-study/analysis/`](../youtube-study/analysis/).
 
 ## Dependencies
 
@@ -82,5 +80,4 @@ All main scripts have interactive `main()` functions that prompt for input:
 ```bash
 python livechat.py   # Prompts for video URL/ID
 python captions.py   # Prompts for video URL/ID (Apple Silicon only)
-python analyze.py    # Prompts for CSV file path
 ```

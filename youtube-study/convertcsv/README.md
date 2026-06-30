@@ -20,7 +20,7 @@ To use `convertcsv.py`:
 
 ### user
 
-**Haven't tested** with live chat that doesn't include the username with an `@`. 
+**Haven't tested** with live chat that doesn't include the username with an `@`.
 
 ## Superchat .99 vs .00
 
