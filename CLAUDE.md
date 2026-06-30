@@ -60,6 +60,14 @@ bash dir_compare/dir_compare.sh <source> <dest> [--dry-run | --compare]
 - `captions.py` — real-time transcription (mlx-whisper, Apple Silicon GPU only); run simultaneously with `livechat.py` in a separate terminal
 - API key in `.env` as `YOUTUBE_API_KEY`; quota tracked in `.youtube_quota.json` (10,000 units/day)
 
+### `youtube-study/` — Stand-alone analysis tools
+
+Post-download analysis scripts for files produced by `youtube-downloader-app` and `ytdownload`. None of these are imported by the downloaders — all are run manually.
+
+- `analysis/` — chat CSV analysis, `.info.json` → CSV, Kick chat filtering, VOD offset backfill, timestamp converter
+- `convertcsv/` — convert manually copied YouTube live chat text to CSV (v2.3.0)
+- `word_frequency/` — word frequency analyzer for transcripts; filters stopwords to surface names and places
+
 ### `dir_compare/dir_compare.sh` — Directory sync utility
 
 - Copies files from source that are missing in destination
@@ -103,7 +111,7 @@ Established during the 2026-06-10 security review (rationale in `_doc/programmin
 
 ## After Every Change
 
-After any code change, update all related documentation as applicable: `CHANGELOG.md`, `README.md`, `CLAUDE.md`, and the session summary file.
+After any code change, update all related documentation as applicable: `README.md`, `CLAUDE.md`, and the session summary file. There is no root-level `CHANGELOG.md` — skip that step for root-level changes. Submodules that have their own `CHANGELOG.md` (e.g. `youtube-study/` subfolders, `youtube-downloader-app/`) should still be updated.
 
 ## Development Environment
 
@@ -111,4 +119,4 @@ After any code change, update all related documentation as applicable: `CHANGELO
 
 ## Session Summaries
 
-At the end of each session, add a summary of what was done to `_doc/claude_summaries/chat-summary_YYYY-MM-DD.md` using today's date. If a file for today already exists, append a new numbered section to it. If not, create it. Only include what is unique to the session — do not duplicate content already covered in a summary for the same date.
+At the end of each session, add a summary of what was done to `_doc/claude_summaries/chat-summary_YYYY-MM-DD.md` using today's date. If a file for today already exists, append a new numbered section to it. If not, create it. Only include what is unique to the session — do not duplicate content already covered in a summary for the same date. Do not mention changes made to gitignored directories (e.g. `_notes/`) — session summaries are committed to the repo and should only reflect tracked changes.

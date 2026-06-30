@@ -202,9 +202,16 @@ See [youtube-downloader-app README](/youtube-downloader-app/README.md) for more 
 
 ### ytdownload
 
-- `ytdownload/analyze.py` - Analyze a YouTube live chat CSV (message counts, superchats, stream duration).
 - `ytdownload/extract_functions.py` - Shared helpers for emoji/text extraction used by `download.py`.
 - `ytdownload/download.py` - Download video, description, transcript, comments, and live chat; converts comments & live chat to CSV.
+
+### youtube-study
+
+Stand-alone analysis tools for files produced by `youtube-downloader-app` and `ytdownload`:
+
+- `youtube-study/analysis/` — chat analysis (`analyze.py`), metadata extraction (`infojson2csv.py`), Kick chat filtering (`filter_chat.py`), VOD offset backfill (`add_vod_offset.py`), timestamp converter (`timestamp_converter.py`).
+- `youtube-study/convertcsv/convertcsv.py` — convert manually copied YouTube live chat text blocks to CSV.
+- `youtube-study/word_frequency/word_freq.py` — count significant word frequencies in transcripts, filtering stopwords to surface names and places.
 
 ### livechat downloader
 
