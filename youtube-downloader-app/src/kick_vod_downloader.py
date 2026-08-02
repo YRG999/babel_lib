@@ -13,6 +13,7 @@ import click
 import requests
 
 KICK_VIDEO_API = "https://kick.com/api/v1/video/{uuid}"
+KICK_CHANNEL_VIDEOS_API = "https://kick.com/api/v2/channels/{slug}/videos"
 KICK_CHAT_API = "https://web.kick.com/api/v1/chat/{channel_id}/history"
 CHAT_WINDOW_SECS = 5
 DEFAULT_CHAT_DELAY_MS = 300
@@ -29,11 +30,15 @@ HEADERS = {
 }
 
 
-def parse_vod_uuid(url: str) -> str:
-    m = re.search(r"/videos/([0-9a-f-]{36})", url)
+class KickNotFoundError(click.ClickException):
+    pass
+
+
+def parse_vod_url(url: str) -> tuple[str, str]:
+    m = re.search(r"kick\.com/([^/?#]+)/videos/([0-9a-f-]{36})", url)
     if not m:
-        raise click.BadParameter(f"Could not find a VOD UUID in URL: {url}")
-    return m.group(1)
+        raise click.BadParameter(f"Could not find a channel and VOD UUID in URL: {url}")
+    return m.group(1), m.group(2)
 
 
 def fetch_with_retry(url: str, params: dict | None = None) -> dict:
@@ -45,6 +50,10 @@ def fetch_with_retry(url: str, params: dict | None = None) -> dict:
                 click.echo(f"  Rate limited — waiting {wait}s...", err=True)
                 time.sleep(wait)
                 continue
+            if resp.status_code == 404:
+                # Permanent — retrying can't help (other 4xx like Cloudflare 403
+                # can be transient, so those still go through the retry loop).
+                raise KickNotFoundError(f"404 Not Found: {url}")
             resp.raise_for_status()
             return resp.json()
         except requests.RequestException as e:
@@ -52,6 +61,40 @@ def fetch_with_retry(url: str, params: dict | None = None) -> dict:
                 raise click.ClickException(f"Request failed after {MAX_RETRIES} attempts: {e}")
             time.sleep(min(2 ** attempt, 8))
     raise click.ClickException(f"Still rate-limited after {MAX_RETRIES} attempts: {url}")
+
+
+def resolve_legacy_uuid(slug: str, url_uuid: str) -> str:
+    """Map a new-style UUIDv7 video ID to the legacy UUIDv4 the v1 API accepts.
+
+    UUIDv7 embeds its creation time (ms since epoch) in the first 48 bits, which
+    matches the VOD's livestream start_time in the channel's videos listing. The
+    listing only returns the latest 30 VODs and does not paginate.
+    """
+    ts_ms = int(url_uuid.replace("-", "")[:12], 16)
+    target = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
+
+    listing = fetch_with_retry(KICK_CHANNEL_VIDEOS_API.format(slug=slug))
+    best_uuid, best_diff = None, None
+    for item in listing:
+        legacy = (item.get("video") or {}).get("uuid")
+        start = item.get("start_time")
+        if not legacy or not start:
+            continue
+        try:
+            diff = abs((parse_kick_datetime(start) - target).total_seconds())
+        except click.ClickException:
+            continue
+        if best_diff is None or diff < best_diff:
+            best_uuid, best_diff = legacy, diff
+
+    if best_uuid is None or best_diff > 5:
+        raise click.ClickException(
+            f"Could not resolve video ID {url_uuid} for channel {slug!r}. "
+            "The VOD may be deleted or expired, or it is older than the channel's "
+            "latest 30 VODs (Kick's listing doesn't go back further). "
+            "Check that the URL still plays in a browser."
+        )
+    return best_uuid
 
 
 def parse_kick_datetime(s: str) -> datetime:
@@ -206,11 +249,20 @@ def main(url, video_only, chat_only, chat_delay):
 
     chat_delay = max(100, chat_delay)
 
-    uuid = parse_vod_uuid(url)
+    slug, uuid = parse_vod_url(url)
     click.echo(f"VOD UUID: {uuid}")
 
     click.echo("Fetching VOD metadata...")
-    meta = fetch_with_retry(KICK_VIDEO_API.format(uuid=uuid))
+    try:
+        meta = fetch_with_retry(KICK_VIDEO_API.format(uuid=uuid))
+    except KickNotFoundError:
+        # New-style URLs carry a UUIDv7 the v1 API doesn't know; map it to the
+        # legacy UUIDv4 via the channel's videos listing.
+        click.echo("  New-style Kick video ID — resolving legacy UUID via channel listing...")
+        uuid = resolve_legacy_uuid(slug, uuid)
+        click.echo(f"  Legacy UUID: {uuid}")
+        meta = fetch_with_retry(KICK_VIDEO_API.format(uuid=uuid))
+    download_url = f"https://kick.com/{slug}/videos/{uuid}"
 
     # The /api/v1/video/{uuid} response nests stream data under "livestream".
     livestream = meta.get("livestream") or {}
@@ -250,7 +302,7 @@ def main(url, video_only, chat_only, chat_delay):
 
         if not chat_only:
             click.echo("\nDownloading video via yt-dlp...")
-            result = subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", "--", url])
+            result = subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", "--", download_url])
             if result.returncode != 0:
                 raise click.ClickException("yt-dlp failed (see output above).")
 

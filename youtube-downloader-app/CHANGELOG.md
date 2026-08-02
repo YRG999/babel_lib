@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2026-08-02
+
+### Fixed
+
+- `kick_vod_downloader.py`: support Kick's new-style UUIDv7 video URLs. Kick's frontend now puts UUIDv7 IDs in `/videos/` URLs, but the `api/v1/video/{uuid}` metadata endpoint (also used internally by yt-dlp) only accepts the legacy UUIDv4 IDs, so downloads failed with `404 Client Error`. On a 404, the downloader now decodes the timestamp embedded in the UUIDv7 and matches it against `start_time` in `api/v2/channels/{slug}/videos` to recover the legacy UUID, then uses that for both the metadata fetch and the yt-dlp video download. Limitation: the channel listing only returns the latest 30 VODs (no pagination), so older VODs with new-style URLs fail with an explanatory error. Legacy-UUID URLs work unchanged.
+- `kick_vod_downloader.py`: a 404 from the Kick API is no longer retried 5 times with backoff — it fails (or triggers UUID resolution) immediately. Other 4xx errors (e.g. transient Cloudflare 403s on the chat API) still go through the retry loop.
+
 ## [2.4.0] - 2026-06-10
 
 ### Added

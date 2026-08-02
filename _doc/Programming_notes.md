@@ -2,6 +2,7 @@
 
 *Troubleshooting log — add new entries here when you encounter and solve a specific problem. Include: date, problem, cause, fix, and references. For reference tables, API links, and conceptual notes organized by topic, use [programming_reference.md](programming_reference.md).*
 
+- [Kick VOD 404: new UUIDv7 video URLs](#kick-vod-404-new-uuidv7-video-urls)
 - [Claude Code custom skills: project vs user level](#claude-code-custom-skills-project-vs-user-level)
 - [Claude Code skills: simplify, loop, schedule, and more](#claude-code-skills-simplify-loop-schedule-and-more)
 - [kick_vod_downloader.py: FixupM3u8 failure and missing chat](#kick_vod_downloaderpy-fixupm3u8-failure-and-missing-chat)
@@ -15,6 +16,18 @@
 - [VS Code black screen UI](#vs-code-black-screen-ui)
 - [Update GitHub CLI passphrase & add once](#update-github-cli-passphrase--add-once)
 - [yt-dlp downloading audio-only webm](#yt-dlp-downloading-audio-only-webm)
+
+## Kick VOD 404: new UUIDv7 video URLs
+
+- *Sun, Aug 2, 2026*
+
+**Problem:** `kick_vod_downloader.py` failed with `Error: Request failed after 5 attempts: 404 Client Error: Not Found for url: https://kick.com/api/v1/video/{uuid}` — but the VOD played fine in a browser.
+
+**Cause:** Kick's frontend switched to UUIDv7 video IDs in `/videos/` URLs (recognizable by the timestamp prefix, e.g. `019f...`). The `api/v1/video/{uuid}` endpoint — also what yt-dlp's Kick extractor calls — still only accepts the legacy UUIDv4 IDs, so both the metadata fetch and the yt-dlp download 404 on new-style URLs. The endpoint itself is fine: legacy UUIDs still return 200.
+
+**Fix (v2.4.1):** A UUIDv7's first 48 bits encode its creation time in ms since epoch, which matches the VOD's livestream `start_time` to the second. On a 404, the downloader now fetches `GET kick.com/api/v2/channels/{slug}/videos` (public, no auth), matches the decoded timestamp against each entry's `start_time` (±5 s), and uses the matching entry's legacy `video.uuid` for both the metadata fetch and the yt-dlp URL. Also stopped retrying 404s in `fetch_with_retry` (permanent errors were retried 5× with backoff); other 4xx like transient Cloudflare 403s on the chat API still retry.
+
+**Limitation:** the channel videos listing returns only the latest 30 VODs and ignores `cursor`/`page`/`offset`/`limit`, so a new-style URL for an older VOD fails with an explanatory error message.
 
 ## Claude Code custom skills: project vs user level
 

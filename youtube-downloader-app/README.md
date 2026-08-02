@@ -210,6 +210,8 @@ python src/kick_vod_downloader.py [OPTIONS] "URL"
 https://kick.com/username/videos/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
+Both Kick video ID formats are accepted: legacy UUIDs (v4) are used directly, and new-style UUIDs (v7, as shown in Kick's current frontend URLs — they start with the timestamp, e.g. `019f...`) are resolved automatically via the channel's videos listing. Because that listing only returns a channel's 30 most recent VODs, a new-style URL for an older VOD cannot be resolved — the script will say so explicitly.
+
 | Option | Description |
 | --- | --- |
 | `--video-only` | Download video only, skip chat |
