@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-08-18
+
+### Added
+
+- `main.py`: new `--sabr` flag (YouTube full-download mode only) — downloads the video via YouTube's SABR streaming protocol using the dev build of yt-dlp ([PR #13515](https://github.com/yt-dlp/yt-dlp/pull/13515)) installed in a separate, gitignored `venv-sabr` virtualenv, leaving the pinned stable yt-dlp untouched. SABR is not subject to the per-URL data cap YouTube applies to regular https media URLs on distrusted IPs (see 2.4.2 below), making this the only working full-video path on VPN exits. Subprocess call follows the repo security practices (list args, `--` before the URL). Mutually exclusive with the `*-only` modes and Kick URLs. See README "SABR downloads" for one-time setup.
+- PO tokens for the SABR path come from [yt-dlp-getpot-wpc](https://github.com/coletdjnz/yt-dlp-getpot-wpc) (browser-attested, via a logged-out throwaway Chrome instance) instead of bgutil: SABR video streams re-validate the token mid-stream and reject bgutil's synthetic tokens at ~5 MB ("This stream requires a GVS PO Token to continue and the one provided is invalid"). bgutil must not be installed in `venv-sabr` (it outranks wpc). Known issue documented in the README: `nodriver` 0.50.3 needs a one-time UTF-8 re-encode of `cdp/network.py`.
+
+## [2.4.2] - 2026-08-18
+
+### Fixed
+
+- YouTube downloads failing with `ERROR: unable to download video data: HTTP Error 403: Forbidden` (with or without `--cookies`), while format listing still worked. Two independent causes, both required for the fix:
+  1. **Missing PO token provider.** YouTube now requires a GVS PO token to serve media URLs, and no provider was installed (`yt-dlp -v` showed `PO Token Providers: none`). Fix: added the [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) plugin (`>=1.3.1`, recommended by the [yt-dlp PO-Token-Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)) to `requirements.txt`, used in script mode: its generation script must be cloned and built once at `~/bgutil-ytdlp-pot-provider` (Node.js ≥ 20) — see README Installation step 4. The plugin auto-registers with yt-dlp for both the library path (`downloader.py`) and the subprocess path (`main.py` Kick fallback).
+  2. **Per-URL data cap on media URLs (IP-reputation enforcement).** Even with a valid PO token, YouTube served only the first few hundred KB of any media URL to this connection (a VPN exit IP), then 403'd: 10 KB test fetches always succeeded, full downloads always failed, and 64 KB-chunked downloads died after ~400 KB. This is server-side throttling of a distrusted IP, not something client code can bypass (HLS fallback was explored but YouTube stopped offering HLS manifests to the session, and the `ios` client's HLS needs a PO token variant the bgutil provider doesn't generate). Mitigations in `downloader.py`: the default mode is now split into two yt-dlp passes — the video alone first (its URLs are used immediately after extraction), then metadata + subtitles + live chat (`skip_download`) second — and the video pass sets `check_formats: 'selected'` to skip outright-dead format URLs (the small test fetch cannot detect the data cap itself). Single-pass behavior for `--metadata-only`, `--transcript-only`, and `--comments-only` is unchanged (they never download video). Full resolution requires a reputable IP (e.g. a different VPN exit or a direct connection).
+
 ## [2.4.1] - 2026-08-02
 
 ### Fixed

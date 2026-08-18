@@ -32,6 +32,8 @@ CLI tools for downloading YouTube and Kick.com videos, metadata, transcripts, an
 - `yt-dlp` — video downloading
 - `ffmpeg` — stream merging (required for MP4 output)
 - `playwright` — Kick live stream fallback (headless browser)
+- `bgutil-ytdlp-pot-provider` — YouTube PO token plugin (pip) + its generation script cloned/built once at `~/bgutil-ytdlp-pot-provider` (Node ≥ 20); without it YouTube media downloads 403 (see README Installation step 4)
+- `venv-sabr/` (repo root, optional, gitignored) — SABR dev build of yt-dlp ([PR #13515](https://github.com/yt-dlp/yt-dlp/pull/13515)) + `yt-dlp-getpot-wpc` (needs Google Chrome), used only by `main.py --sabr`; the only working full-video path on VPN/distrusted IPs, where YouTube caps regular media URLs at a few hundred KB. Never install bgutil into `venv-sabr` (outranks wpc, breaks video). Setup + known nodriver 0.50.3 UTF-8 fix: README → "SABR downloads"
 
 **Python packages:**
 

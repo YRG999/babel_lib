@@ -38,30 +38,35 @@ class YouTubeDownloader:
         if not skip_video:
             self._warn_if_missing_ffmpeg()
 
-        ydl_opts = {
+        base_opts = {
             'progress_hooks': [self._progress_hook],
             'ignoreerrors': True,
             'no_warnings': True,
             'remote_components': 'ejs:github',
         }
+        if self.use_cookies:
+            base_opts['cookiesfrombrowser'] = ('firefox',)
 
         if self.comments_only:
-            ydl_opts.update({
+            passes = [{
+                **base_opts,
                 'format': 'best',
                 'skip_download': True,
                 'writeinfojson': True,
                 'getcomments': True,
-            })
+            }]
         elif self.transcript_only:
-            ydl_opts.update({
+            passes = [{
+                **base_opts,
                 'format': 'best',
                 'skip_download': True,
                 'writesubtitles': True,
                 'writeautomaticsub': True,
                 'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU'],
-            })
+            }]
         elif self.metadata_only:
-            ydl_opts.update({
+            metadata_opts = {
+                **base_opts,
                 'format': 'best',
                 'skip_download': True,
                 'writesubtitles': True,
@@ -69,32 +74,49 @@ class YouTubeDownloader:
                 'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU', 'live_chat'],
                 'writedescription': True,
                 'writeinfojson': True,
-            })
+            }
             if self.download_comments:
-                ydl_opts['getcomments'] = True
+                metadata_opts['getcomments'] = True
+            passes = [metadata_opts]
         else:
-            ydl_opts.update({
-                # Prefer separate best video + best audio, and fall back to single-file best.
-                'format': 'bv*+ba/best',
-                # Only force the final container to mp4, if possible.
-                'merge_output_format': 'mp4',
+            # Two passes: the video first, then metadata + live chat. Within a
+            # single pass yt-dlp downloads subtitles (including a potentially
+            # slow live chat replay) before the video; downloading the video
+            # first, immediately after its URLs are extracted, gives YouTube the
+            # least room to reject them (HTTP 403) under its 2026 anti-download
+            # enforcement.
+            metadata_opts = {
+                **base_opts,
+                'format': 'best',
+                'skip_download': True,
                 'writesubtitles': True,
                 'writeautomaticsub': True,
                 'subtitleslangs': ['en', 'en-US', 'en-GB', 'en-AU', 'live_chat'],
                 'writedescription': True,
                 'writeinfojson': True,
-            })
+            }
             if self.download_comments:
-                ydl_opts['getcomments'] = True
-
-        if self.use_cookies:
-            ydl_opts['cookiesfrombrowser'] = ('firefox',)
+                metadata_opts['getcomments'] = True
+            video_opts = {
+                **base_opts,
+                # Prefer separate best video + best audio, and fall back to single-file best.
+                'format': 'bv*+ba/best',
+                # Test the selected format URLs before downloading and fall back
+                # to other formats if they are outright dead. Note this cannot
+                # catch YouTube's per-URL data cap (the test fetch is small and
+                # succeeds even on URLs that later 403 mid-download).
+                'check_formats': 'selected',
+                # Only force the final container to mp4, if possible.
+                'merge_output_format': 'mp4',
+            }
+            passes = [video_opts, metadata_opts]
 
         try:
-            with YoutubeDL(cast(Any, ydl_opts)) as ydl:
-                for url in urls:
-                    print(f"Processing: {url}")
-                    ydl.download([url])
+            for ydl_opts in passes:
+                with YoutubeDL(cast(Any, ydl_opts)) as ydl:
+                    for url in urls:
+                        print(f"Processing: {url}")
+                        ydl.download([url])
             return self.filenames
         except Exception as e:
             print(f"Error: {e}")

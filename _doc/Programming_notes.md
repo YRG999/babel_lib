@@ -2,6 +2,7 @@
 
 *Troubleshooting log — add new entries here when you encounter and solve a specific problem. Include: date, problem, cause, fix, and references. For reference tables, API links, and conceptual notes organized by topic, use [programming_reference.md](programming_reference.md).*
 
+- [YouTube 403 Forbidden: missing PO token provider](#youtube-403-forbidden-missing-po-token-provider)
 - [Kick VOD 404: new UUIDv7 video URLs](#kick-vod-404-new-uuidv7-video-urls)
 - [Claude Code custom skills: project vs user level](#claude-code-custom-skills-project-vs-user-level)
 - [Claude Code skills: simplify, loop, schedule, and more](#claude-code-skills-simplify-loop-schedule-and-more)
@@ -16,6 +17,54 @@
 - [VS Code black screen UI](#vs-code-black-screen-ui)
 - [Update GitHub CLI passphrase & add once](#update-github-cli-passphrase--add-once)
 - [yt-dlp downloading audio-only webm](#yt-dlp-downloading-audio-only-webm)
+
+## YouTube 403 Forbidden: missing PO token provider
+
+- *Tue, Aug 18, 2026*
+
+**Problem:** `python main.py "https://www.youtube.com/watch?v=..."` failed with `ERROR: unable to download video data: HTTP Error 403: Forbidden`, with or without `--cookies`. Format listing (`yt-dlp -F`) still worked — only fetching the actual media bytes 403'd.
+
+**Cause:** YouTube now requires a GVS PO token to serve media URLs. yt-dlp was already at the latest version (2026.7.4) and the JS challenge side was fine (deno found), but `yt-dlp -v` showed `PO Token Providers: none`. Cookies don't help — the PO token is separate from login. Forcing `--extractor-args "youtube:player_client=android"` downloads video but loses automatic captions, so it's not a usable workaround for this app.
+
+**Fix (v2.4.2):** Installed the [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) plugin (the yt-dlp wiki's recommended provider) in script mode: `pip install bgutil-ytdlp-pot-provider` (added to both requirements files), plus a one-time clone + build of its generation script at the default location `~/bgutil-ytdlp-pot-provider` (`cd server && npm ci && npx tsc`, Node ≥ 20). yt-dlp auto-detects both, so no code changes were needed. Verified: `yt-dlp -v` now lists `bgutil:script-node` / `bgutil:script-deno` providers and the previously failing video downloads.
+
+**Note:** each run prints a harmless `WARNING: [youtube] [pot:bgutil:http] Error reaching GET http://127.0.0.1:4416/ping` — the plugin probes for its optional server mode first, then falls back to the script. Ignore it (the app itself sets `no_warnings`, so it only appears in direct CLI runs).
+
+**Second cause (v2.4.2, same day):** with the PO token in place, small test fetches (`--test`, 10 KB) always succeeded but *full* downloads still 403'd. Isolated to a per-URL data cap: a 64 KB-chunked download died after ~400 KB; 1 MB chunks and unchunked requests were rejected immediately. Root of it: for this connection (a commercial VPN exit), YouTube forces the SABR-only streaming experiment on the web clients ([yt-dlp #12482](https://github.com/yt-dlp/yt-dlp/issues/12482)), removing their normal https URLs — the only https formats left come from the `android_vr` client, which the bgutil provider cannot make PO tokens for, and YouTube caps those tokenless URLs at a few hundred KB. Confirmed it is not chat traffic, not elapsed time (URLs survive a 90 s wait), not the cached visitor ID (`--rm-cache-dir` changed nothing), and not exit-specific (two different VPN exits behaved identically). HLS fallback is unavailable (manifests not offered; `ios` HLS needs an unsupported PO token variant). `downloader.py` mitigations: default mode split into two passes (video first, immediately after URL extraction; metadata + live chat second) plus `check_formats: 'selected'`. Full downloads on a VPN IP additionally need one of: a non-flagged IP (VPN off / split tunnel), fresh logged-in cookies (`--cookies`, account risk on VPN IPs), or yt-dlp's SABR support once [PR #13515](https://github.com/yt-dlp/yt-dlp/pull/13515) merges — **TODO: check back after 2026-09** and re-test on the stable release. Note: `--cookies` reads live Firefox cookies, and yt-dlp warns `The provided YouTube account cookies are no longer valid` if the browser session has expired or rotated — the flag only helps while actually logged in to YouTube in Firefox.
+
+**Resolution (v2.5.0, same day) — SABR via `--sabr`:** installed the PR #13515 dev build of yt-dlp into a separate gitignored `venv-sabr` and added a `--sabr` flag to `main.py` that routes the video download through it as a subprocess. SABR is not subject to the per-URL cap. Two lessons from getting it working:
+
+1. **SABR video streams re-validate the PO token mid-stream** and reject bgutil's synthetic tokens at a deterministic ~5 MB (`This stream requires a GVS PO Token to continue and the one provided is invalid`); a full 70 MB *audio* stream passed, so the re-check is video-specific. Fix: use [yt-dlp-getpot-wpc](https://github.com/coletdjnz/yt-dlp-getpot-wpc) in `venv-sabr` instead — it mints browser-attested tokens by driving a logged-out, throwaway Chrome instance (nodriver; fresh temp profile, cookies cleared, loads only youtube.com, window minimized). bgutil must be *uninstalled* from `venv-sabr`: when both are present, bgutil outranks wpc and video downloads keep failing.
+2. **`nodriver` 0.50.3 packaging bug:** ships a Latin-1 `±` byte in `cdp/network.py` (`#: JSON (±Inf).`), so importing the wpc plugin dies with `SyntaxError: Non-UTF-8 code starting with '\xb1'`. One-time fix: re-encode the file latin-1 → UTF-8 (snippet in the app README's "SABR downloads" section). Upstream bug: [nodriver#35](https://github.com/ultrafunkamsterdam/nodriver/issues/35) (open since 2026-03-31, no maintainer response; reported on Linux/Py3.14 — reproduced here on macOS, so it's the wheel, not the platform).
+
+**Security review of `yt-dlp-getpot-wpc`** (done before installing, by downloading the wheel — v1.1.2 — and reading the source, `yt_dlp_plugins/extractor/getpot_wpc.py`):
+
+- **What it runs:** an automated Chrome instance (via the `nodriver` library) plus Google's own BotGuard attestation JavaScript — the same code every visitor to youtube.com executes. The window is launched visible but immediately minimized (BotGuard detects headless browsers); don't close it mid-download.
+- **Profile isolation (verified in source):** no `user_data_dir` is passed to nodriver, so Chrome starts with a fresh temporary profile — the real Chrome profile is never touched. The plugin then explicitly calls `browser.cookies.clear()` before loading anything, and loads exactly one page (`youtube.com`). Result: a guaranteed logged-out guest session; tokens are visitor-bound, never account-bound, and no personal cookies or logins are involved.
+- **Exposure to Google:** a clean automated-browser fingerprint from the current IP — equivalent to opening a fresh private-mode window on youtube.com. Not the user's browsing identity or account.
+- **Local attack surface:** an unprivileged Chromium process under the user account with Chromium's own sandbox — the same risk class as the Playwright automation this repo already uses for the Kick live fallback.
+- **Supply chain:** open source, maintained by a yt-dlp core maintainer (coletdjnz) — the same trust tier as `bgutil-ytdlp-pot-provider`, which the yt-dlp wiki recommends alongside it. Installed only in the isolated `venv-sabr`, not the main venv.
+- **Why a browser at all:** PO tokens come from BotGuard, which probes its environment to attest "real browser". bgutil coaxes tokens out of BotGuard in a bare Deno runtime (synthetic, "cold start" tokens) — good enough for the initial check, rejected by the mid-stream re-check on video. wpc lets the attestation run where it expects to run, so the token is genuine.
+
+Also ruled out along the way: `android_vr`'s supposedly token-exempt format 18 ([yt-dlp #17348](https://github.com/yt-dlp/yt-dlp/issues/17348), the 2026-08-02 change that started all of this) still 403s from this IP, and `--http-chunk-size` cannot dodge the cap (64 KB chunks died cumulatively at ~400 KB). Verified end-to-end: `python main.py --sabr <url>` downloads the full video + chat + metadata on the VPN.
+
+**Reference:** [yt-dlp PO-Token-Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)
+
+### In plain English
+
+Think of downloading a YouTube video as picking up a package from a warehouse. Our downloader could still walk up to the front desk and get the list of available packages (that part worked fine), but when it went to the loading dock to actually pick one up, the guard turned it away — that's the "403 Forbidden" error.
+
+Why? YouTube added a new kind of entry pass. To hand over the actual video file, its servers now want a special one-time ticket ("PO token") proving the request comes from something that behaves like a real YouTube player. Being logged in doesn't help — the ticket is a separate thing from your account, which is why using browser cookies made no difference. Our tools simply had nothing that could produce this ticket.
+
+The fix was to install a small, community-trusted helper (recommended by the yt-dlp project itself) that generates these tickets automatically. It was set up once — installed alongside the other tools plus a small one-time build step in the home folder — and now every download quietly gets a valid ticket behind the scenes. Nothing about how you run the downloader changed, and no project code had to be modified.
+
+One cosmetic side effect: downloads now print a warning about not reaching `127.0.0.1:4416`. That's just the helper first checking whether a faster "always-on" version of itself is running before falling back to its normal mode. It's expected and safe to ignore.
+
+**Update, same day:** the ticket fixed part of the problem, but downloads still failed. It turned out YouTube treats connections coming from commercial VPN services with extra suspicion: it hides the download links that would accept our ticket, and the leftover links it does offer get cut off after the first few hundred kilobytes — enough to pass a quick check, never enough for a whole video. No download tool can talk its way past that; the connection itself has to look trustworthy. The practical options are downloading without the VPN (or excluding YouTube from it), or waiting for the downloader project to finish support for YouTube's new streaming protocol, which sidesteps the hidden-link problem.
+
+**Final resolution:** we didn't wait — a pre-release version of the downloader already speaks that new streaming protocol, so it now lives in its own separate toolbox (`venv-sabr`) and is used only when you add `--sabr` to the download command. Two more wrinkles surfaced: partway into a video, YouTube demands the ticket be shown again, and this time it checks harder — our machine-made tickets failed the second inspection. The answer was a second helper that gets tickets the honest way: it briefly opens a real, logged-out, throwaway Chrome window (you'll see it appear minimized in the dock — don't close it), lets YouTube's own checks run in it, and passes the resulting genuine ticket along. Nothing about your personal browser, profile, or account is involved. With that in place, full videos download over the VPN again — just more slowly, because YouTube feeds this protocol at its own pace.
+
+Why would the helper ever run as a little local web server? Two reasons. First, the ticket-maker isn't written in the same programming language as the downloader, so the downloader can't just call it like one of its own functions — it has to hand the request to a separate program and wait for the answer. A tiny web server listening on your own machine (that's what the `127.0.0.1:4416` address is — your computer talking to itself, nothing on the internet) is a standard way for two programs in different languages to pass messages. Second, making each ticket involves starting up a mini JavaScript environment and running YouTube's own checking code, which takes a few seconds every time. An always-running server pays that startup cost once and then stays warm, so people who download constantly get their tickets faster. For occasional use like ours, that speed-up isn't worth keeping an extra program running in the background, so we use the simpler mode: the downloader just launches the ticket-maker fresh for each download and lets it exit when done.
 
 ## Kick VOD 404: new UUIDv7 video URLs
 

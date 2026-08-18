@@ -25,6 +25,8 @@ External tools required by various scripts:
 - `yt-dlp` — included in `requirements.txt`
 - `ffmpeg` — `brew install ffmpeg` (required for video merging and `captions.py`)
 - `playwright` — in `requirements.txt`, but also needs a one-time `playwright install firefox` to download the browser (Kick live stream fallback in `youtube-downloader-app`)
+- `bgutil-ytdlp-pot-provider` — in `requirements.txt`, but also needs a one-time clone + build of its generation script at `~/bgutil-ytdlp-pot-provider` (Node ≥ 20; see `youtube-downloader-app/README.md` Installation step 4). Without it, YouTube downloads fail with `HTTP Error 403: Forbidden` (missing PO token).
+- `venv-sabr/` (optional, gitignored) — separate virtualenv holding the SABR dev build of yt-dlp + `yt-dlp-getpot-wpc` (requires Google Chrome), used only by `main.py --sabr` for full YouTube video downloads on IPs where regular downloads are capped (e.g. VPN exits). Setup in `youtube-downloader-app/README.md` → "SABR downloads". Do NOT install bgutil in `venv-sabr`.
 
 ## Running Scripts
 

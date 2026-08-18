@@ -53,6 +53,25 @@ youtube-downloader-app
 
 3. Install [FFmpeg](https://ffmpeg.org/download.html) for merging audio and video streams into a single MP4 file.
 
+4. Build the YouTube PO token generation script (one-time). YouTube now requires a
+   "PO token" to serve video data; without one, downloads fail with
+   `ERROR: unable to download video data: HTTP Error 403: Forbidden` even though the
+   format listing works. The [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider)
+   plugin (installed via `requirements.txt`) generates tokens automatically, but it
+   also needs its generation script cloned and built at the default location in your
+   home directory (requires Node.js ≥ 20):
+
+   ```zsh
+   git clone --depth 1 --branch 1.3.1 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git ~/bgutil-ytdlp-pot-provider
+   cd ~/bgutil-ytdlp-pot-provider/server
+   npm ci && npx tsc
+   ```
+
+   yt-dlp finds the script there automatically — no configuration or code changes
+   needed. A per-run warning about `http://127.0.0.1:4416` being unreachable is
+   harmless: it is the plugin probing for its optional server mode before falling
+   back to the script.
+
 ## Usage
 
 ```zsh
@@ -73,6 +92,7 @@ python src/main.py [OPTIONS] "URL"
 | `--video-only` | (Kick VOD only) Download video only, skip chat |
 | `--chat-only` | (Kick VOD only) Download chat only, skip video |
 | `--chat-delay N` | (Kick VOD only) Milliseconds between chat API requests (default: 300, min: 100) |
+| `--sabr` | (YouTube full-download mode only) Download via the SABR dev build of yt-dlp in `venv-sabr` — use when regular downloads 403 or die after a few hundred KB (e.g. on VPN/distrusted IPs). Slower (YouTube paces delivery) and briefly opens a minimized Chrome window. Setup: see "SABR downloads" below |
 | `--help` | Show help message and exit |
 
 ### Examples
@@ -134,6 +154,52 @@ Download a Kick VOD video only (skip chat):
 ```zsh
 python src/main.py --video-only "https://kick.com/username/videos/UUID"
 ```
+
+## SABR downloads (`--sabr`)
+
+Since August 2026, YouTube requires PO tokens for nearly all direct media URLs and, on
+distrusted IPs (VPN exits, datacenters), serves only the first few hundred KB of them
+before returning 403 — even with the PO token plugin installed. YouTube's own SABR
+streaming protocol is not subject to that cap. yt-dlp's SABR support is an unmerged
+dev build ([PR #13515](https://github.com/yt-dlp/yt-dlp/pull/13515)), so it lives in a
+**separate virtualenv** (`venv-sabr`, gitignored) and is only used when you pass `--sabr`;
+the pinned stable yt-dlp is untouched.
+
+One-time setup (repo root; Google Chrome must be installed):
+
+```zsh
+python -m venv venv-sabr
+venv-sabr/bin/pip install "yt-dlp[default,curl-cffi] @ git+https://github.com/yt-dlp/yt-dlp.git@refs/pull/13515/head" yt-dlp-getpot-wpc
+```
+
+Then:
+
+```zsh
+python src/main.py --sabr "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+Notes:
+
+- **Token provider:** SABR video streams re-validate the PO token mid-stream and reject
+  the synthetic tokens from `bgutil-ytdlp-pot-provider` (downloads die at ~5 MB with
+  "This stream requires a GVS PO Token to continue"). `venv-sabr` therefore uses
+  [yt-dlp-getpot-wpc](https://github.com/coletdjnz/yt-dlp-getpot-wpc) instead, which
+  mints browser-attested tokens by driving a **logged-out, throwaway Chrome instance**
+  (fresh temporary profile, cookies cleared, loads only youtube.com). Do not install
+  the bgutil plugin in `venv-sabr` — it outranks wpc and breaks video downloads.
+
+- A minimized Chrome window appears during downloads — that's wpc; don't close it.
+- Downloads are slower than normal: YouTube paces SABR delivery (a 720p feature-length
+  video can take an hour).
+
+- **Known issue:** `nodriver` 0.50.3 (a wpc dependency) ships a non-UTF-8 byte in
+  `cdp/network.py` that breaks the plugin with `SyntaxError: Non-UTF-8 code`
+  (upstream bug: [nodriver#35](https://github.com/ultrafunkamsterdam/nodriver/issues/35),
+  open since 2026-03). Fix by re-encoding the file once:
+  `python -c "import pathlib; p = pathlib.Path('venv-sabr/lib/python3.14/site-packages/nodriver/cdp/network.py'); p.write_bytes(p.read_bytes().decode('latin-1').encode('utf-8'))"`
+
+- **TODO (check back after 2026-09):** when PR #13515 merges into stable yt-dlp,
+  fold SABR into the normal flow and retire `venv-sabr`.
 
 ## Downloading a channel
 

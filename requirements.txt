@@ -32,6 +32,9 @@ tqdm>=4.65.0
 urllib3>=2.2.1
 websockets>=12.0
 yt-dlp[default,curl-cffi]>=2024.5.7
+# YouTube PO token provider plugin. Also needs the generation script built at
+# ~/bgutil-ytdlp-pot-provider (see youtube-downloader-app/README.md).
+bgutil-ytdlp-pot-provider>=1.3.1
 googlemaps>=4.10.0
 browser-cookie3>=0.20.1
 click>=8.1.0

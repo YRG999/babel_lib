@@ -11,6 +11,7 @@ kickcomcookies.txt
 output/
 radius/map_with_radius.html
 venv/
+venv-sabr/
 videos/
 youtube-downloader-app/kick_output*/
 youtube-downloader-app/output*/
