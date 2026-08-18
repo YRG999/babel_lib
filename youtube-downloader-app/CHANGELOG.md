@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2026-08-18
+
+### Fixed
+
+- `--transcript-only`, `--metadata-only`, and `--comments-only` could fail completely (e.g. a transient PO token error) and still print `"All output files saved in: outputN"`, because `downloader.py` set `ignoreerrors: True` and `no_warnings: True` on the yt-dlp options and swallowed the result, `convert_transcripts()` silently no-op'd when no `.vtt` files existed, and `main.py`'s `finally` block always printed the success message. Now: yt-dlp warnings are no longer suppressed, a non-zero return from `ydl.download()` prints an explicit warning, `convert_transcripts()` reports when no subtitle files were found, and the final message warns instead of claiming success when the output folder ends up empty.
+- `downloader.py`: `'remote_components': 'ejs:github'` was a bare string, which yt-dlp iterated character-by-character (`WARNING: Ignoring unsupported remote component(s): j, g, t, u, e, b, h, :, i, s`) and rejected in full — it should be `['ejs:github']`. This had been silently defeating the security-recommended remote-components setting (see CLAUDE.md "Security Practices") since it was added; the warning was previously hidden by `no_warnings: True`.
+
 ## [2.5.0] - 2026-08-18
 
 ### Added

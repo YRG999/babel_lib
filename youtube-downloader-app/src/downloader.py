@@ -41,8 +41,7 @@ class YouTubeDownloader:
         base_opts = {
             'progress_hooks': [self._progress_hook],
             'ignoreerrors': True,
-            'no_warnings': True,
-            'remote_components': 'ejs:github',
+            'remote_components': ['ejs:github'],
         }
         if self.use_cookies:
             base_opts['cookiesfrombrowser'] = ('firefox',)
@@ -116,7 +115,8 @@ class YouTubeDownloader:
                 with YoutubeDL(cast(Any, ydl_opts)) as ydl:
                     for url in urls:
                         print(f"Processing: {url}")
-                        ydl.download([url])
+                        if ydl.download([url]) != 0:
+                            print(f"Warning: yt-dlp reported errors for {url} — see output above.")
             return self.filenames
         except Exception as e:
             print(f"Error: {e}")

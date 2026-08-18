@@ -26,6 +26,8 @@ def get_new_output_folder(base_name="output"):
 def convert_transcripts():
     """Convert all VTT files to text and deduplicate."""
     vtt_files = glob.glob("*.vtt")
+    if not vtt_files:
+        click.echo("No .vtt subtitle files found to convert.", err=True)
     for vtt_file in vtt_files:
         txt_file = vtt_to_text(vtt_file)
         if not txt_file:
@@ -244,7 +246,14 @@ def main(url, cookies, comments, metadata_only, transcript_only, comments_only, 
 
     finally:
         os.chdir(original_cwd)
-        click.echo(f"All output files saved in: {output_folder}")
+        if os.listdir(output_folder):
+            click.echo(f"All output files saved in: {output_folder}")
+        else:
+            click.echo(
+                f"Warning: {output_folder} is empty — the download likely failed. "
+                "Check the output above for errors.",
+                err=True,
+            )
 
 if __name__ == "__main__":
     main()
