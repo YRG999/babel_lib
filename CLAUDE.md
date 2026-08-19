@@ -107,9 +107,7 @@ Established during the 2026-06-10 security review (rationale in `_doc/programmin
 
 ## Documentation
 
-- `_doc/programming_notes.md` — Dated troubleshooting log (problem/cause/fix)
-- `_doc/programming_reference.md` — API links and how-to reference
-- `_doc/README.md` — Full index of docs and session summaries
+See [README.md § Additional documentation](README.md#additional-documentation) for the doc file index (`_doc/programming_notes.md`, `_doc/programming_reference.md`, `_doc/README.md`).
 
 ## After Every Change
 
@@ -122,3 +120,5 @@ After any code change, update all related documentation as applicable: `README.m
 ## Session Summaries
 
 At the end of each session, add a summary of what was done to `_doc/claude_summaries/chat-summary_YYYY-MM-DD.md` using today's date. If a file for today already exists, append a new numbered section to it. If not, create it. Only include what is unique to the session — do not duplicate content already covered in a summary for the same date. Do not mention changes made to gitignored directories (e.g. `_notes/`) — session summaries are committed to the repo and should only reflect tracked changes.
+
+After writing a new `chat-summary_YYYY-MM-DD.md` file (not when only appending a section to one that already has a table row), add a one-line row for it to the `claude_summaries/` table in `_doc/README.md`.

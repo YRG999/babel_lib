@@ -21,6 +21,7 @@
 ## YouTube 403 Forbidden: missing PO token provider
 
 - *Tue, Aug 18, 2026*
+- **Session:** [chat-summary_2026-08-18.md](claude_summaries/chat-summary_2026-08-18.md)
 
 **Problem:** `python main.py "https://www.youtube.com/watch?v=..."` failed with `ERROR: unable to download video data: HTTP Error 403: Forbidden`, with or without `--cookies`. Format listing (`yt-dlp -F`) still worked — only fetching the actual media bytes 403'd.
 
@@ -69,6 +70,7 @@ Why would the helper ever run as a little local web server? Two reasons. First, 
 ## Kick VOD 404: new UUIDv7 video URLs
 
 - *Sun, Aug 2, 2026*
+- **Session:** [chat-summary_2026-08-02.md](claude_summaries/chat-summary_2026-08-02.md)
 
 **Problem:** `kick_vod_downloader.py` failed with `Error: Request failed after 5 attempts: 404 Client Error: Not Found for url: https://kick.com/api/v1/video/{uuid}` — but the VOD played fine in a browser.
 
@@ -81,6 +83,7 @@ Why would the helper ever run as a little local web server? Two reasons. First, 
 ## Claude Code custom skills: project vs user level
 
 - *Sat, Apr 4, 2026*
+- **Session:** [chat-summary_2026-04-04.md](claude_summaries/chat-summary_2026-04-04.md)
 
 Custom skills are slash commands you define yourself. Each skill is a directory containing a `SKILL.md` file with YAML frontmatter and markdown instructions.
 
@@ -141,6 +144,7 @@ This walks through skills and hooks interactively before writing anything.
 ## Claude Code skills: simplify, loop, schedule, and more
 
 - *Sat, Mar 28, 2026*
+- **Session:** [chat-summary_2026-03-28.md](claude_summaries/chat-summary_2026-03-28.md)
 
 Claude Code skills are slash commands that expand into full prompts for common tasks. Invoke them by typing `/skill-name` in the Claude Code chat input.
 

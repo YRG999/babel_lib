@@ -32,3 +32,24 @@
 - **Fix:** removed `no_warnings: True` so yt-dlp's own warnings print; `download_video_info_comments()` now checks `ydl.download()`'s return value and prints an explicit warning on failure (kept `ignoreerrors: True` so one bad URL doesn't abort the rest); `convert_transcripts()` now reports when no `.vtt` files are found; the final message now warns instead of claiming success when the output folder ends up empty. Verified both the success path (transcript downloads and converts cleanly) and the failure path (an invalid video ID now surfaces `ERROR: ... Video unavailable`, the new download-failure warning, the no-`.vtt`-found warning, and the empty-folder warning, instead of a silent false "success").
 - **Bonus fix found via the above:** removing `no_warnings` exposed that `'remote_components': 'ejs:github'` in `downloader.py` was a bare string, which yt-dlp iterated character-by-character and rejected in full (`WARNING: Ignoring unsupported remote component(s): j, g, t, u, e, b, h, :, i, s`). Changed to `['ejs:github']`. This had silently defeated the security-recommended remote-components setting since it was added.
 - **Files changed:** `youtube-downloader-app/src/downloader.py`, `youtube-downloader-app/src/main.py`, `youtube-downloader-app/CHANGELOG.md`.
+
+## Session 3
+
+### Light-touch documentation consolidation
+
+Surveyed all doc files in the repo (root/submodule `README.md`/`CLAUDE.md`/`CHANGELOG.md`, `_doc/programming_notes.md`, `_doc/programming_reference.md`, `_doc/claude_summaries/`) in response to a question about whether they could be consolidated. Conclusion: the file types are mostly non-duplicative (different altitudes — session diary vs. distilled troubleshooting vs. concept reference vs. usage vs. agent context), so no file types were merged. Applied targeted fixes instead:
+
+- `_doc/programming_notes.md` — added a `**Session:**` cross-reference link to the corresponding `claude_summaries` file for the 4 entries whose existing date header matches an existing session-summary file (YouTube 403, Kick VOD 404, Claude Code custom skills, Claude Code skills overview).
+- Root `CLAUDE.md` — replaced the restated `_doc/` file list in "## Documentation" with a one-line pointer to `README.md`'s "Additional documentation" section, keeping `README.md` as the single canonical index.
+- `_doc/README.md` — the `claude_summaries/` table was stale (only 4 of 16 session files listed, last updated 2026-03-28); added the 12 missing rows (2026-03-29 through 2026-08-18) with one-line descriptions.
+- Deleted `_notes/convert_to_csv/README.md` — a gitignored/untracked leftover that explicitly documented itself as superseded by `youtube-study/convertcsv/`.
+- Ran `markdownlint-cli2` on all edited files; 0 issues.
+
+**Aside noticed, not fixed (out of scope):** `_doc/programming_notes.md` is tracked by git as `_doc/Programming_notes.md` (capital P) while the file on disk is lowercase — likely a case-insensitive-filesystem artifact from an earlier rename. Works fine on macOS but would break relative links (including the ones added this session) on a case-sensitive filesystem like Linux CI. Worth a `git mv` cleanup in a future session.
+
+## Session 4
+
+### Filename-case fix and a new doc-maintenance rule
+
+- Fixed the `_doc/Programming_notes.md` → `_doc/programming_notes.md` case mismatch found in Session 3: renamed via a two-step `git mv` (through a temporary name, since the source and destination differ only in case on this case-insensitive filesystem). `git status` confirmed a clean rename with zero content changes.
+- Added a rule to `CLAUDE.md` § "Session Summaries": after writing a *new* `chat-summary_YYYY-MM-DD.md` file, add a row for it to the `claude_summaries/` table in `_doc/README.md` (not needed when only appending a section to an existing day's file, since that file already has a row) — to prevent the table from going stale again the way it had in Session 3.
