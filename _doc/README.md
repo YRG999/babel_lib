@@ -33,6 +33,7 @@ End-of-session summaries of work done with Claude Code. One file per day; new se
 | `chat-summary_2026-07-02.md` | Fixed Kick VOD 403 by installing `yt-dlp[default,curl-cffi]` for browser impersonation |
 | `chat-summary_2026-08-02.md` | Fixed Kick VOD 404 for new UUIDv7 video URLs by resolving them to legacy UUIDs; released `[2.4.1]` |
 | `chat-summary_2026-08-18.md` | Fixed YouTube 403 (missing PO token, then SABR-only IP capping) via `bgutil-ytdlp-pot-provider` and a new `--sabr` flag; released `[2.4.2]`/`[2.5.0]`; fixed silent failures in `--transcript-only`/`--metadata-only`/`--comments-only` and a broken `remote_components` string, released `[2.5.1]` |
+| `chat-summary_2026-08-27.md` | Fixed orphaned Chrome processes from `--sabr`'s `wpc` PO token provider via process-group cleanup in `_download_youtube_sabr()`; released `[2.5.2]` |
 
 ### `2024/`
 

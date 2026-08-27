@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## General Rules
 
 - When asked to explore or fix something, always check existing project code and files first before suggesting external tools or new approaches.
+- When asked to explore or fix something, also check `_notes/todo_*.md` (gitignored) for open items relevant to the area — an upstream bug to watch, a deferred fix, or context that could now be actionable.
 
 ## Repository Overview
 
@@ -108,6 +109,8 @@ Established during the 2026-06-10 security review (rationale in `_doc/programmin
 ## Documentation
 
 See [README.md § Additional documentation](README.md#additional-documentation) for the doc file index (`_doc/programming_notes.md`, `_doc/programming_reference.md`, `_doc/README.md`).
+
+- **Cross-linking within a markdown file:** link to a real heading with `[text](#auto-generated-slug)` — GFM lowercases the heading text, strips punctuation, and turns spaces into hyphens to build the slug. Never add an `<a id="...">` HTML anchor to link to non-heading text (bold labels, plain prose); it trips markdownlint's MD033 (no-inline-html). If something needs to be a link target but isn't a heading yet, promote it to one instead. Mind heading nesting when placing a new one: a heading owns everything below it until the next heading of equal-or-higher level, so an added heading can accidentally swallow unrelated content that follows it — place it right before the next same-or-higher-level heading, or ensure nothing unrelated falls between it and one.
 
 ## After Every Change
 

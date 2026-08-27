@@ -5,6 +5,7 @@
 import glob
 import os
 import re
+import signal
 import subprocess
 import click
 from downloader import YouTubeDownloader
@@ -114,8 +115,24 @@ def _download_youtube_sabr(url: str, cookies: bool, comments: bool) -> bool:
     if comments:
         cmd.append("--write-comments")
     cmd += ["--", url]
-    result = subprocess.run(cmd)
-    return result.returncode == 0
+    # New process group: if the wpc PO token provider's nodriver Chrome fails
+    # to attach and yt-dlp retries, the orphaned Chrome is left in this same
+    # group (never closed by the plugin) even after yt-dlp itself has exited.
+    # subprocess.run() discards the pid (its CompletedProcess has none), so
+    # Popen is used directly to keep it for the killpg cleanup below.
+    proc = subprocess.Popen(cmd, start_new_session=True)
+    returncode = proc.wait()
+    try:
+        os.killpg(proc.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass  # expected: no leftover processes in the group
+    else:
+        click.echo(
+            "Killed a leftover process in the SABR yt-dlp process group "
+            "(likely an orphaned Chrome instance from a failed PO token attempt).",
+            err=True,
+        )
+    return returncode == 0
 
 def _fallback_kick_live(url: str, out: str) -> bool:
     """Fall back to kick_live_downloader for a Kick live stream."""

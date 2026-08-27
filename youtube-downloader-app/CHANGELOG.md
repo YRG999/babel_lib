@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.2] - 2026-08-27
+
+### Fixed
+
+- `--sabr`: the `yt-dlp-getpot-wpc` PO token provider (in `venv-sabr`) can fail to attach to the throwaway Chrome instance it just launched (`PoTokenProviderError('failed to start browser: ... Failed to connect to browser')`) and retries with a new one; because the exception fires before the plugin stores a reference to the failed browser, that Chrome process was never closed. `_download_youtube_sabr()` now runs the `venv-sabr/bin/yt-dlp` subprocess in its own process group (`start_new_session=True`) and kills any survivors in that group (`os.killpg(..., signal.SIGKILL)`) once it exits, cleaning up any such orphan. Silent in the common case (no leftovers); prints a warning to stderr only when it actually kills one.
+
 ## [2.5.1] - 2026-08-18
 
 ### Fixed
