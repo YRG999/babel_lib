@@ -101,6 +101,44 @@ yt-dlp -f "bv*[height<=1080]+ba/b" URL
 yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b" URL
 ```
 
+### Why bgutil's generation script lives outside any venv
+
+`bgutil-ytdlp-pot-provider` is really two pieces: a thin Python plugin
+(installed via `requirements.txt`, so it does live in the venv) and a
+separate PO-token generation program written in Node.js/TypeScript (built
+with `npm ci && npx tsc`, requires Node ≥ 20). A Python virtualenv only
+manages the Python interpreter and pip packages — it has no concept of
+Node/npm dependencies, so the generation script can't live "inside" `venv`
+or `venv-sabr` in any meaningful sense; it has to exist outside either one.
+
+The specific location, `~/bgutil-ytdlp-pot-provider` (home directory, not
+the repo), isn't this project's convention — it's the plugin's own
+hardcoded default lookup path. The Python side shells out to a script at
+that fixed location automatically; putting it anywhere else would require
+extra configuration to point the plugin at it.
+
+Reference: `youtube-downloader-app/README.md` Installation step 4.
+
+#### In plain English
+
+Think of this PO-token helper as two separate tools glued together: a
+small Python adapter that yt-dlp talks to directly, and a second helper
+program that does the actual work of proving "this request is coming from
+something that behaves like a real video app." That second helper isn't
+written in Python — it's written in JavaScript, the language web browsers
+use, because it needs to imitate what a browser does. A Python virtualenv
+is a toolbox that only knows how to hold Python programs, so it has no
+compartment for a JavaScript program at all — that one has to live
+somewhere else, managed by its own separate toolchain (Node.js and npm,
+JavaScript's equivalent of pip).
+
+As for why it specifically lives in your home folder rather than inside
+this project: that's simply where the helper's own author decided it
+should always look. It's like a recipe that says "check the pantry"
+instead of "check wherever you keep ingredients" — the program checks one
+fixed spot by default, and if you kept the ingredient somewhere else,
+you'd have to tell it exactly where to look instead.
+
 ### Downloading live videos
 
 Always quote the URL in zsh — `?` is a glob wildcard and will cause "no matches found" without quotes.
