@@ -35,6 +35,7 @@ End-of-session summaries of work done with Claude Code. One file per day; new se
 | `chat-summary_2026-08-18.md` | Fixed YouTube 403 (missing PO token, then SABR-only IP capping) via `bgutil-ytdlp-pot-provider` and a new `--sabr` flag; released `[2.4.2]`/`[2.5.0]`; fixed silent failures in `--transcript-only`/`--metadata-only`/`--comments-only` and a broken `remote_components` string, released `[2.5.1]` |
 | `chat-summary_2026-08-27.md` | Fixed orphaned Chrome processes from `--sabr`'s `wpc` PO token provider via process-group cleanup in `_download_youtube_sabr()`; released `[2.5.2]` |
 | `chat-summary_2026-09-13.md` | Documented why `bgutil-ytdlp-pot-provider`'s generation script lives in `~/bgutil-ytdlp-pot-provider` instead of a venv |
+| `chat-summary_2026-09-18.md` | Added non-interactive CLI argument support to `convertcsv.py`; released `[2.4.0]` |
 
 ### `2024/`
 

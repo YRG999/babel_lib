@@ -68,7 +68,7 @@ bash dir_compare/dir_compare.sh <source> <dest> [--dry-run | --compare]
 Post-download analysis scripts for files produced by `youtube-downloader-app` and `ytdownload`. None of these are imported by the downloaders — all are run manually.
 
 - `analysis/` — chat CSV analysis, `.info.json` → CSV, Kick chat filtering, VOD offset backfill, timestamp converter
-- `convertcsv/` — convert manually copied YouTube live chat text to CSV (v2.3.0)
+- `convertcsv/` — convert manually copied YouTube live chat text to CSV (v2.4.0)
 - `word_frequency/` — word frequency analyzer for transcripts; filters stopwords to surface names and places
 
 ### `dir_compare/dir_compare.sh` — Directory sync utility

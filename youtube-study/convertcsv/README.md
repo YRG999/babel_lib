@@ -4,9 +4,8 @@ To use `convertcsv.py`:
 
 1. Copy the livechat from an ongoing stream.
 2. Save it as a text file and put it into the same directory as the program.
-3. Run `python convertcsv.py`.
-4. Enter the name of the text file when prompted.
-5. The program saves the CSV in the same directory and prints the output filename.
+3. Run `python convertcsv.py` and enter the name of the text file when prompted, or pass it directly: `python convertcsv.py textfile.txt`.
+4. The program saves the CSV in the same directory and prints the output filename.
 
 ## CSV columns
 

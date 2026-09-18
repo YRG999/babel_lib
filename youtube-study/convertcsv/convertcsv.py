@@ -1,9 +1,10 @@
-# convertcsv.py version 2.3.0
+# convertcsv.py version 2.4.0
 # For converting YouTube live chat text files manually copied from videos to CSV format.
 # See CHANGELOG.md for version history.
 
 import csv
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -133,7 +134,10 @@ _CSV_HEADER = ["timestamp", "user", "membership", "member_status", "member_tier"
 
 
 def main() -> None:
-    input_path_str = input("Enter input file name (e.g. input.txt): ").strip()
+    if len(sys.argv) > 1:
+        input_path_str = sys.argv[1].strip()
+    else:
+        input_path_str = input("Enter input file name (e.g. input.txt): ").strip()
     if not input_path_str:
         raise ValueError("Input file name cannot be empty")
 
