@@ -1,6 +1,6 @@
 # Programming reference
 
-*Thematic reference — add entries here for reference tables, API links, how-to notes, and conceptual explanations organized by topic. For dated problem/fix entries, use [programming_notes.md](programming_notes.md).*
+*Thematic reference — add entries here for reference tables, API links, how-to notes, and conceptual explanations organized by topic. Pair each technical explanation with a simple English one ("In plain English"). For dated problem/fix entries, use [programming_notes.md](programming_notes.md).*
 
 - [Experiments - more details](#experiments---more-details)
 - [YouTube \& yt-dlp](#youtube--yt-dlp)
@@ -138,6 +138,53 @@ should always look. It's like a recipe that says "check the pantry"
 instead of "check wherever you keep ingredients" — the program checks one
 fixed spot by default, and if you kept the ingredient somewhere else,
 you'd have to tell it exactly where to look instead.
+
+### Live-stream fragment 403s ("Retrying fragment") vs. the PO-token 403
+
+`livechat.py` auto-launches a separate `yt-dlp --live-from-start` process to
+capture video while chat is polled (see `ytdownload/CLAUDE.md` → "Important
+Context"). During that live capture you may see:
+
+```text
+Got error: HTTP Error 403: Forbidden. Retrying fragment
+```
+
+while the download keeps progressing. This is expected: live streams are
+delivered as a sequence of short fragments, each with its own short-lived
+signed URL that YouTube rotates as the broadcast continues. A fragment
+request occasionally lands right as its URL is expiring/rotating and gets a
+transient 403; yt-dlp's built-in per-fragment retry (`--fragment-retries`,
+default 10) re-fetches it and almost always succeeds, which is why the
+message doesn't stop the download.
+
+This is unrelated to the permanent 403 documented in
+[YouTube 403 Forbidden: missing PO token provider](programming_notes.md#youtube-403-forbidden-missing-po-token-provider)
+— that one is a full-file 403 on non-live downloads through
+`main.py`/`downloader.py` (missing PO token, or YouTube's per-URL data cap on
+VPN-exit IPs) that does not self-heal via retry; the live-capture command
+here is a bare CLI call, not routed through that PO-token setup at all.
+
+**When to worry:** if retries stop succeeding, the download stalls, or the
+final file is truncated/corrupted — that points to something more
+persistent (the stream actually ending, or the VPN IP-reputation cap from
+the linked entry, if it happens to apply to the formats picked here).
+
+#### In plain English
+
+Think of a live stream as a delivery arriving in a long series of small
+boxes instead of one big package, each box addressed with a shipping label
+that's only valid for a few seconds before a new one has to be printed.
+Every so often, a box shows up at your door just as its label is expiring,
+and delivery is refused — but the courier immediately reprints the label
+and tries again, so the box still arrives a moment later. That's what
+"Retrying fragment" means: an expected, self-correcting hiccup in a live
+delivery, not a sign that something is broken.
+
+This is different from the other 403 problem in this project
+([the PO-token one](programming_notes.md#youtube-403-forbidden-missing-po-token-provider)),
+where the delivery truck itself gets turned away at the gate and never gets
+back in — that one doesn't fix itself, and needed an actual gate pass (the
+PO token) to solve.
 
 ### Downloading live videos
 

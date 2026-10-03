@@ -92,7 +92,8 @@ python src/main.py [OPTIONS] "URL"
 | `--video-only` | (Kick VOD only) Download video only, skip chat |
 | `--chat-only` | (Kick VOD only) Download chat only, skip video |
 | `--chat-delay N` | (Kick VOD only) Milliseconds between chat API requests (default: 300, min: 100) |
-| `--sabr` | (YouTube full-download mode only) Download via the SABR dev build of yt-dlp in `venv-sabr` — use when regular downloads 403 or die after a few hundred KB (e.g. on VPN/distrusted IPs). Slower (YouTube paces delivery) and briefly opens a minimized Chrome window. Setup: see "SABR downloads" below |
+| `--sabr` | (YouTube full-download or `--comments-only` mode) Download via the SABR dev build of yt-dlp in `venv-sabr` — use when regular downloads 403 or die after a few hundred KB (e.g. on VPN/distrusted IPs). Slower (YouTube paces delivery) and briefly opens a minimized Chrome window. Setup: see "SABR downloads" below |
+| `--sabr-comments-only` | Shorthand for `--sabr --comments-only`: fetch comments only via `venv-sabr` |
 | `--help` | Show help message and exit |
 
 ### Examples
@@ -127,7 +128,7 @@ Download comments only (output folder will contain `<title>_comments.csv` plus t
 python src/main.py --comments-only "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
-`--metadata-only`, `--transcript-only`, and `--comments-only` are mutually exclusive.
+`--metadata-only`, `--transcript-only`, and `--comments-only` are mutually exclusive. Of the three, only `--comments-only` can be combined with `--sabr` (see [SABR downloads](#sabr-downloads---sabr)).
 
 > **Live chat vs. comments:** there is no conflict between the two — live chat is saved to its own `.live_chat.json` file while comments live inside `.info.json`, so downloading a video with `--comments` fetches both (for videos that have both, e.g. finished live streams). In practice most videos only *have* one or the other: live chat exists only for live streams/premieres, and comments are unavailable while a stream is still live.
 
@@ -176,6 +177,15 @@ Then:
 
 ```zsh
 python src/main.py --sabr "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+To fetch only comments through `venv-sabr` (e.g. when `--comments-only` fails on a VPN IP),
+use `--sabr --comments-only` or the `--sabr-comments-only` shorthand. It skips the media
+entirely (no format selection is required) and writes `<title>.info.json` plus
+`<title>_comments.csv`, the same output as `--comments-only`:
+
+```zsh
+python src/main.py --sabr-comments-only "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 Notes:

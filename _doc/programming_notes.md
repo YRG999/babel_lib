@@ -1,7 +1,8 @@
 # Programming notes
 
-*Troubleshooting log — add new entries here when you encounter and solve a specific problem. Include: date, problem, cause, fix, and references. For reference tables, API links, and conceptual notes organized by topic, use [programming_reference.md](programming_reference.md).*
+*Troubleshooting log — add new entries here when you encounter and solve a specific problem. Include: date, problem, cause, fix, and references, plus an "In plain English" subsection explaining it without jargon. For reference tables, API links, and conceptual notes organized by topic, use [programming_reference.md](programming_reference.md).*
 
+- [Pylance errors in main.py: wrong interpreter](#pylance-errors-in-mainpy-wrong-interpreter)
 - [YouTube 403 Forbidden: missing PO token provider](#youtube-403-forbidden-missing-po-token-provider)
 - [Kick VOD 404: new UUIDv7 video URLs](#kick-vod-404-new-uuidv7-video-urls)
 - [Claude Code custom skills: project vs user level](#claude-code-custom-skills-project-vs-user-level)
@@ -17,6 +18,36 @@
 - [VS Code black screen UI](#vs-code-black-screen-ui)
 - [Update GitHub CLI passphrase & add once](#update-github-cli-passphrase--add-once)
 - [yt-dlp downloading audio-only webm](#yt-dlp-downloading-audio-only-webm)
+
+## Pylance errors in main.py: wrong interpreter
+
+- *Sat, Oct 3, 2026*
+- **Session:** [chat-summary_2026-10-03.md](claude_summaries/chat-summary_2026-10-03.md)
+
+**Problem:** VS Code's Problems panel showed four Pylance errors in `youtube-downloader-app/src/main.py`, even though `python src/main.py --help` ran fine from the venv:
+
+- `Import "click" could not be resolved`
+- `No parameter named "standalone_mode"` on `kick_vod_main(args, standalone_mode=False)`
+- `Arguments missing for parameters "video_only", "chat_only", "chat_delay"` on the same call
+- `Arguments missing for parameters "url", "cookies", ...` on the bare `main()` call at the bottom of the file
+
+**Cause:** VS Code's selected Python interpreter was not the repo's shared `venv/` (where `click` is installed). Only the first error is real; the other three follow from it. `@click.command()` replaces the decorated function with a `click.Command` object, whose `__call__` reads arguments from `sys.argv` and accepts `main()`-style keywords like `standalone_mode`. When Pylance can't resolve `click`, the decorators become `Unknown`, so Pylance falls back to the undecorated function signature. It then reports every click-supplied parameter as a missing argument and `standalone_mode` as an unknown keyword. The workspace's `"reportGeneralTypeIssues": "none"` override doesn't hide these, because missing imports and call-argument errors are reported by separate rules (`reportMissingImports`, `reportCallIssue`).
+
+**Fix:** Pointed VS Code at the repo venv in the workspace's (gitignored) `.vscode/settings.json`:
+
+```json
+"python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+```
+
+All four diagnostics cleared and no code changes were needed. Note that `defaultInterpreterPath` only applies until an interpreter is picked manually. If the errors come back, run **Python: Select Interpreter** and choose `./venv/bin/python`.
+
+### In plain English
+
+VS Code has a built-in proofreader (Pylance) that reads the code and flags mistakes. To check the code properly, it needs to look at the same toolbox of installed add-ons that the program uses when it runs. VS Code was pointing the proofreader at a different toolbox, one without `click`, the add-on that turns `main.py` into a command-line tool.
+
+Without `click` to look at, the proofreader couldn't understand the code that says "fill in these values from what the user typed on the command line." So it saw `main()` called with nothing in the brackets and complained that 11 values were missing. In reality `click` fills those in when the program runs. One missing add-on produced four complaints, but the code itself was fine all along: it ran correctly the whole time.
+
+The fix was a one-line setting telling VS Code to use the project's own toolbox (`venv`), and all four complaints disappeared.
 
 ## YouTube 403 Forbidden: missing PO token provider
 

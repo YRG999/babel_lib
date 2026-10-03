@@ -21,13 +21,15 @@ pip install -r requirements.txt
 
 After initial setup, only `. venv/bin/activate` is needed to reactivate.
 
+In VS Code, select `./venv/bin/python` as the interpreter, or Pylance reports false errors (e.g. on click-decorated functions). See `_doc/programming_notes.md`.
+
 External tools required by various scripts:
 
 - `yt-dlp` — included in `requirements.txt`
 - `ffmpeg` — `brew install ffmpeg` (required for video merging and `captions.py`)
 - `playwright` — in `requirements.txt`, but also needs a one-time `playwright install firefox` to download the browser (Kick live stream fallback in `youtube-downloader-app`)
 - `bgutil-ytdlp-pot-provider` — in `requirements.txt`, but also needs a one-time clone + build of its generation script at `~/bgutil-ytdlp-pot-provider` (Node ≥ 20; see `youtube-downloader-app/README.md` Installation step 4). Without it, YouTube downloads fail with `HTTP Error 403: Forbidden` (missing PO token).
-- `venv-sabr/` (optional, gitignored) — separate virtualenv holding the SABR dev build of yt-dlp + `yt-dlp-getpot-wpc` (requires Google Chrome), used only by `main.py --sabr` for full YouTube video downloads on IPs where regular downloads are capped (e.g. VPN exits). Setup in `youtube-downloader-app/README.md` → "SABR downloads". Do NOT install bgutil in `venv-sabr`.
+- `venv-sabr/` (optional, gitignored) — separate virtualenv holding the SABR dev build of yt-dlp + `yt-dlp-getpot-wpc` (requires Google Chrome), used only by `main.py --sabr` (and `--sabr-comments-only`) for full YouTube video or comments-only downloads on IPs where regular downloads are capped (e.g. VPN exits). Setup in `youtube-downloader-app/README.md` → "SABR downloads". Do NOT install bgutil in `venv-sabr`.
 
 ## Running Scripts
 
@@ -110,6 +112,7 @@ Established during the 2026-06-10 security review (rationale in `_doc/programmin
 
 See [README.md § Additional documentation](README.md#additional-documentation) for the doc file index (`_doc/programming_notes.md`, `_doc/programming_reference.md`, `_doc/README.md`).
 
+- **Entries in `programming_notes.md` and `programming_reference.md`:** include both a technical explanation and a simple English explanation. The convention is a `### In plain English` subsection under the entry's heading that explains the same thing without jargon, using an everyday analogy where it helps.
 - **Cross-linking within a markdown file:** link to a real heading with `[text](#auto-generated-slug)` — GFM lowercases the heading text, strips punctuation, and turns spaces into hyphens to build the slug. Never add an `<a id="...">` HTML anchor to link to non-heading text (bold labels, plain prose); it trips markdownlint's MD033 (no-inline-html). If something needs to be a link target but isn't a heading yet, promote it to one instead. Mind heading nesting when placing a new one: a heading owns everything below it until the next heading of equal-or-higher level, so an added heading can accidentally swallow unrelated content that follows it — place it right before the next same-or-higher-level heading, or ensure nothing unrelated falls between it and one.
 
 ## After Every Change

@@ -36,6 +36,8 @@ End-of-session summaries of work done with Claude Code. One file per day; new se
 | `chat-summary_2026-08-27.md` | Fixed orphaned Chrome processes from `--sabr`'s `wpc` PO token provider via process-group cleanup in `_download_youtube_sabr()`; released `[2.5.2]` |
 | `chat-summary_2026-09-13.md` | Documented why `bgutil-ytdlp-pot-provider`'s generation script lives in `~/bgutil-ytdlp-pot-provider` instead of a venv |
 | `chat-summary_2026-09-18.md` | Added non-interactive CLI argument support to `convertcsv.py`; released `[2.4.0]` |
+| `chat-summary_2026-09-20.md` | Documented live-stream fragment 403s ("Retrying fragment") vs. the PO-token 403 in `programming_reference.md` |
+| `chat-summary_2026-10-03.md` | Added `--sabr --comments-only` / `--sabr-comments-only` (comments via `venv-sabr`); released `[2.6.0]` |
 
 ### `2024/`
 

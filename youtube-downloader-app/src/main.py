@@ -78,19 +78,22 @@ def _sabr_ytdlp_path() -> str:
     )
     return os.path.join(repo_root, "venv-sabr", "bin", "yt-dlp")
 
-def _download_youtube_sabr(url: str, cookies: bool, comments: bool) -> bool:
+def _download_youtube_sabr(url: str, cookies: bool, comments: bool,
+                           comments_only: bool = False) -> bool:
     """Download a YouTube video via the SABR dev build of yt-dlp in venv-sabr.
 
     SABR is YouTube's own streaming protocol; it is not subject to the per-URL
     data cap YouTube applies to regular https media URLs on distrusted IPs
     (e.g. VPN exits). Support comes from the unmerged yt-dlp PR #13515, so it
     lives in a separate virtualenv instead of the pinned stable yt-dlp.
+    With comments_only, skips the media and fetches only the info JSON with
+    comments (mirrors downloader.py's comments_only pass).
     Returns True if yt-dlp exits cleanly.
     """
     ytdlp = _sabr_ytdlp_path()
     if not os.path.exists(ytdlp):
         raise click.ClickException(
-            "--sabr requires the venv-sabr virtualenv at the repo root "
+            "--sabr / --sabr-comments-only require the venv-sabr virtualenv at the repo root "
             "(see README 'SABR downloads'). Create it with:\n"
             "  python -m venv venv-sabr\n"
             '  venv-sabr/bin/pip install "yt-dlp[default,curl-cffi] @ '
@@ -99,21 +102,31 @@ def _download_youtube_sabr(url: str, cookies: bool, comments: bool) -> bool:
             "Google Chrome must be installed (the wpc token provider drives a "
             "logged-out, throwaway Chrome instance)."
         )
-    cmd = [
-        ytdlp,
-        "--extractor-args", "youtube:formats=duplicate",
-        # Prefer SABR formats; fall back to the regular selectors if absent.
-        "-f", "bv*[protocol=sabr]+ba[protocol=sabr]/b[protocol=sabr]/bv*+ba/best",
-        "--merge-output-format", "mp4",
-        "--write-subs", "--write-auto-subs",
-        "--sub-langs", "en,en-US,en-GB,en-AU,live_chat",
-        "--write-description", "--write-info-json",
-        "-o", "%(title)s.%(ext)s",
-    ]
+    if comments_only:
+        cmd = [
+            ytdlp,
+            "--skip-download",
+            # Comments don't need media; don't abort if no formats resolve.
+            "--ignore-no-formats-error",
+            "--write-info-json", "--write-comments",
+            "-o", "%(title)s.%(ext)s",
+        ]
+    else:
+        cmd = [
+            ytdlp,
+            "--extractor-args", "youtube:formats=duplicate",
+            # Prefer SABR formats; fall back to the regular selectors if absent.
+            "-f", "bv*[protocol=sabr]+ba[protocol=sabr]/b[protocol=sabr]/bv*+ba/best",
+            "--merge-output-format", "mp4",
+            "--write-subs", "--write-auto-subs",
+            "--sub-langs", "en,en-US,en-GB,en-AU,live_chat",
+            "--write-description", "--write-info-json",
+            "-o", "%(title)s.%(ext)s",
+        ]
+        if comments:
+            cmd.append("--write-comments")
     if cookies:
         cmd += ["--cookies-from-browser", "firefox"]
-    if comments:
-        cmd.append("--write-comments")
     cmd += ["--", url]
     # New process group: if the wpc PO token provider's nodriver Chrome fails
     # to attach and yt-dlp retries, the orphaned Chrome is left in this same
@@ -162,11 +175,14 @@ def _fallback_kick_live(url: str, out: str) -> bool:
 @click.option('--chat-delay', default=300, show_default=True,
               help='(Kick VOD only) Delay between chat API requests in milliseconds (min 100).')
 @click.option('--sabr', is_flag=True, default=False,
-              help='(YouTube full-download mode only) Download via the SABR dev build of '
-                   'yt-dlp in venv-sabr. Works around YouTube limiting regular downloads '
-                   'to a few hundred KB on distrusted IPs (e.g. VPN exits). Slower: '
+              help='(YouTube full-download or --comments-only mode) Download via the SABR '
+                   'dev build of yt-dlp in venv-sabr. Works around YouTube limiting regular '
+                   'downloads to a few hundred KB on distrusted IPs (e.g. VPN exits). Slower: '
                    'YouTube paces SABR delivery.')
-def main(url, cookies, comments, metadata_only, transcript_only, comments_only, video_only, chat_only, chat_delay, sabr):
+@click.option('--sabr-comments-only', is_flag=True, default=False,
+              help='Shorthand for --sabr --comments-only: fetch only comments via the '
+                   'SABR dev build in venv-sabr.')
+def main(url, cookies, comments, metadata_only, transcript_only, comments_only, video_only, chat_only, chat_delay, sabr, sabr_comments_only):
     """Download a YouTube video (or just its metadata/transcript) and convert outputs.
 
     URL is the full video URL. Always quote it in zsh/bash to prevent
@@ -189,17 +205,21 @@ def main(url, cookies, comments, metadata_only, transcript_only, comments_only, 
 
     --comments-only skips everything except comments: they are extracted to
     <title>_comments.csv. The .info.json is kept for debugging or
-    re-extracting the CSV later.
+    re-extracting the CSV later. Combine it with --sabr (or use the
+    --sabr-comments-only shorthand) to fetch comments via venv-sabr.
     """
+    # Expand the shorthand first so it goes through the same checks below.
+    if sabr_comments_only:
+        sabr = comments_only = True
+
     if sum([metadata_only, transcript_only, comments_only]) > 1:
         raise click.UsageError(
             "--metadata-only, --transcript-only, and --comments-only are mutually exclusive."
         )
 
-    if sabr and (metadata_only or transcript_only or comments_only):
+    if sabr and (metadata_only or transcript_only):
         raise click.UsageError(
-            "--sabr only applies to the full download mode (it exists to get the "
-            "video past YouTube's data cap; the *-only modes download no video)."
+            "--sabr only applies to the full download mode and --comments-only."
         )
     if sabr and (_is_kick_vod_url(url) or _is_kick_live_url(url)):
         raise click.UsageError("--sabr is YouTube-only.")
@@ -233,6 +253,12 @@ def main(url, cookies, comments, metadata_only, transcript_only, comments_only, 
                     "Both yt-dlp and kick_live_downloader failed. "
                     "Try running kick_live_downloader.py directly with --headful."
                 )
+        elif sabr and comments_only:
+            click.echo("Downloading comments via SABR dev build (venv-sabr)...")
+            if not _download_youtube_sabr(url, cookies, comments, comments_only=True):
+                raise click.ClickException("SABR comments download failed.")
+            # Keep the .info.json — useful for debugging and re-extracting the CSV.
+            extract_comments()
         elif sabr:
             click.echo("Downloading via SABR dev build (venv-sabr)...")
             if not _download_youtube_sabr(url, cookies, comments):

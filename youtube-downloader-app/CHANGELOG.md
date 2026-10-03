@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-10-03
+
+### Added
+
+- `main.py`: `--sabr` can now be combined with `--comments-only` to fetch only comments via the SABR dev build in `venv-sabr`, plus a new `--sabr-comments-only` shorthand for the same thing. In this mode `_download_youtube_sabr()` runs a lighter yt-dlp command (`--skip-download --ignore-no-formats-error --write-info-json --write-comments`, no format selection, subtitles, or description), and only `extract_comments()` runs afterwards. The output matches `--comments-only`: `<title>_comments.csv` plus the kept `.info.json`. `--sabr` is still rejected with `--metadata-only` and `--transcript-only`, and for Kick URLs.
+
 ## [2.5.2] - 2026-08-27
 
 ### Fixed
