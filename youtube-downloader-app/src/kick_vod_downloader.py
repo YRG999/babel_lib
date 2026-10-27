@@ -8,6 +8,7 @@ import re
 import subprocess
 import time
 from datetime import datetime, timezone, timedelta
+from urllib.parse import urlsplit
 
 import click
 import requests
@@ -262,7 +263,28 @@ def main(url, video_only, chat_only, chat_delay):
         uuid = resolve_legacy_uuid(slug, uuid)
         click.echo(f"  Legacy UUID: {uuid}")
         meta = fetch_with_retry(KICK_VIDEO_API.format(uuid=uuid))
-    download_url = f"https://kick.com/{slug}/videos/{uuid}"
+
+    # yt-dlp's kick:vod extractor (>= 2026.10.26) calls the playback API, which only
+    # accepts UUIDv7 IDs, so a legacy-UUID kick.com URL fails with NOT_FOUND.
+    # meta["source"] is the direct HLS master.m3u8 and works for either ID style.
+    source = meta.get("source")
+    url_is_uuidv7 = parse_vod_url(url)[1][14] == "7"  # version nibble
+    video_url = None
+    if source and source.startswith("https://"):
+        video_url = source
+        # Drop any query string before echoing in case Kick ever signs these URLs.
+        safe_source = urlsplit(source)._replace(query="", fragment="").geturl()
+        click.echo(f"  Video source: HLS playlist {safe_source}")
+    elif url_is_uuidv7:
+        video_url = url
+        click.echo("  Video source: kick.com page (yt-dlp kick:vod extractor)")
+    elif not chat_only:
+        raise click.ClickException(
+            "Kick returned no HLS playlist for this VOD (it may be subscriber-only "
+            "or still processing), and yt-dlp can't fetch legacy-ID URLs. Open the "
+            "video in a browser and retry with the URL from the address bar, or "
+            "use --chat-only."
+        )
 
     # The /api/v1/video/{uuid} response nests stream data under "livestream".
     livestream = meta.get("livestream") or {}
@@ -302,7 +324,7 @@ def main(url, video_only, chat_only, chat_delay):
 
         if not chat_only:
             click.echo("\nDownloading video via yt-dlp...")
-            result = subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", "--", download_url])
+            result = subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", "--", video_url])
             if result.returncode != 0:
                 raise click.ClickException("yt-dlp failed (see output above).")
 

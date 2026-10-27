@@ -2,6 +2,7 @@
 
 *Troubleshooting log — add new entries here when you encounter and solve a specific problem. Include: date, problem, cause, fix, and references, plus an "In plain English" subsection explaining it without jargon. For reference tables, API links, and conceptual notes organized by topic, use [programming_reference.md](programming_reference.md).*
 
+- [Kick VOD "Requested resource not found": yt-dlp now needs UUIDv7](#kick-vod-requested-resource-not-found-yt-dlp-now-needs-uuidv7)
 - [Pylance errors in main.py: wrong interpreter](#pylance-errors-in-mainpy-wrong-interpreter)
 - [YouTube 403 Forbidden: missing PO token provider](#youtube-403-forbidden-missing-po-token-provider)
 - [Kick VOD 404: new UUIDv7 video URLs](#kick-vod-404-new-uuidv7-video-urls)
@@ -18,6 +19,23 @@
 - [VS Code black screen UI](#vs-code-black-screen-ui)
 - [Update GitHub CLI passphrase & add once](#update-github-cli-passphrase--add-once)
 - [yt-dlp downloading audio-only webm](#yt-dlp-downloading-audio-only-webm)
+
+## Kick VOD "Requested resource not found": yt-dlp now needs UUIDv7
+
+- *Tue, Oct 27, 2026*
+- **Session:** [chat-summary_2026-10-27.md](claude_summaries/chat-summary_2026-10-27.md)
+
+**Problem:** `kick_vod_downloader.py` fetched the VOD metadata fine, then the video step failed with `ERROR: [kick:vod] <video ID>: NOT_FOUND: Requested resource not found`. The `kick.com/<channel>/videos/<legacy UUID>` URL the script used didn't open in a browser either.
+
+**Cause:** yt-dlp 2026.10.26 rewrote its Kick VOD extractor. Instead of `kick.com/api/v1/video/{uuid}`, it now calls `POST web.kick.com/api/v1/stream/{id}/playback`, which only knows new-style UUIDv7 IDs. Since v2.4.1 the downloader had always given yt-dlp a legacy-UUID URL (see [Kick VOD 404: new UUIDv7 video URLs](#kick-vod-404-new-uuidv7-video-urls)). That was required then and is rejected now. Kick's frontend no longer routes legacy IDs, which is why the browser showed nothing. Diagnosis: `api/v1/video/{legacy uuid}` → 200, the metadata's `source` `master.m3u8` and its variant playlists → 200, `yt-dlp -F <kick URL>` → `NOT_FOUND`.
+
+**Fix (v2.6.2):** pass yt-dlp the `source` HLS playlist from the metadata the script already fetches. yt-dlp's generic HLS downloader handles it with no Kick API call, so the ID style no longer matters. Fallbacks: if `source` is missing, use the original URL when it's UUIDv7 (yt-dlp's extractor then does login/subscription checks); otherwise raise a clear `ClickException` before running yt-dlp. The echoed source has its query string stripped in case Kick ever signs these URLs. Verified on a ~15.7 h legacy-UUID VOD: 1080p60 selected, 5649 fragments, ~15 MiB/s.
+
+### In plain English
+
+Every Kick video has two ID numbers, an old style and a new style. Our downloader asks Kick for the video's details using the old number, because that is the only one Kick's details service understands. Then it gave the old number to yt-dlp, the tool that actually downloads the video. Until this week yt-dlp also spoke "old number". The newest yt-dlp switched to a different Kick service that only understands new numbers, so it answered "not found" even though the video was right there.
+
+Think of it as asking a librarian for a book by an old catalogue number after the library re-labelled its shelves. The fix skips the librarian entirely. The details Kick already sent us include the video's exact shelf location, its playlist link, so we hand yt-dlp that link and it fetches the video directly. Old number or new, it works.
 
 ## Pylance errors in main.py: wrong interpreter
 

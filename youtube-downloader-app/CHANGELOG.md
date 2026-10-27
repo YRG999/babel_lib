@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.2] - 2026-10-27
+
+### Fixed
+
+- `kick_vod_downloader.py` (and `main.py`, which routes Kick VOD URLs to it): video downloads failed with `ERROR: [kick:vod] <id>: NOT_FOUND: Requested resource not found`. yt-dlp 2026.10.26 rewrote its Kick VOD extractor to call `POST web.kick.com/api/v1/stream/{id}/playback`, which only accepts new-style UUIDv7 IDs, but the downloader always passed yt-dlp a `kick.com/<slug>/videos/<legacy UUIDv4>` URL. The downloader now passes yt-dlp the direct HLS `master.m3u8` from the VOD metadata's `source` field (yt-dlp's generic HLS downloader, no Kick API involved), which works for both ID styles. If `source` is missing, a UUIDv7 input URL falls back to yt-dlp's Kick extractor (login/subscription checks included); a legacy-ID URL with no `source` now fails early with a clear message instead of an opaque yt-dlp error (`--chat-only` is unaffected). The chosen source is echoed, with any query string stripped. Chat download and metadata still use the legacy UUID via `api/v1/video/{uuid}`.
+
 ## [2.6.1] - 2026-10-27
 
 ### Changed

@@ -305,6 +305,8 @@ https://kick.com/username/videos/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 Both Kick video ID formats are accepted: legacy UUIDs (v4) are used directly, and new-style UUIDs (v7, as shown in Kick's current frontend URLs — they start with the timestamp, e.g. `019f...`) are resolved automatically via the channel's videos listing. Because that listing only returns a channel's 30 most recent VODs, a new-style URL for an older VOD cannot be resolved — the script will say so explicitly.
 
+The video is downloaded from the direct HLS playlist (`source` in the VOD metadata), not through yt-dlp's Kick extractor, because that extractor (yt-dlp ≥ 2026.10.26) only accepts new-style IDs. The script prints `Video source: HLS playlist ...` so you can see which path it took.
+
 | Option | Description |
 | --- | --- |
 | `--video-only` | Download video only, skip chat |
