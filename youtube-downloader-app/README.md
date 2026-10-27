@@ -92,8 +92,8 @@ python src/main.py [OPTIONS] "URL"
 | `--video-only` | (Kick VOD only) Download video only, skip chat |
 | `--chat-only` | (Kick VOD only) Download chat only, skip video |
 | `--chat-delay N` | (Kick VOD only) Milliseconds between chat API requests (default: 300, min: 100) |
-| `--sabr` | (YouTube full-download or `--comments-only` mode) Download via the SABR dev build of yt-dlp in `venv-sabr` — use when regular downloads 403 or die after a few hundred KB (e.g. on VPN/distrusted IPs). Slower (YouTube paces delivery) and briefly opens a minimized Chrome window. Setup: see "SABR downloads" below |
-| `--sabr-comments-only` | Shorthand for `--sabr --comments-only`: fetch comments only via `venv-sabr` |
+| `--sabr` | (YouTube full-download or `--comments-only` mode) **Fallback, normally not needed since yt-dlp 2026.08.19.** Download via the SABR dev build of yt-dlp in `venv-sabr` — only if a regular download 403s or dies after a few hundred KB again. Slower (YouTube paces delivery) and briefly opens a minimized Chrome window. Setup: see "SABR downloads" below |
+| `--sabr-comments-only` | Shorthand for `--sabr --comments-only`: fetch comments only via `venv-sabr` (same fallback status as `--sabr`) |
 | `--help` | Show help message and exit |
 
 ### Examples
@@ -158,13 +158,22 @@ python src/main.py --video-only "https://kick.com/username/videos/UUID"
 
 ## SABR downloads (`--sabr`)
 
-Since August 2026, YouTube requires PO tokens for nearly all direct media URLs and, on
-distrusted IPs (VPN exits, datacenters), serves only the first few hundred KB of them
-before returning 403 — even with the PO token plugin installed. YouTube's own SABR
-streaming protocol is not subject to that cap. yt-dlp's SABR support is an unmerged
-dev build ([PR #13515](https://github.com/yt-dlp/yt-dlp/pull/13515)), so it lives in a
-**separate virtualenv** (`venv-sabr`, gitignored) and is only used when you pass `--sabr`;
-the pinned stable yt-dlp is untouched.
+**Status (2026-10-27): a fallback you should rarely need.** Between 2026-08-02 and
+2026-08-19, YouTube required PO tokens for nearly all direct media URLs and, on distrusted
+IPs (VPN exits, datacenters), served only the first few hundred KB of the remaining
+`android_vr` URLs before returning 403 — even with the PO token plugin installed. YouTube
+killed the `android_vr` client outright on 2026-08-17, and yt-dlp 2026.08.19 replaced it
+with the `visionos` client (2026.10.21 added `tv_samsung` as a default too). Those clients
+serve whole files again: verified on 2026-10-27 with stable yt-dlp 2026.10.26 on a
+commercial VPN exit — a full 4K download, subtitles, and the comments API all worked
+through the normal `python src/main.py "<url>"` path with no `--sabr`. Keep the main venv's
+yt-dlp current (`pip install -U yt-dlp`) before reaching for this section.
+
+YouTube's own SABR streaming protocol is not subject to the per-URL cap, so `--sabr` stays
+available in case the cap returns. yt-dlp's SABR support is still an unmerged dev build
+([PR #13515](https://github.com/yt-dlp/yt-dlp/pull/13515), open as of 2026-10-25), so it
+lives in a **separate virtualenv** (`venv-sabr`, gitignored) and is only used when you pass
+`--sabr`; the pinned stable yt-dlp is untouched.
 
 One-time setup (repo root; Google Chrome must be installed):
 
@@ -172,6 +181,11 @@ One-time setup (repo root; Google Chrome must be installed):
 python -m venv venv-sabr
 venv-sabr/bin/pip install "yt-dlp[default,curl-cffi] @ git+https://github.com/yt-dlp/yt-dlp.git@refs/pull/13515/head" yt-dlp-getpot-wpc
 ```
+
+The PR head is rebased on master periodically, so re-run the `pip install` line to refresh
+an old `venv-sabr` (a build from before 2026-08-19 predates the client changes above). The
+maintainer also publishes a prebuilt
+[`sabr` pre-release](https://github.com/bashonly/yt-dlp/releases/tag/sabr) of the same branch.
 
 Then:
 
@@ -208,8 +222,11 @@ Notes:
   open since 2026-03). Fix by re-encoding the file once:
   `python -c "import pathlib; p = pathlib.Path('venv-sabr/lib/python3.14/site-packages/nodriver/cdp/network.py'); p.write_bytes(p.read_bytes().decode('latin-1').encode('utf-8'))"`
 
-- **TODO (check back after 2026-09):** when PR #13515 merges into stable yt-dlp,
-  fold SABR into the normal flow and retire `venv-sabr`.
+- **TODO (check back after 2027-01):** PR #13515 was still open on 2026-10-25 (the
+  maintainer called it a large, lower-priority review on 2026-08-21). When it merges into
+  stable yt-dlp, fold SABR into the normal flow and retire `venv-sabr`. Since regular
+  downloads work again (see status above), the flag could also simply be removed if the
+  cap hasn't returned by then.
 
 ## Downloading a channel
 

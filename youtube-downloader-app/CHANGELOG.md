@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.1] - 2026-10-27
+
+### Changed
+
+- Docs only, no code changes. `--sabr` / `--sabr-comments-only` are now documented as a fallback rather than the required path on VPN/distrusted IPs. The per-URL data cap fixed by 2.5.0 applied to the `android_vr` client's media URLs; YouTube killed that client on 2026-08-17 ([yt-dlp #17456](https://github.com/yt-dlp/yt-dlp/issues/17456)) and yt-dlp 2026.08.19 removed it from the defaults, adding the `visionos` client ([#17184](https://github.com/yt-dlp/yt-dlp/pull/17184), [#17461](https://github.com/yt-dlp/yt-dlp/pull/17461)); 2026.10.21 added `tv_samsung` as a default. Verified with stable yt-dlp 2026.10.26 on a commercial VPN exit: the default `main.py` path downloaded a full 4K video + audio + subtitles, and the comments API paged normally, with no 403 and no `--sabr`. README ("SABR downloads", option table), both `CLAUDE.md` files, and `_doc/programming_notes.md` updated; the retire-`venv-sabr` TODO is pushed to 2027-01 because [PR #13515](https://github.com/yt-dlp/yt-dlp/pull/13515) is still unmerged (last activity 2026-10-25).
+
 ## [2.6.0] - 2026-10-03
 
 ### Added
