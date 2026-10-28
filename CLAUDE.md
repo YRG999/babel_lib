@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## General Rules
 
 - When asked to explore or fix something, always check existing project code and files first before suggesting external tools or new approaches.
+- **"Checked and clean" vs. "never checked":** an empty result from a check (grep, linter, Pylance, a test) only counts if the check actually ran on the intended files. Before reporting "no problems"/"nothing found", confirm it ran: the exit status is meaningful (grep: `0` found, `1` none, `2` error), there's no shell error such as zsh's `no matches found`, and the files were actually covered (VS Code diagnostics include `linesInFile` for files that were checked). Report a check that didn't run as "not checked", never as clean. Also re-run checks **after the last edit**. Diagnostics read between edits can show problems that are only temporary (e.g. a link to a heading the next edit adds), and they miss problems introduced later, so only the final run counts. Examples elsewhere in this file: quoting zsh globs, markdownlint needing open files.
 - When asked to explore or fix something, also check `_notes/todo_*.md` (gitignored) for open items relevant to the area — an upstream bug to watch, a deferred fix, or context that could now be actionable.
 
 ## Repository Overview
@@ -69,7 +70,7 @@ bash dir_compare/dir_compare.sh <source> <dest> [--dry-run | --compare]
 
 Post-download analysis scripts for files produced by `youtube-downloader-app` and `ytdownload`. None of these are imported by the downloaders — all are run manually.
 
-- `analysis/` — chat CSV analysis, `.info.json` → CSV, Kick chat filtering, VOD offset backfill, timestamp converter
+- `analysis/` — chat CSV analysis, `.info.json` → CSV, Kick chat filtering, Kick chat sentiment (VADER), VOD offset backfill, timestamp converter
 - `convertcsv/` — convert manually copied YouTube live chat text to CSV (v2.4.0)
 - `word_frequency/` — word frequency analyzer for transcripts; filters stopwords to surface names and places
 
@@ -106,13 +107,14 @@ Established during the 2026-06-10 security review (rationale in `_doc/programmin
 - **Redact credentials in debug output.** When printing a command or request for debugging, replace cookie/token values with `<redacted>`.
 - **Dependencies:** pin minimum versions (`>=`) in `requirements.txt`; when adding a dependency to a submodule, add it to both the submodule and root requirements files.
 - **Chat/comment CSVs contain untrusted user text.** Do not add formula-prefix escaping (data must stay verbatim for analysis), and do not open them directly in Excel — see "Opening chat CSVs safely" in the youtube-downloader-app README.
-- **No PII or private items in anything that could be pushed to GitHub.** Redact personally-identifiable information (names, email addresses, account IDs, personal URLs, etc.) and other private details from code, docs, session summaries, and commit messages. This includes specific YouTube/Kick video, channel, or livestream URLs and IDs used as reproduction examples in bug reports or troubleshooting notes (e.g. `python main.py --transcript-only "<url>"`) — they reveal what the user watched or downloaded; genericize them (`<youtube shorts URL>`, `<video ID>`) instead of pasting the real one, even in a throwaway example. If something private must be recorded for the user, write it to a file in a folder already covered by `.gitignore` (e.g. `_notes/`) — or add the new file/folder to `.gitignore` first and verify with `git check-ignore <path>` before writing.
+- **No PII or private items in anything that could be pushed to GitHub.** Redact personally-identifiable information (names, email addresses, account IDs, personal URLs, etc.) and other private details from code, docs, session summaries, and commit messages. This includes specific YouTube/Kick video, channel, or livestream URLs and IDs used as reproduction examples in bug reports or troubleshooting notes (e.g. `python main.py --transcript-only "<url>"`) — they reveal what the user watched or downloaded; genericize them (`<youtube shorts URL>`, `<video ID>`) instead of pasting the real one, even in a throwaway example. The same applies to **usernames and message text from the user's chat/comment data** (e.g. names seen while profiling a chat CSV). Don't use them as examples in README usage lines, code comments, CHANGELOGs, or session summaries. Use made-up names (`examplebot42`, `<username>`) instead, and describe findings without names ("one link-spam account"). Well-known bot services (BotRix, Nightbot) are fine. Before finishing, scan the changed tracked files for any real names that came up during the session. If something private must be recorded for the user, write it to a file in a folder already covered by `.gitignore` (e.g. `_notes/`) — or add the new file/folder to `.gitignore` first and verify with `git check-ignore <path>` before writing.
 
 ## Documentation
 
 See [README.md § Additional documentation](README.md#additional-documentation) for the doc file index (`_doc/programming_notes.md`, `_doc/programming_reference.md`, `_doc/README.md`).
 
 - **Entries in `programming_notes.md` and `programming_reference.md`:** include both a technical explanation and a simple English explanation. The convention is a `### In plain English` subsection under the entry's heading that explains the same thing without jargon, using an everyday analogy where it helps.
+- **Markdown linting is the markdownlint VS Code extension** (`davidanson.vscode-markdownlint`, configured by the repo-root `.markdownlint.json`). It is not a terminal command or a Python package, so don't look for `markdownlint` on PATH or in the venv. To lint, read the results with the VS Code diagnostics tool. The extension only checks files that are **open in the editor**, so first ask the user to open the changed `.md` files. Only trust an empty result if it includes `linesInFile`; a bare empty list usually means the file wasn't checked at all.
 - **Cross-linking within a markdown file:** link to a real heading with `[text](#auto-generated-slug)` — GFM lowercases the heading text, strips punctuation, and turns spaces into hyphens to build the slug. Never add an `<a id="...">` HTML anchor to link to non-heading text (bold labels, plain prose); it trips markdownlint's MD033 (no-inline-html). If something needs to be a link target but isn't a heading yet, promote it to one instead. Mind heading nesting when placing a new one: a heading owns everything below it until the next heading of equal-or-higher level, so an added heading can accidentally swallow unrelated content that follows it — place it right before the next same-or-higher-level heading, or ensure nothing unrelated falls between it and one.
 
 ## After Every Change
@@ -122,6 +124,7 @@ After any code change, update all related documentation as applicable: `README.m
 ## Development Environment
 
 - **Shell:** macOS with bash 3.2. Avoid bash 4+ features — no associative arrays, no empty array expansion with `set -u`, etc.
+- **Interactive shell is zsh: quote glob patterns passed to commands.** zsh expands an unquoted `*`/`?` itself, and aborts the whole command with `no matches found` if nothing matches. For example, `grep -r --include=*.md …` fails before grep even runs. Write `--include='*.md'`, and quote `find -name '*.csv'` patterns the same way. When a command is a verification step (e.g. a scan for PII), check that it actually ran (exit status, no shell error) before trusting a "nothing found" result.
 
 ## Session Summaries
 

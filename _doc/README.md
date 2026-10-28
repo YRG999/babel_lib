@@ -38,7 +38,7 @@ End-of-session summaries of work done with Claude Code. One file per day; new se
 | `chat-summary_2026-09-18.md` | Added non-interactive CLI argument support to `convertcsv.py`; released `[2.4.0]` |
 | `chat-summary_2026-09-20.md` | Documented live-stream fragment 403s ("Retrying fragment") vs. the PO-token 403 in `programming_reference.md` |
 | `chat-summary_2026-10-03.md` | Added `--sabr --comments-only` / `--sabr-comments-only` (comments via `venv-sabr`); released `[2.6.0]` |
-| `chat-summary_2026-10-27.md` | Verified `--sabr` is no longer required on VPN IPs with yt-dlp ≥ 2026.08.19 (`android_vr` replaced by `visionos`/`tv_samsung`); demoted to fallback in docs; released `[2.6.1]` |
+| `chat-summary_2026-10-27.md` | Verified `--sabr` is no longer required on VPN IPs with yt-dlp ≥ 2026.08.19 (`android_vr` replaced by `visionos`/`tv_samsung`); demoted to fallback in docs; released `[2.6.1]`. Kick VOD video now downloaded from the HLS `source` (`[2.6.2]`). New `kick-csv-analysis.py` (VADER sentiment, `--filter` compare, bot check, `--exclude-users`). Pylance fixes. CLAUDE.md rules for chat-username PII, zsh glob quoting, and markdownlint-in-VS Code |
 
 ### `2024/`
 

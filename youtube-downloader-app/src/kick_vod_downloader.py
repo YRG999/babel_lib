@@ -88,7 +88,7 @@ def resolve_legacy_uuid(slug: str, url_uuid: str) -> str:
         if best_diff is None or diff < best_diff:
             best_uuid, best_diff = legacy, diff
 
-    if best_uuid is None or best_diff > 5:
+    if best_uuid is None or best_diff is None or best_diff > 5:
         raise click.ClickException(
             f"Could not resolve video ID {url_uuid} for channel {slug!r}. "
             "The VOD may be deleted or expired, or it is older than the channel's "
@@ -324,7 +324,8 @@ def main(url, video_only, chat_only, chat_delay):
 
         if not chat_only:
             click.echo("\nDownloading video via yt-dlp...")
-            result = subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", "--", video_url])
+            assert video_url is not None  # set above, or we raised unless --chat-only
+            result =subprocess.run(["yt-dlp", "-o", f"{safe_title}.%(ext)s", "--", video_url])
             if result.returncode != 0:
                 raise click.ClickException("yt-dlp failed (see output above).")
 

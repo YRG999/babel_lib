@@ -28,13 +28,12 @@ youtube-downloader-app
 │   ├── remove_dupe_lines.py    # Deduplicate transcript lines
 │   ├── firefox_cookie_export.py # Export Firefox cookies for yt-dlp
 │   ├── kick_live_downloader.py # Kick.com live stream downloader (Playwright + ffmpeg)
-│   ├── kick_vod_downloader.py  # Kick.com VOD + chat downloader
-│   ├── timestamp_converter.py  # EST/epoch timestamp converter utility
-│   ├── add_vod_offset.py       # Backfill vod_offset column in existing Kick VOD chat CSVs
-│   └── filter_chat.py          # Filter emote-only, repetitive, and reaction-flood messages from chat CSVs
+│   └── kick_vod_downloader.py  # Kick.com VOD + chat downloader
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This file
 ```
+
+Tools for analysing the downloaded files (chat filtering, sentiment, `vod_offset` backfill, timestamp conversion) are in [`youtube-study/analysis/`](../youtube-study/analysis/README.md). See [Analysing Kick chat](#analysing-kick-chat).
 
 ## Installation
 
@@ -344,46 +343,16 @@ Output is written to a new `kick_outputN/` folder:
 
 The `vod_offset` column is formatted as `H:MM:SS` and gives the playback position in the downloaded video where each message appears — computed as `message_timestamp − vod_start_time`. Chat messages include emotes as `[emote:ID:name]` tokens. The `duration` field unit (seconds vs. milliseconds) is auto-detected. Increase `--chat-delay` if you encounter `429` rate-limit responses.
 
-### Backfill: vod_offset for existing CSVs
+### Analysing Kick chat
 
-If you have a `_chat.csv` downloaded before `vod_offset` was added, use `add_vod_offset.py` to retroactively add the column without re-downloading:
+The `<title>_chat.csv` above is the input for the analysis scripts in [`youtube-study/analysis/`](../youtube-study/analysis/README.md). They moved out of `src/` on 2026-06-30, so run them from there:
 
-```zsh
-# metadata.json auto-detected from the same folder as the CSV
-python src/add_vod_offset.py kick_output1/title_chat.csv
-
-# metadata.json in a different location
-python src/add_vod_offset.py path/to/chat.csv path/to/metadata.json
-```
-
-Output is written to `<original_name>_with_offset.csv`. The original is not modified. If `vod_offset` already exists in the CSV it is dropped and recomputed, so the script is safe to run more than once.
-
-### Filtering chat noise — `filter_chat.py`
-
-Reduces a Kick VOD chat CSV to its substantive messages by removing four categories of noise:
-
-| Filter | What it removes |
+| Script | Use it to |
 | --- | --- |
-| Emote-only | Messages whose entire content is `[emote:ID:name]` tokens |
-| Internal repetition | Messages where the same 5-word sequence appears 3+ times (copy-paste spam) |
-| Per-user dedup | Identical messages from the same user within a rolling time window |
-| Reaction flood | Short reaction messages (e.g. "L", "W", "lol") seen too many times in a short window |
-
-```zsh
-python src/filter_chat.py path/to/chat.csv
-```
-
-Output is written to `<input>_filtered.csv`. The original is not modified.
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `-o / --output` | `<input>_filtered.csv` | Output file path |
-| `--user-dedup-window` | `120` | Seconds before a user can repeat the same message |
-| `--reaction-window` | `30` | Sliding window (seconds) for reaction flood detection |
-| `--reaction-max` | `5` | Max occurrences of a short reaction per window |
-| `--reaction-len` | `15` | Messages at or under this character count are treated as reactions |
-| `--no-emote-filter` | — | Keep emote-only messages |
-| `--no-repeat-filter` | — | Keep internally repetitive messages |
+| `kick-csv-analysis.py` | Score chat sentiment over the VOD timeline, rank users, and check for bots. See the [walkthrough](../youtube-study/analysis/README.md#walkthrough-analysing-a-kick-chat). |
+| `filter_chat.py` | Remove emote-only, copy-paste, and reaction-flood noise |
+| `add_vod_offset.py` | Add the `vod_offset` column to a `_chat.csv` downloaded before that column existed |
+| `timestamp_converter.py` | Convert between EST times and Unix timestamps |
 
 ## Opening chat CSVs safely
 

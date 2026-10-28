@@ -209,7 +209,7 @@ See [youtube-downloader-app README](/youtube-downloader-app/README.md) for more 
 
 Stand-alone analysis tools for files produced by `youtube-downloader-app` and `ytdownload`:
 
-- `youtube-study/analysis/` — chat analysis (`analyze.py`), metadata extraction (`infojson2csv.py`), Kick chat filtering (`filter_chat.py`), VOD offset backfill (`add_vod_offset.py`), timestamp converter (`timestamp_converter.py`).
+- `youtube-study/analysis/` — chat analysis (`analyze.py`), metadata extraction (`infojson2csv.py`), Kick chat filtering (`filter_chat.py`), Kick chat sentiment analysis with bot check (`kick-csv-analysis.py`), VOD offset backfill (`add_vod_offset.py`), timestamp converter (`timestamp_converter.py`).
 - `youtube-study/convertcsv/convertcsv.py` — convert manually copied YouTube live chat text blocks to CSV.
 - `youtube-study/word_frequency/word_freq.py` — count significant word frequencies in transcripts, filtering stopwords to surface names and places.
 

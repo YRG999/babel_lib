@@ -23,7 +23,7 @@ CLI tools for downloading YouTube and Kick.com videos, metadata, transcripts, an
 | `src/extract_comments.py` | Extract comments from yt-dlp `.info.json` to CSV |
 | `src/firefox_cookie_export.py` | Export Firefox cookies for yt-dlp authenticated downloads |
 
-> **Analysis tools** (`filter_chat.py`, `add_vod_offset.py`, `timestamp_converter.py`) have moved to [`youtube-study/analysis/`](../youtube-study/analysis/).
+> **Analysis tools** (`filter_chat.py`, `add_vod_offset.py`, `timestamp_converter.py`) have moved to [`youtube-study/analysis/`](../youtube-study/analysis/). That folder also holds `kick-csv-analysis.py` (VADER sentiment and bot check for the `_chat.csv` written by `kick_vod_downloader.py`). Changing the chat CSV columns can break it, because it requires `vod_offset`, `timestamp`, `username`, `message`, `type`.
 
 ## Dependencies
 

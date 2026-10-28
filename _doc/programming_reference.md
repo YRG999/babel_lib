@@ -7,6 +7,7 @@
 - [Git](#git)
 - [Programming notes \& links](#programming-notes--links)
 - [Python \& pip](#python--pip)
+- [Shell (zsh)](#shell-zsh)
 - [Claude Code](#claude-code)
 - [Reference](#reference)
 
@@ -297,9 +298,47 @@ Source: *Google search*
 - [rapidapi.com](https://rapidapi.com/hub)
 - [api-ninjas.com](https://api-ninjas.com/)
 
+## Shell (zsh)
+
+### Shortening a long script path with a variable (`$KCA`)
+
+The [Kick chat walkthrough](../youtube-study/analysis/README.md#walkthrough-analysing-a-kick-chat) runs `kick-csv-analysis.py` from inside a `kick_outputN/` folder, several directories away from where the script lives. Instead of typing the full path each time, it saves the path in a shell variable once:
+
+```zsh
+cd /path/to/babel_lib                                   # must be the repo root
+KCA="$PWD/youtube-study/analysis/kick-csv-analysis.py"  # save the path
+cd youtube-downloader-app/src/kick_outputN              # go anywhere
+python "$KCA" *_chat.csv --filter filtered              # use it
+```
+
+How it works:
+
+- **Assignment:** `NAME=value`, with **no spaces around `=`**. `KCA = "…"` would make zsh try to run a command called `KCA`.
+- **`$PWD` is expanded once, at assignment.** `$PWD` holds the current directory, so the variable stores an absolute path such as `/Users/<you>/…/kick-csv-analysis.py`. After that it no longer depends on where you are, which is why it still works after `cd`. Run the assignment from the repo root, or the path will point at the wrong place.
+- **Use it as `"$KCA"`, in double quotes.** The shell replaces `$KCA` with its value before `python` starts, so Python just sees the full path. The quotes keep the path in one piece if it contains spaces. zsh would actually manage without them, because it doesn't split variables on spaces by default, but bash would split it, so quoting works in both.
+- **Lifetime:** it's a plain shell variable, so it exists only in that terminal tab until you close it. A new tab starts without it: `echo "$KCA"` prints an empty line, and `python "$KCA"` becomes `python ""`. Python treats the empty name as the current folder and fails with the confusing `can't find '__main__' module in '<current folder>'`. If you see that error, the variable is unset. Run the assignment again in each new tab. It isn't `export`ed, and doesn't need to be, because the shell fills in the value before Python starts, so Python never has to look the variable up.
+- **To make it permanent**, put the line in `~/.zshrc` with the absolute path written out (`$PWD` there would be wherever new terminals start). Or define an alias that includes `python`: `alias kca='python /path/to/babel_lib/youtube-study/analysis/kick-csv-analysis.py'`, then run `kca *_chat.csv …`. The walkthrough uses a per-session variable because it doesn't touch your shell config.
+
+**Why the name `KCA`:** it's the initials of **K**ick-**C**SV-**A**nalysis, three letters that are quick to type. It's uppercase so it stands out in a command as "this is a variable", the same as `PWD` or `HOME`. Before using it, I checked that nothing on this machine already uses `KCA` or `kca` as a variable, alias or command. The trade-offs:
+
+- It's cryptic until it's explained, which is why the walkthrough defines it right before first use. `KICK_ANALYSIS` would be clearer but longer to type.
+- By convention, uppercase names are mostly used for system and environment variables (`PATH`, `HOME`). Lowercase (`kca`) is the safer choice for personal variables in a long-lived config such as `~/.zshrc`. For a one-off in a single terminal session, the clearer visual signal won.
+
+#### In plain English
+
+A variable is a nickname for something long. It's like saving a phone number as a contact, "Mom", so you don't have to dial all ten digits every time. Here, `KCA` is the contact name and the long file location is the number. Writing `"$KCA"` (the `$` means "look up this nickname") tells the terminal to swap in the full location before it runs the command.
+
+Three things to know:
+
+- **Set it from the right place.** The nickname is built from the folder you're in when you create it, so create it from the project's main folder.
+- **It's forgotten when the window closes.** Each new terminal window or tab starts with a blank memory, so you set the nickname again. To make it permanent, it can go in the terminal's startup settings file (`~/.zshrc`).
+- **Keep the quotes.** They make sure that if a folder name contains a space, the terminal treats the whole location as one item instead of breaking it into pieces.
+
+The name is just the initials of **K**ick **C**SV **A**nalysis, written in capitals so it's easy to spot as a nickname in a command.
+
 ## Security concepts (from the 2026-06-10 youtube-downloader-app fixes)
 
-Plain-language explanations of the security issues fixed in `youtube-downloader-app` on 2026-06-10 (CHANGELOG version 2.3.0). Each entry explains the underlying concept, why it matters, and what the fix was.
+Plain-language explanations of the security issues fixed in `youtube-downloader-app` on 2026-06-10 (CHANGELOG version 2.3.0). Each entry explains the underlying concept, why it matters, and what the fix was. Entries added later give their own date in the heading.
 
 ### TLS certificate verification (`nocheckcertificate`)
 
@@ -368,6 +407,32 @@ Minimum-version pins (`requests>=2.31.0`) are a light-touch middle ground: they 
 Spreadsheet programs treat a cell that begins with `=` (and sometimes `+`, `-`, or `@`) as a **formula**, not text — and this applies even to plain `.csv` files. Old Excel formula families like `=DDE(...)` could launch external programs. Now consider that the chat CSVs in this project contain messages typed by *arbitrary strangers on the internet*. A malicious viewer only has to type a message starting with `=` and wait for someone to open the downloaded chat log in Excel. The file itself is harmless; the spreadsheet app is what executes it. This is the same lesson as argument injection: untrusted data ending up somewhere it gets *interpreted*.
 
 The standard fix is to prefix risky cells with `'` or a space, but that alters the message text, and these CSVs exist for chat analysis where exact text matters. So the decision (recorded in the README, "Opening chat CSVs safely") was to leave the data verbatim and handle the files safely instead: open them in a text editor or pandas, or use a spreadsheet's *import as text* path rather than double-clicking the file.
+
+### Chat usernames in tracked files, and a PII scan that silently didn't run (2026-10-27)
+
+While building `youtube-study/analysis/kick-csv-analysis.py` (see the [2026-10-27 session summary, Session 3](claude_summaries/chat-summary_2026-10-27.md#session-3)), two separate mistakes happened, and together they nearly let private data through.
+
+**1. Usernames from the data ended up in docs and code.** To design the bot check, the chat CSV was profiled: per-user message counts, link share, and so on. That analysis printed real chat usernames to the terminal. When the README and code were written right afterwards, those names were the closest examples to hand, so three of them ended up in tracked files: two README examples (a `--exclude-users` usage line and the "bot in the name" row) and a regex comment. Everything tracked is meant to be pushed to GitHub, where it is public and stays in git history even after a later fix, unless the history is rewritten. Chat usernames are PII: they can point to real people, and alongside a channel name they reveal which streams the user watched. They were caught before any commit and replaced with made-up names (`examplebot42`, `<other username>`). Well-known bot services such as BotRix are not personal and can stay.
+
+**2. The scan meant to catch them never ran.** The check was:
+
+```zsh
+grep -rnE 'name1|name2' --include=*.md --include=*.py … || echo "no private names in tracked docs/code"
+```
+
+Before running any command, the shell expands wildcards (`*`, `?`) into matching file names. zsh, unlike bash, treats a wildcard that matches nothing as an error (its `NOMATCH` option is on by default). It prints `no matches found: --include=*.md` and **doesn't run the command at all**, with exit status 1. bash quietly passes the unmatched text through unchanged, which is why the unquoted form shows up in so many tutorials and usually works. Here, the `|| echo …` fallback ran because the left side failed. It couldn't tell "grep found nothing" (exit 1) from "grep crashed" (exit 2) or "grep never started", so it printed an all-clear for a scan that never happened. Re-running with quoted patterns, `--include='*.md'`, found the remaining name in the code comment.
+
+The fixes, now recorded in `CLAUDE.md`:
+
+- The PII rule covers usernames and message text from chat/comment data used as examples. Changed tracked files get scanned for any real names seen during the session before work is finished.
+- Glob patterns passed to commands are quoted (`--include='*.md'`, `find -name '*.csv'`).
+- A verification command must be confirmed to have *run* before its empty result is trusted. Print the exit status (`…; echo "exit=$?"`) instead of hiding it behind `|| echo ok`. For grep, `0` means found, `1` means not found, and `2` means it hit an error.
+
+#### In plain English
+
+The first mistake is like a journalist who interviews people for background and then, writing up the story in a hurry, uses a real interviewee's name as "for example" in the article. The names came from your downloaded chat log, which is private research material. The docs and code are headed for GitHub, where anyone can read them, and deleting something later doesn't erase the record of it. So examples should always use invented names.
+
+The second mistake is the more dangerous kind. It's like a smoke detector with a dead battery: no alarm sounds, so everyone assumes there's no fire. Before a command runs, the shell (the program that reads what you type in Terminal) tries to swap `*.md` for a list of matching file names. If none match, zsh, the Mac's default shell, gives up and refuses to run the command. The check was written as "search for the names, and if that doesn't succeed, print *all clear*". Refusing to run counts as "didn't succeed", so it printed *all clear* without having searched at all. Putting the pattern in quotes (`'*.md'`) tells the shell to leave it alone and pass it to the program as-is. The broader lesson: when a safety check says "nothing found", first make sure it actually looked.
 
 ## Claude Code
 

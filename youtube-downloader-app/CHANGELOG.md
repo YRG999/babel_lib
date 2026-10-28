@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- README: removed the out-of-date `src/add_vod_offset.py`, `src/filter_chat.py` and `src/timestamp_converter.py` entries from Project Structure, and replaced the "Backfill: vod_offset" and "Filtering chat noise" sections. Those scripts moved to `youtube-study/analysis/` on 2026-06-30, so the documented `python src/...` commands no longer worked. A short "Analysing Kick chat" section now lists the analysis scripts and links to `youtube-study/analysis/README.md`. The `filter_chat.py` options table and the `add_vod_offset.py` re-run note moved there.
+
+### Fixed
+
+- `kick_vod_downloader.py`: cleared two Pylance type errors (`reportOptionalOperand` in `resolve_legacy_uuid()`, `reportArgumentType` on the yt-dlp `subprocess.run` call). In both, a value that can't actually be `None` at that point was typed `X | None`. The `best_diff` check now rules out `None` explicitly, and an `assert video_url is not None` restates the existing guarantee before the download. Runtime behaviour is unchanged.
+
 ## [2.6.2] - 2026-10-27
 
 ### Fixed
